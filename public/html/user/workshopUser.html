@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop Keuze</title>
+    <link rel="stylesheet" href="/css/workshopUser/popup.css">
+    <link rel="stylesheet" href="/css/workshopUser/viewPopup.css">
+    <link rel="stylesheet" href="/css/workshopUser/detailPopup.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header>
+    <div class="logo"><img src="../../image/logo.png" alt="Logo"></div>
+    <div class="search-container">
+        <span class="icon" id="searchIcon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Zoek workshops...">
+    </div>
+</header>
+<!-- Foutmelding container -->
+<div id="errorContainer" class="error-container" style="display:none;">
+    <span id="errorMessage"></span>
+    <button id="closeErrorBtn">&times;</button>
+</div>
+
+<main>
+    <div class="workshop-grid" id="workshopGrid"></div>
+</main>
+
+<!-- Detail popup -->
+<div class="popup" id="workshopDetailsPopup">
+    <div class="popup-content workshop-form">
+        <span class="close" id="closeDetailsPopupBtn">&times;</span>
+        <div class="popup-header"><img src="../../image/logo.png" class="popup-logo"></div>
+
+        <div class="popup-body">
+            <div class="popup-left">
+                <div class="media-upload">
+                    <div id="detailMediaContainer"></div>
+                    <button id="prevDetailMedia">◀</button>
+                    <button id="nextDetailMedia">▶</button>
+                </div>
+                <!-- Bestanden per categorie (zelfde structuur als create popup) -->
+                <div id="detailFilesContainer">
+                    <div class="file-category" data-category="instructions">
+                        <div class="file-category-header">Instructies <i class="fa fa-chevron-down"></i></div>
+                        <div class="file-category-content">
+                            <ul class="category-file-list" id="detail_instructionsList"></ul>
+                        </div>
+                    </div>
+
+                    <div class="file-category" data-category="manuals">
+                        <div class="file-category-header">Handleiding <i class="fa fa-chevron-down"></i></div>
+                        <div class="file-category-content">
+                            <ul class="category-file-list" id="detail_manualsList"></ul>
+                        </div>
+                    </div>
+
+                    <div class="file-category" data-category="demo">
+                        <div class="file-category-header">Demo code <i class="fa fa-chevron-down"></i></div>
+                        <div class="file-category-content">
+                            <ul class="category-file-list" id="detail_demoList"></ul>
+                        </div>
+                    </div>
+
+                    <div class="file-category" data-category="worksheets">
+                        <div class="file-category-header">Werkbladeren <i class="fa fa-chevron-down"></i></div>
+                        <div class="file-category-content">
+                            <ul class="category-file-list" id="detail_worksheetsList"></ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="popup-right">
+                <label>Naam</label><input type="text" id="detailName" readonly>
+                <label>Omschrijving</label><textarea id="detailDesc" readonly></textarea>
+                <label>Duur</label><input type="time" id="detailDuration" readonly>
+                <label>Labels</label><div id="detailLabelPreview"></div>
+
+                <label>Oudertoestemming</label>
+                <input type="checkbox" id="detailParentalConsent">
+
+
+            </div>
+        </div>
+        <!-- Lightbox voor mediaweergave -->
+        <div id="mediaLightbox" class="lightbox">
+            <span class="close-lightbox">&times;</span>
+            <img id="lightboxImage" src="" alt="Vergrote weergave">
+            <video id="lightboxVideo" controls></video>
+        </div>
+
+    </div>
+</div>
+
+<script src="/js/user/workshopView.js"></script>
+
+
+
+</body>
+</html>

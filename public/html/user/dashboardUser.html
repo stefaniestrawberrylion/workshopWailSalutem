@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/workshopUser/dashboardUser.css">
+
+    <title>User Dashboard</title>
+    <style>
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>Welkom, <span id="username">Gebruiker</span>!</h1>
+</header>
+
+<div class="container">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <button onclick="alert('Profiel geopend')">Profiel</button>
+        <button onclick="alert('Instellingen geopend')">Instellingen</button>
+        <button onclick="alert('Uitgelogd')">Uitloggen</button>
+    </div>
+
+    <div class="main">
+        <h2>Overzicht</h2>
+        <div class="card">
+            <strong>Berichten:</strong> 5
+        </div>
+        <div class="card">
+            <strong>Notificaties:</strong> 3
+        </div>
+        <div class="card">
+            <strong>Laatste login:</strong> 16-10-2025 10:00
+        </div>
+    </div>
+</div>
+<div class="sidebar">
+    <h2>Menu</h2>
+    <button onclick="window.location.href='/workshopUser'">Workshop</button>
+</div>
+
+<script>
+    // Voorbeeld van dynamische username
+    const username = "Stefanie";
+    document.getElementById('username').textContent = username;
+</script>
+</body>
+</html>

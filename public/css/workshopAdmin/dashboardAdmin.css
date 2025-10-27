@@ -1,0 +1,191 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* Header met logo links en gecentreerde titel */
+header {
+    background-color: #5481B7;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    position: relative;
+}
+
+header img {
+    height: 50px;
+    margin-right: 20px;
+}
+
+header h1 {
+    font-size: 24px;
+    margin: 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.dashboard {
+    display: flex;
+    gap: 30px;
+    padding: 20px;
+}
+
+/* Linkerkolom: navigatie */
+.sidebar {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar a {
+    text-decoration: none;
+}
+
+.sidebar button {
+    width: 100%;
+    background-color: #5481B7;
+    color: white;
+    border: none;
+    padding: 15px 0;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.sidebar button:hover {
+    background-color: #3f6390;
+}
+
+/* Rechterkolom: content */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h2 {
+    margin-top: 0;
+}
+
+/* Tabel styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+thead {
+    background-color: #5481B7;
+    color: white;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/*tr:hover {*/
+/*    background-color: #f0f4f8;*/
+/*}*/
+
+/* Knoppen in tabel */
+button.approveBtn, button.denyBtn {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-right: 5px;
+}
+
+button.approveBtn {
+    background-color: #27ae60;
+}
+
+button.approveBtn:hover {
+    background-color: #1e8449;
+}
+
+button.denyBtn {
+    background-color: #e74c3c;
+}
+
+button.denyBtn:hover {
+    background-color: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: center;
+    }
+    header img {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    header h1 {
+        position: static;
+        transform: none;
+    }
+
+    .dashboard {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    .sidebar button {
+        width: auto;
+        padding: 10px 20px;
+    }
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+    }
+
+    th {
+        display: none; /* verberg header */
+    }
+
+    td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+    }
+
+    td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #5481B7;
+    }
+}

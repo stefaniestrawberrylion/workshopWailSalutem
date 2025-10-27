@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Inloggen / Email</title>
+  <link rel="stylesheet" href="/css/inLog.css">
+</head>
+<body>
+<div class="top-bar">
+  <a href="../index.html" class="back-link">← Terug</a>
+</div>
+<div class="card-container" id="cardContainer">
+  <!-- Linker paneel -->
+  <div class="panel left" id="leftPanel">
+    <div class="login">
+      <h2>Welkom terug</h2>
+      <p>Log in met je account</p>
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Wachtwoord">
+      <button>Log in</button>
+    </div>
+    <div class="email-input">
+      <h2>Vraag account aan</h2>
+      <p>Vul je gegevens in om een account aan te vragen</p>
+
+      <form id="registrationForm">
+        <div class="input-group">
+          <input
+                  type="email"
+                  id="email"
+                  name="user_email"
+                  placeholder="E-mailadres"
+                  required
+                  autocomplete="off"
+          />
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="firstName" placeholder="Voornaam" required>
+          <input type="text" id="lastName" placeholder="Achternaam" required>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="school" placeholder="School" required>
+          <input type="text" id="phone" placeholder="Telefoonnummer" required>
+        </div>
+
+        <div class="input-group password-group">
+          <input
+                  type="password"
+                  id="password"
+                  name="user_password"
+                  placeholder="Wachtwoord"
+                  autocomplete="new-password"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  required
+          />
+          <button type="button" class="toggle-password">🔓</button>
+        </div>
+        <small>Minimaal 12 tekens, 1 hoofdletter, 1 kleine letter, 1 speciaal teken (!@#$%&*)</small>
+
+
+        <button type="button" id="sendEmail">Versturen</button>
+      </form>
+    </div>
+
+
+  </div>
+
+  <!-- Rechter paneel -->
+  <div class="panel right" id="rightPanel">
+    <div class="info default">
+      <h3>Nieuw hier?</h3>
+      <p>Heb je nog geen account?</p>
+      <button id="showEmailForm">Klik hier</button>
+    </div>
+    <div class="info email-side">
+      <h3>Welkom terug!</h3>
+      <p>Wil je inloggen?</p>
+      <button id="backToLogin">Klik hier om in te loggen</button>
+    </div>
+  </div>
+</div>
+<script src="/js/inLog.js"></script>
+
+</body>
+</html>

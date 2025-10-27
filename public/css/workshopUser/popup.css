@@ -1,0 +1,304 @@
+/* Nieuw popup design */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Vergrote workshop popup */
+.popup-content.workshop-form {
+    width: 1200px;        /* breder */
+    height: 800px;        /* hoger */
+    max-width: 95%;
+    max-height: 95%;
+    background: #f1f4f8;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    position: relative;
+}
+
+/* Popup body - volledige beschikbare breedte gebruiken */
+.popup-body {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    flex: 1;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Linker paneel */
+.popup-left {
+    flex: 2;  /* linker paneel twee keer zo breed als rechter */
+    min-width: 600px; /* voorkomt dat het te smal wordt */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Rechter paneel */
+.popup-right {
+    flex: 1;  /* rechter paneel smaller */
+    min-width: 300px; /* voorkomt dat het te smal wordt */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Optioneel: inputs en buttons strekken volledig uit in rechter paneel */
+.popup-right input[type="text"],
+.popup-right textarea,
+.popup-right select,
+.popup-right button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Flex-grow fix zodat rechterpaneel netjes rechts blijft */
+.popup-content.workshop-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.popup-body {
+    display: flex;
+    flex: 1;
+    justify-content: space-between; /* linker en rechter paneel netjes gescheiden */
+    overflow-y: auto;
+}
+
+
+.popup-header {
+    background: #5481B7;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-logo {
+    height: 50px;
+}
+.workshopPopup:hover{
+    cursor: pointer;
+    transform: scale(1.1);
+}
+.media-upload, .download-section-upload {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.media-upload p, .download-section-upload p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #555;
+}
+
+.popup-right label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.popup-right input[type="text"],
+.popup-right textarea,
+.popup-content input[type="time"],
+.popup-content input[type="number"],
+.popup-content input[type="file"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.3s;
+    box-sizing: border-box;
+}
+
+.popup-right textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.popup-content input:focus,
+.popup-content textarea:focus {
+    outline: none;
+    border-color: #5481B7;
+    box-shadow: 0 0 5px rgba(84,129,183,0.3);
+}
+
+/* Popup buttons */
+.popup-buttons,
+.popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.popup-buttons button,
+.popup-footer button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+}
+
+.popup-buttons .btn-primary,
+.btn-primary {
+    background-color: #5481B7;
+    color: white;
+}
+
+.popup-buttons .btn-primary:hover,
+.btn-primary:hover {
+    background-color: #406495;
+}
+
+.popup-buttons .btn-secondary,
+.btn-secondary {
+    background-color: #eee;
+    color: #333;
+}
+
+.popup-buttons .btn-secondary:hover,
+.btn-secondary:hover {
+    background-color: #ddd;
+}
+
+/* Close icon */
+.popup .close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+.popup .close:hover {
+    color: #5481B7;
+}
+#workshopFilePreview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.file-item:hover {
+    background: #f0f0f0;
+}
+
+.file-item i {
+    font-size: 18px;
+    color: #5481B7;
+    width: 20px;
+    text-align: center;
+}
+
+.file-item span {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-file-btn {
+    border: none;
+    background: transparent;
+    color: #ff4d4d;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+.remove-file-btn:hover {
+    color: #e60000;
+}
+
+/* Container voor alle file-categories */
+.popup-right {
+    display: flex;
+    flex-direction: column; /* alles onder elkaar */
+    gap: 15px;              /* ruimte tussen de blokken */
+}
+
+/* Elk file-category blok */
+.file-category {
+    display: flex;
+    flex-direction: column;
+    background: #f1f4f8;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Header van het blok */
+.file-category-header {
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #5481B7;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+/* Content van het blok (bestanden) */
+.file-category-content {
+    display: none; /* standaard dicht, kan open via JS */
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 8px;
+}
+
+/* Lijst van bestanden */
+.category-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}

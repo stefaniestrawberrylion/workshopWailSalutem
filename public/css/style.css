@@ -1,0 +1,163 @@
+/* Algemene stijlen */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Inter', Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #5481B7;
+    color: white;
+    padding: 15px 30px;
+}
+
+header .logo img {
+    height: 70px;
+}
+
+header .icons {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    font-size: 24px;
+}
+
+/* Hero sectie */
+.hero-clean {
+    background-color: #5481B7;
+    color: white;
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.hero-clean h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.hero-clean h1 span {
+    font-weight: 700;
+}
+
+.hero-clean p {
+    max-width: 700px;
+    margin: 0 auto 40px auto;
+    font-size: 1.2rem;
+    line-height: 1.7;
+}
+
+.cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+@media (min-width: 600px) {
+    .cta-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.btn {
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 30px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn.teacher {
+    background-color: white;
+    color: #5481B7;
+}
+
+.btn.teacher:hover {
+    background-color: #e6e6e6;
+    transform: translateY(-2px);
+}
+
+.btn.child {
+    background-color: #2E4F75;
+    color: white;
+}
+
+.btn.child:hover {
+    background-color: #1e3550;
+    transform: translateY(-2px);
+}
+
+/* Info sectie */
+.info-clean {
+    background-color: white;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.info-clean h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2E4F75;
+    margin-bottom: 15px;
+}
+
+.info-clean p {
+    font-size: 1.1rem;
+    max-width: 750px;
+    margin: 0 auto 40px auto;
+    color: #555;
+}
+
+.info-grid {
+    display: grid;
+    gap: 25px;
+    grid-template-columns: 1fr;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+@media (min-width: 800px) {
+    .info-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.info-card {
+    background-color: #f8f9fb;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.info-card i {
+    font-size: 2rem;
+    color: #5481B7;
+    margin-bottom: 15px;
+}
+
+.info-card p {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+}

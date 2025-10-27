@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/workshopAdmin/dashboardAdmin.css">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<header>
+    <img src="/image/logo.png" alt="Logo">
+    <h1>Admin Dashboard</h1>
+</header>
+
+<div class="dashboard">
+    <!-- Linkerkolom: navigatie -->
+    <div class="sidebar">
+        <a href="/toevoegen"><button>Workshops</button></a>
+        <a href="/profielAdmin"><button>Gebruikersprofielen</button></a>
+    </div>
+
+    <!-- Rechterkolom: pending users -->
+    <div class="content">
+        <div class="section" id="pendingUsersSection">
+            <h2>Nieuwe aanmeldingen</h2>
+            <div id="notifications"></div>
+            <table id="pendingUsersTable">
+                <thead>
+                <tr>
+                    <th>Naam</th>
+                    <th>Email</th>
+                    <th>School</th>
+                    <th>Telefoon</th>
+                    <th>Acties</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Pending users worden hier dynamisch ingeladen -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin/dashboardAdmin.js"></script>
+</body>
+</html>
