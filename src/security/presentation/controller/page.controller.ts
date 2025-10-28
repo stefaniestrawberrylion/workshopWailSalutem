@@ -4,7 +4,7 @@ import { join } from 'path';
 
 @Controller()
 export class PageController {
-  @Get('inlog')
+  @Get('inLog')
   showLogin(@Res() res: Response) {
     return res.sendFile(
       join(__dirname, '..', '..', '..', 'public', 'html', 'inLog.html'),

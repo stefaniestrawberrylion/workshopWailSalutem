@@ -60,7 +60,7 @@ export class RegistrationController {
       return { message: 'Admin geregistreerd' };
     } catch (err: unknown) {
       throw new HttpException(
-        { message: getErrorMessage(err) },
+        { message: err instanceof Error ? err.message : String(err) },
         HttpStatus.BAD_REQUEST,
       );
     }

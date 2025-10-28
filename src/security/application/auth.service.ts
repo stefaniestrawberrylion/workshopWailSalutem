@@ -2,13 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-
-interface AuthenticatedUser {
-  email: string;
-  password: string;
-  username: string;
-  roles: string[];
-}
+import { Admin } from '../domain/admin.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 interface JwtPayload {
   sub: string;
@@ -23,36 +19,31 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @InjectRepository(Admin)
+    private readonly adminRepository: Repository<Admin>,
   ) {}
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<AuthenticatedUser> {
-    const user: AuthenticatedUser = {
-      email: 'admin@example.com',
-      password: await bcrypt.hash('password', 10),
-      username: 'admin',
-      roles: ['ROLE_ADMIN'],
-    };
+  async validateUser(email: string, password: string): Promise<Admin> {
+    const user = await this.adminRepository.findOne({ where: { email } });
+    if (!user) throw new UnauthorizedException('Ongeldige inloggegevens');
 
-    const isPasswordValid: boolean = await bcrypt.compare(
-      password,
-      user.password,
-    );
-
-    if (!isPasswordValid) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid)
       throw new UnauthorizedException('Ongeldige inloggegevens');
-    }
 
     return user;
   }
 
-  async login(user: AuthenticatedUser): Promise<{ access_token: string }> {
+  async login(user: Admin): Promise<{ access_token: string }> {
+    // Voeg "ROLE_" prefix toe voor consistentie
+    const role = user.role.startsWith('ROLE_')
+      ? user.role
+      : `ROLE_${user.role}`;
+
     const payload: JwtPayload = {
-      sub: user.username,
+      sub: user.email,
       email: user.email,
-      rol: user.roles,
+      rol: [role],
       iss: 'wailsalutem-workshops',
       aud: 'wailsalutem',
     };
