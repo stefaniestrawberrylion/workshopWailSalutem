@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:8080/api/workshops", {
+      const response = await fetch("http://localhost:3000/api/workshops", {
         headers: { "Authorization": "Bearer " + token }
       });
 
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const response = await fetch("http://localhost:8080/register/request", {
+        const response = await fetch("http://localhost:3000/register/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, firstName, lastName, school, phone })

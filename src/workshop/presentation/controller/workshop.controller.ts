@@ -31,7 +31,7 @@ interface MulterFile {
   size: number;
 }
 
-@Controller('/workshops')
+@Controller('api/workshops')
 export class WorkshopController {
   constructor(private readonly workshopService: WorkshopService) {}
 

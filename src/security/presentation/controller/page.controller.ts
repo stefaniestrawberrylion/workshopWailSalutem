@@ -4,90 +4,43 @@ import { join } from 'path';
 
 @Controller()
 export class PageController {
-  @Get('inLog')
+  @Get('inlog')
   showLogin(@Res() res: Response) {
-    return res.sendFile(
-      join(__dirname, '..', '..', '..', 'public', 'html', 'inLog.html'),
-    );
+    return res.sendFile(join(process.cwd(), 'public', 'html', 'inLog.html'));
   }
 
   @Get('toevoegen')
   showWorkshopToevoegen(@Res() res: Response) {
     return res.sendFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'public',
-        'html',
-        'admin',
-        'workshopToevoegen.html',
-      ),
+      join(process.cwd(), 'public', 'html', 'admin', 'workshopToevoegen.html'),
     );
   }
 
   @Get('dashboard')
   showDashboard(@Res() res: Response) {
     return res.sendFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'public',
-        'html',
-        'admin',
-        'dashboardAdmin.html',
-      ),
+      join(process.cwd(), 'public', 'html', 'admin', 'dashboardAdmin.html'),
     );
   }
 
   @Get('dashboardUser')
   showDashboardUser(@Res() res: Response) {
     return res.sendFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'public',
-        'html',
-        'user',
-        'dashboardUser.html',
-      ),
+      join(process.cwd(), 'public', 'html', 'user', 'dashboardUser.html'),
     );
   }
 
   @Get('workshopUser')
   showWorkshopUser(@Res() res: Response) {
     return res.sendFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'public',
-        'html',
-        'user',
-        'workshopUser.html',
-      ),
+      join(process.cwd(), 'public', 'html', 'user', 'workshopUser.html'),
     );
   }
 
   @Get('profielAdmin')
   showProfileAdmin(@Res() res: Response) {
     return res.sendFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'public',
-        'html',
-        'admin',
-        'gebruikersProfiel.html',
-      ),
+      join(process.cwd(), 'public', 'html', 'admin', 'gebruikersProfiel.html'),
     );
   }
 }

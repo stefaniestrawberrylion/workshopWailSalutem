@@ -2,44 +2,45 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Cache uitschakelen
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    res.setHeader(
-      'Cache-Control',
-      'no-store, no-cache, must-revalidate, proxy-revalidate',
-    );
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+  // Serve static assets vanaf public/
+  app.useStaticAssets(join(process.cwd(), 'public'));
+
+  // Debug: log alle requests
+  app.use((req, res, next) => {
+    console.log('Requested URL:', req.url);
     next();
   });
 
-  // Statische bestanden serveren
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+  // SPA fallback: alleen voor frontend routes, niet voor API
+  app.use((req, res, next) => {
+    const apiPaths = ['/register', '/auth', '/api']; // alle API routes
+    const ignoredPaths = [
+      '/inlog',
+      '/toevoegen',
+      '/dashboard',
+      '/dashboardUser',
+      '/workshopUser',
+      '/profielAdmin',
+      '/profielUser',
+    ];
 
-  // SPA fallback, controller-routes uitsluiten
-  const ignoredPaths = [
-    '/inLog',
-    '/toevoegen',
-    '/dashboard',
-    '/dashboardUser',
-    '/workshopUser',
-    '/profielAdmin',
-  ];
-
-  app.use((req: Request, res: Response, next: NextFunction): void => {
-    if (typeof req.path === 'string' && ignoredPaths.includes(req.path)) {
-      next(); // laat controller afhandelen
+    // Als request naar API gaat of expliciet genegeerd wordt, laat door
+    if (
+      apiPaths.some((p) => req.path.toLowerCase().startsWith(p)) ||
+      ignoredPaths.some((p) => req.path.toLowerCase().startsWith(p))
+    ) {
+      next();
       return;
     }
-    res.sendFile(join(__dirname, '..', 'public', 'index.html'));
+
+    // Anders fallback naar index.html
+    res.sendFile(join(process.cwd(), 'public', 'index.html'));
   });
 
   await app.listen(process.env.PORT ?? 3000);
 }
-
 bootstrap();

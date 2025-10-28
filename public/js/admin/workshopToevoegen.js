@@ -381,13 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const headers = getAuthHeaders();
         let response;
         if (currentWorkshopId) {
-          response = await fetch(`/api/workshops/${currentWorkshopId}`, {
+          response = await fetch(`http://localhost:3000/api/workshops/${currentWorkshopId}`, {
             method: 'PUT',
             body: formData,
             headers
           });
         } else {
-          response = await fetch('/api/workshops', {
+          response = await fetch('http://localhost:3000/api/workshops', {
             method: 'POST',
             body: formData,
             headers
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =======================
   async function loadWorkshops(){
     try{
-      const res = await fetch('/api/workshops', { headers: getAuthHeaders() });
+      const res = await fetch('http://localhost:3000/api/workshops', { headers: getAuthHeaders() });
       if(!res.ok) throw new Error('Fout bij ophalen workshops');
       const workshops = await res.json();
       renderWorkshops(workshops);
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function viewWorkshopDetails(id){
     try{
       currentWorkshopId = id;
-      const res = await fetch(`/api/workshops/${id}`, { headers: getAuthHeaders() });
+      const res = await fetch(`http://localhost:3000/api/workshops/${id}`, { headers: getAuthHeaders() });
       if(!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
       console.log('🔍 Workshop details geladen:', w);
@@ -709,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if(!confirmDelete) return;
 
       try{
-        const res = await fetch(`/api/workshops/${currentWorkshopId}`, {method:'DELETE', headers: getAuthHeaders()});
+        const res = await fetch(`http://localhost:3000/api/workshops/${currentWorkshopId}`, {method:'DELETE', headers: getAuthHeaders()});
         if(!res.ok) throw new Error('Fout bij verwijderen workshop');
 
         detailsPopup.style.display='none';
