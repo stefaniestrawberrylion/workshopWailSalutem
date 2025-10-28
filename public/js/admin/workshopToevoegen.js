@@ -55,10 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // =======================
   function getAuthHeaders() {
     const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Geen JWT token gevonden!");
     return {
-      "Authorization": token && token.startsWith("Bearer ") ? token : "Bearer " + token
+      Authorization: `Bearer ${token}`
     };
   }
+
   function showError(message) {
     const popup = document.getElementById('workshopPopup');
     const popupVisible = popup && popup.style.display === 'block';
@@ -341,11 +343,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if(saveBtn){
     saveBtn.addEventListener('click', async () => {
-      // Waarden uit de form ophalen
-      const name = document.getElementById('workshopName').value;
-      const desc = document.getElementById('workshopDesc').value;
-      const duration = document.getElementById('workshopDuration').value;
+      const name = document.getElementById('workshopName').value.trim();
+      const desc = document.getElementById('workshopDesc').value.trim();
+      const duration = document.getElementById('workshopDuration').value.trim();
       const parentalConsent = document.getElementById('parentalConsent').checked;
+
+      if(!name || !desc || !duration){
+        showError("Naam, beschrijving en duur zijn verplicht.");
+        return;
+      }
 
       const formData = new FormData();
       formData.append('name', name);
@@ -354,78 +360,63 @@ document.addEventListener('DOMContentLoaded', () => {
       formData.append("parentalConsent", parentalConsent);
       formData.append('labels', JSON.stringify(labels));
 
-      // Hoofdafbeelding
       if (mainImage) formData.append('image', mainImage);
 
-      // Media
       selectedMedia.forEach(file => formData.append('media', file));
-
-      // Documenten per categorie
       selectedInstructions.forEach(f => formData.append('instructionsFiles', f));
       selectedManuals.forEach(f => formData.append('manualsFiles', f));
       selectedDemo.forEach(f => formData.append('demoFiles', f));
       selectedWorksheets.forEach(f => formData.append('worksheetsFiles', f));
 
-
-      const documentMeta = [
+      formData.append('documentMeta', JSON.stringify([
         ...selectedInstructions.map(f => ({ name: f.name, category: 'instructions' })),
         ...selectedManuals.map(f => ({ name: f.name, category: 'manuals' })),
         ...selectedDemo.map(f => ({ name: f.name, category: 'demo' })),
         ...selectedWorksheets.map(f => ({ name: f.name, category: 'worksheets' })),
-      ];
-      formData.append('documentMeta', JSON.stringify(documentMeta));
-
-
+      ]));
 
       try {
-        const headers = getAuthHeaders();
-        let response;
-        if (currentWorkshopId) {
-          response = await fetch(`http://localhost:3000/api/workshops/${currentWorkshopId}`, {
-            method: 'PUT',
-            body: formData,
-            headers
-          });
-        } else {
-          response = await fetch('http://localhost:3000/api/workshops', {
-            method: 'POST',
-            body: formData,
-            headers
-          });
+        const token = localStorage.getItem("jwt");
+        console.log("🔑 JWT token from localStorage:", token);
+
+        if(!token){
+          console.error("❌ Geen token gevonden in localStorage!");
+          throw new Error("Geen JWT token beschikbaar");
         }
 
+        const headers = { "Authorization": `Bearer ${token}` };
+        console.log("📝 Headers voor fetch:", headers);
 
+        const url = currentWorkshopId
+          ? `http://localhost:3000/api/workshops/${currentWorkshopId}`
+          : 'http://localhost:3000/api/workshops';
 
-        if (!response.ok) throw new Error('Fout bij opslaan workshop');
+        const method = currentWorkshopId ? 'PUT' : 'POST';
+
+        console.log(`📡 Verzenden ${method} request naar ${url}...`);
+        const response = await fetch(url, {
+          method,
+          body: formData,
+          headers
+        });
+
+        console.log("Response status:", response.status);
+        const responseBody = await response.text();
+        console.log("Response body:", responseBody);
+
+        if(!response.ok){
+          throw new Error('Fout bij opslaan van de workshop');
+        }
 
         clearPopup();
         popup.style.display = 'none';
         await loadWorkshops();
-      } catch (e) {
-        alert(e.message);
+
+      } catch(e) {
+        console.error("💥 Error in saveBtn click handler:", e);
+        showError(e.message);
       }
     });
-  }
-// =======================
-// Helper: duration formatter
-// =======================
-  function formatDuration(duration) {
-    if (!duration) return "00:00";
-
-    // Als het al in "HH:MM" formaat is, direct teruggeven
-    if (typeof duration === 'string' && duration.includes(':')) {
-      const parts = duration.split(':');
-      const hours = parts[0].padStart(2, '0');
-      const minutes = parts[1].padStart(2, '0');
-      return `${hours}:${minutes}`;
-    }
-
-    // Als het een getal is, zoals 1.5 → 01:30
-    const num = parseFloat(duration);
-    if (isNaN(num)) return "00:00";
-    const hours = Math.floor(num);
-    const minutes = Math.round((num - hours) * 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
   // =======================
@@ -440,60 +431,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }catch(e){ alert(e.message); }
   }
 
+// =======================
+// Render workshops (grid)
+// =======================
   function renderWorkshops(workshops){
     grid.innerHTML = '';
-    workshops.forEach(w=>{
+    workshops.forEach(w => {
       const card = document.createElement('div');
       card.classList.add('workshop-card');
 
-      let firstImage = w.files?.find(m=>m.type==='image');
-      let imageUrl = firstImage ? firstImage.url : (w.imageUrl || '/image/default-workshop.png');
+      // Pak de eerste afbeelding, fallback naar main image of default
+      let firstImage = w.files?.find(m => m.type.startsWith('image'));
+      let imageUrl = firstImage
+        ? (firstImage.url.startsWith('http') ? firstImage.url : `http://localhost:3000${firstImage.url}`)
+        : (w.imageUrl ? (w.imageUrl.startsWith('http') ? w.imageUrl : `http://localhost:3000${w.imageUrl}`) : '/image/default-workshop.png');
+
       card.style.backgroundImage = `url('${imageUrl}')`;
 
       let durationStr = formatDuration(w.duration) + " uur";
 
-
       card.innerHTML = `
-                <div class="workshop-top">
-                    <div class="workshop-badge time">${durationStr}</div>
-                    <div class="like">♡</div>
-                </div>
-                <div class="workshop-info">
-                    <h3>${w.name}</h3>
-                    <p>${w.review || 'Nog geen review'}</p>
-                </div>
-                <button class="workshop-btn">View workshop</button>
-            `;
+      <div class="workshop-top">
+        <div class="workshop-badge time">${durationStr}</div>
+        <div class="like">♡</div>
+      </div>
+      <div class="workshop-info">
+        <h3>${w.name}</h3>
+        <p>${w.review || 'Nog geen review'}</p>
+      </div>
+      <button class="workshop-btn">View workshop</button>
+    `;
 
+      // Like knop
       const likeBadge = card.querySelector('.like');
       likeBadge.addEventListener('click', () => {
         likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
       });
 
+      // Open details popup
       const btn = card.querySelector('.workshop-btn');
-      btn.addEventListener('click', ()=>viewWorkshopDetails(w.id));
+      btn.addEventListener('click', () => viewWorkshopDetails(w.id));
 
       grid.appendChild(card);
     });
   }
 
-  // =======================
-  // View details
-  // =======================
+// =======================
+// View workshop details
+// =======================
   async function viewWorkshopDetails(id){
     try{
       currentWorkshopId = id;
+
       const res = await fetch(`http://localhost:3000/api/workshops/${id}`, { headers: getAuthHeaders() });
       if(!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
+
       console.log('🔍 Workshop details geladen:', w);
 
       // Basis info
       document.getElementById('detailName').value = w.name;
       document.getElementById('detailDesc').value = w.description;
-      const detailDuration = document.getElementById('detailDuration');
-      detailDuration.value = formatDuration(w.duration);
-
+      document.getElementById('detailDuration').value = formatDuration(w.duration);
+      document.getElementById('detailParentalConsent').checked = w.parentalConsent || false;
 
       // Labels
       detailLabelPreview.innerHTML = '';
@@ -501,32 +501,13 @@ document.addEventListener('DOMContentLoaded', () => {
       labelsArray.forEach(label => {
         const span = document.createElement('span');
         span.textContent = label.name;
-
-        // Laat CSS het meeste doen
         span.style.backgroundColor = label.color;
         span.style.borderColor = label.color;
         span.style.color = getContrastYIQ(label.color);
-
         detailLabelPreview.appendChild(span);
       });
 
-      // Oudertoestemming
-      const detailParentalConsent = document.getElementById('detailParentalConsent');
-      detailParentalConsent.checked = w.parentalConsent || false;
-
-// Maak het niet disabled, maar voorkom interactie
-      detailParentalConsent.addEventListener('click', e => e.preventDefault());
-
-
-
-
-      // Clear bestaande lijsten
-      detailInstructionsList.innerHTML = '';
-      detailManualsList.innerHTML = '';
-      detailDemoList.innerHTML = '';
-      detailWorksheetsList.innerHTML = '';
-
-
+      // Clear categorie-lijsten
       detailInstructionsList.innerHTML = '';
       detailManualsList.innerHTML = '';
       detailDemoList.innerHTML = '';
@@ -534,7 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => {
-          // f is nu direct een DocumentInfo object
           const li = document.createElement('li');
           li.style.display = 'flex';
           li.style.alignItems = 'center';
@@ -571,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
           right.style.alignItems = 'center';
           right.style.gap = '8px';
 
-          if (f.size) {
+          if(f.size){
             const size = document.createElement('span');
             size.textContent = `${(f.size / 1024).toFixed(1)} KB`;
             size.style.fontSize = '12px';
@@ -581,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const downloadLink = document.createElement('a');
           downloadLink.textContent = 'Download';
-          downloadLink.href = f.url || '#';
+          downloadLink.href = f.url.startsWith('http') ? f.url : `http://localhost:3000${f.url}`;
           downloadLink.setAttribute('download', f.name || 'bestand');
           downloadLink.style.background = '#007bff';
           downloadLink.style.color = 'white';
@@ -590,68 +570,63 @@ document.addEventListener('DOMContentLoaded', () => {
           downloadLink.style.borderRadius = '4px';
           downloadLink.style.cursor = 'pointer';
           downloadLink.style.textDecoration = 'none';
-          downloadLink.addEventListener('click', (e) => e.stopPropagation());
+          downloadLink.addEventListener('click', e => e.stopPropagation());
           right.appendChild(downloadLink);
 
           li.appendChild(right);
 
-          // Push in juiste categorie lijst
+          // Plaats in juiste categorie
           const cat = (f.category || f.type || 'worksheets').toLowerCase();
-          if (cat === 'instructions') detailInstructionsList.appendChild(li);
-          else if (cat === 'manuals' || cat === 'handleiding') detailManualsList.appendChild(li);
-          else if (cat === 'demo') detailDemoList.appendChild(li);
-          else detailWorksheetsList.appendChild(li); // fallback
+          if(cat==='instructions') detailInstructionsList.appendChild(li);
+          else if(cat==='manuals' || cat==='handleiding') detailManualsList.appendChild(li);
+          else if(cat==='demo') detailDemoList.appendChild(li);
+          else detailWorksheetsList.appendChild(li);
         });
       }
-
-
 
       // Slideshow media
       const container = document.getElementById('detailMediaContainer');
       container.innerHTML = '';
       const mediaFiles = w.files || [];
-      mediaFiles.forEach((file,i)=>{
+      mediaFiles.forEach((file,i) => {
         let el;
-        if(file.type==='image' || file.type.startsWith('image')){
+        const fileUrl = file.url.startsWith('http') ? file.url : `http://localhost:3000${file.url}`;
+
+        if(file.type.startsWith('image')){
           el = document.createElement('img');
-          el.src = file.url;
-        } else if(file.type==='video' || file.type.startsWith('video')){
+          el.src = fileUrl;
+        } else if(file.type.startsWith('video')){
           el = document.createElement('video');
-          el.src = file.url;
+          el.src = fileUrl;
           el.controls = true;
-        } else {
-          if(file.url && /\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)){
-            el = document.createElement('img');
-            el.src = file.url;
-          } else return;
-        }
-        el.style.display = i===0?'block':'none';
+        } else if(/\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)){
+          el = document.createElement('img');
+          el.src = fileUrl;
+        } else return;
+
+        el.style.display = i===0 ? 'block' : 'none';
         container.appendChild(el);
       });
 
       // Slideshow knoppen
       let currentIndex = 0;
-      prevBtn.onclick = ()=>{
+      prevBtn.onclick = () => {
         if(!container.children.length) return;
-        container.children[currentIndex].style.display='none';
-        currentIndex = (currentIndex-1+container.children.length)%container.children.length;
-        container.children[currentIndex].style.display='block';
+        container.children[currentIndex].style.display = 'none';
+        currentIndex = (currentIndex - 1 + container.children.length) % container.children.length;
+        container.children[currentIndex].style.display = 'block';
       };
-      nextBtn.onclick = ()=>{
+      nextBtn.onclick = () => {
         if(!container.children.length) return;
-        container.children[currentIndex].style.display='none';
-        currentIndex = (currentIndex+1)%container.children.length;
-        container.children[currentIndex].style.display='block';
+        container.children[currentIndex].style.display = 'none';
+        currentIndex = (currentIndex + 1) % container.children.length;
+        container.children[currentIndex].style.display = 'block';
       };
-
-      // Zorg dat alle categorieën zichtbaar zijn
-      document.querySelectorAll('#detailFilesContainer .file-category-content').forEach(content => {
-        content.style.display = 'none';
-        content.style.flexDirection = 'column';
-      });
 
       detailsPopup.style.display = 'flex';
-    }catch(e){ alert(e.message); }
+    } catch(e) {
+      alert(e.message);
+    }
   }
 
 
@@ -792,6 +767,26 @@ document.addEventListener('DOMContentLoaded', () => {
       lightboxVideo.src = '';
     }
   });
+  function formatDuration(minutes) {
+    // als input al een string is, gewoon teruggeven
+    if (typeof minutes === 'string') return minutes;
+
+    const m = Number(minutes);
+    if (isNaN(m)) return '0';
+
+    const hours = Math.floor(m / 60);
+    const mins = m % 60;
+    if (hours > 0) return `${hours}u ${mins}m`;
+    return `${mins}m`;
+  }
+  fetch('http://localhost:3000/api/workshops/test-auth', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+    }
+  })
+    .then(r => r.json())
+    .then(console.log)
+    .catch(console.error);
 
   // =======================
   // Init

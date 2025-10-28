@@ -2,10 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
+  const config = app.get(ConfigService);
+  console.log('DEBUG JWT_SECRET:', config.get('JWT_SECRET'));
   // Serve static assets vanaf public/
   app.useStaticAssets(join(process.cwd(), 'public'));
 

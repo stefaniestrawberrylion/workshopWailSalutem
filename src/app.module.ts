@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { WorkshopModule } from './workshop/workshop.module';
 import { SecurityModule } from './security/security.module';
 import { PageController } from './security/presentation/controller/page.controller';
-import { RegistrationModule } from './security/presentation/controller/registration.module'; // nieuw
+import { RegistrationModule } from './security/presentation/controller/registration.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
@@ -19,7 +21,7 @@ import { RegistrationModule } from './security/presentation/controller/registrat
     }),
     WorkshopModule,
     SecurityModule,
-    RegistrationModule, // toegevoegd
+    RegistrationModule,
   ],
   controllers: [PageController],
   providers: [],

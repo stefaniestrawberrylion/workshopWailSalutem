@@ -10,9 +10,11 @@ import {
   UploadedFiles,
   ParseIntPipe,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import type { Request } from 'express';
 import { WorkshopService } from '../../application/workshop.service';
 import { WorkshopDto } from '../dto/workshop.dto';
 import { Workshop } from '../../domain/workshop.entity';
@@ -20,7 +22,7 @@ import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
 import { CreateWorkshopDto } from '../dto/create.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 
 interface MulterFile {
   fieldname: string;
@@ -31,10 +33,32 @@ interface MulterFile {
   size: number;
 }
 
+interface JwtPayload {
+  sub: string;
+  email: string;
+  roles: string[];
+  iat: number;
+  exp: number;
+}
+
+interface AuthenticatedRequest extends Request {
+  user?: JwtPayload;
+}
+
 @Controller('api/workshops')
 export class WorkshopController {
   constructor(private readonly workshopService: WorkshopService) {}
+  @Get('test-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  testAuth(@Req() req: AuthenticatedRequest) {
+    console.log('req.user:', req.user);
+    return { user: req.user };
+  }
 
+  // =======================
+  // Alle workshops ophalen
+  // =======================
   @Get()
   async getAllWorkshops(): Promise<WorkshopDto[]> {
     const workshops = await this.workshopService.getAllWorkshops();
@@ -50,8 +74,11 @@ export class WorkshopController {
     return this.toDto(workshop);
   }
 
+  // =======================
+  // Workshop toevoegen (ADMIN only)
+  // =======================
   @Post()
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -67,6 +94,7 @@ export class WorkshopController {
     ),
   )
   async createWorkshop(
+    @Req() req: AuthenticatedRequest,
     @Body() body: CreateWorkshopDto,
     @UploadedFiles()
     files: {
@@ -78,6 +106,10 @@ export class WorkshopController {
       worksheetsFiles?: MulterFile[];
     },
   ): Promise<WorkshopDto> {
+    console.log('🔑 User from request:', req.user);
+    console.log('📦 Files received:', files);
+    console.log('📝 Body received:', body);
+
     const workshop = await this.workshopService.saveWorkshop(
       body,
       files.image?.[0],
@@ -91,13 +123,19 @@ export class WorkshopController {
     return this.toDto(workshop);
   }
 
+  // =======================
+  // Workshop verwijderen (ADMIN only)
+  // =======================
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async deleteWorkshop(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.workshopService.deleteWorkshop(id);
   }
 
+  // =======================
+  // Helper: DTO converter
+  // =======================
   private toDto(w: Workshop): WorkshopDto {
     return new WorkshopDto({
       id: w.id,
@@ -127,4 +165,5 @@ export class WorkshopController {
       labels: Array.isArray(w.labelsJson) ? w.labelsJson : [],
     });
   }
+
 }

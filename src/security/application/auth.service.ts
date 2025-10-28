@@ -6,14 +6,6 @@ import { Admin } from '../domain/admin.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-interface JwtPayload {
-  sub: string;
-  email: string;
-  rol: string[];
-  iss: string;
-  aud: string;
-}
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -35,19 +27,13 @@ export class AuthService {
   }
 
   async login(user: Admin): Promise<{ access_token: string }> {
-    // Voeg "ROLE_" prefix toe voor consistentie
-    const role = user.role.startsWith('ROLE_')
-      ? user.role
-      : `ROLE_${user.role}`;
-
-    const payload: JwtPayload = {
+    const payload = {
       sub: user.email,
       email: user.email,
-      rol: [role],
+      roles: [user.role],
       iss: 'wailsalutem-workshops',
       aud: 'wailsalutem',
     };
-
     const secret = this.configService.get<string>('JWT_SECRET');
     const expiresIn = (this.configService.get('JWT_EXPIRATION') ??
       '1h') as JwtSignOptions['expiresIn'];

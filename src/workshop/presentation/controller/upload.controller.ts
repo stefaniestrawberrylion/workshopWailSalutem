@@ -12,10 +12,11 @@ export class UploadController {
 
   @Get(':filename')
   getFile(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = join(this.uploadDir, filename);
+    const decoded = decodeURIComponent(filename);
+    const filePath = join(this.uploadDir, decoded);
 
     if (!existsSync(filePath)) {
-      throw new NotFoundException(`File ${filename} not found`);
+      throw new NotFoundException(`File ${decoded} not found`);
     }
 
     return res.sendFile(filePath);
