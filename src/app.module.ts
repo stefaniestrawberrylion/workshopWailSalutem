@@ -11,7 +11,7 @@ import { RegistrationModule } from './security/presentation/controller/registrat
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath:
-        process.env.NODE_ENV === 'production' ? 'prod.env' : 'dev.env',
+        process.env.NODE_ENV === 'production' ? '.env' : 'dev.env',
     }),
 
     TypeOrmModule.forRoot({
