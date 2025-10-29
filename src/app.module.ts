@@ -10,8 +10,7 @@ import { RegistrationModule } from './security/presentation/controller/registrat
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV === 'production' ? '.env' : 'dev.env',
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env' : 'dev.env',
     }),
 
     TypeOrmModule.forRoot({
@@ -24,7 +23,6 @@ import { RegistrationModule } from './security/presentation/controller/registrat
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
-
     WorkshopModule,
     SecurityModule,
     RegistrationModule,
