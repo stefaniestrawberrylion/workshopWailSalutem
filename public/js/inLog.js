@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ================== API Base URL ==================
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://workshoptest.wailsalutem-foundation.com";
+
+  console.log("Backend URL:", API_URL);
+
   // ================== Panel Switching ==================
   const cardContainer = document.getElementById('cardContainer');
   const showEmailForm = document.getElementById('showEmailForm');
@@ -22,55 +30,55 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================== Login ==================
   const loginBtn = document.querySelector(".login button");
 
-  loginBtn.addEventListener("click", async () => {
-    const email = document.querySelector(".login input[type='email']").value.trim();
-    const password = document.querySelector(".login input[type='password']").value;
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async () => {
+      const email = document.querySelector(".login input[type='email']").value.trim();
+      const password = document.querySelector(".login input[type='password']").value;
 
-    if (!email || !password) {
-      alert("Vul e-mail en wachtwoord in!");
-      return;
-    }
-
-    try {
-      const response = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert("Login mislukt: " + (data.message || response.status));
+      if (!email || !password) {
+        alert("Vul e-mail en wachtwoord in!");
         return;
       }
 
-      const tokenHeader = response.headers.get("Authorization");
-      if (!tokenHeader) {
-        alert("Geen token ontvangen!");
-        return;
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          alert("Login mislukt: " + (data.message || response.status));
+          return;
+        }
+
+        const tokenHeader = response.headers.get("Authorization");
+        if (!tokenHeader) {
+          alert("Geen token ontvangen!");
+          return;
+        }
+
+        const token = tokenHeader.replace("Bearer ", "");
+        localStorage.setItem("jwt", token);
+
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
+
+        if (roles.includes("ADMIN")) {
+          window.location.href = "/dashboard";
+        } else if (roles.includes("USER")) {
+          window.location.href = "/dashboardUser";
+        } else {
+          alert("Geen geldige rol gevonden!");
+        }
+
+      } catch (err) {
+        console.error("Fout bij inloggen:", err);
+        alert("Fout bij inloggen. Controleer netwerkverbinding.");
       }
-
-      const token = tokenHeader.replace("Bearer ", "");
-      localStorage.setItem("jwt", token);
-
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
-
-      if (roles.includes("ADMIN")) {
-        window.location.href = "/dashboard";
-      } else if (roles.includes("USER")) {
-        window.location.href = "/dashboardUser";
-      } else {
-        alert("Geen geldige rol gevonden!");
-      }
-
-
-
-    } catch (err) {
-      console.error("Fout bij inloggen:", err);
-      alert("Fout bij inloggen.");
-    }
-  });
+    });
+  }
 
   // ================== Fetch Workshops (ADMIN alleen) ==================
   async function fetchWorkshops() {
@@ -78,8 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/workshops", {
-        headers: { "Authorization": "Bearer " + token }
+      const response = await fetch(`${API_URL}/api/workshops`, {
+        headers: { "Authorization": "Bearer " + token },
       });
 
       if (response.ok) {
@@ -122,10 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/register/request", {
+        const response = await fetch(`${API_URL}/register/request`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, firstName, lastName, school, phone })
+          body: JSON.stringify({ email, password, firstName, lastName, school, phone }),
         });
 
         const data = await response.json();

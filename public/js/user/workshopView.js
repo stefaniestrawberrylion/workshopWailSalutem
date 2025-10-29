@@ -48,7 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem("jwt");
     return { "Authorization": token?.startsWith("Bearer ") ? token : "Bearer " + token };
   }
+  // =======================
+  // API Base URL
+  // =======================
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:8080" // lokale backend
+      : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
 
+  console.log("Backend URL:", API_URL);
   function showError(message) {
     const popupVisible = popup?.style.display === 'block';
     const container = document.getElementById(popupVisible ? 'popupErrorContainer' : 'errorContainer');
@@ -174,15 +182,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-  // Load workshops
-  // =======================
-  async function loadWorkshops(){
-    try{
-      const res = await fetch('/api/workshops', { headers: getAuthHeaders() });
-      if(!res.ok) throw new Error('Fout bij ophalen workshops');
+// Load workshops
+// =======================
+  async function loadWorkshops() {
+    try {
+      const res = await fetch(`${API_URL}/api/workshops`, {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Fout bij ophalen workshops');
       const workshops = await res.json();
       renderWorkshops(workshops);
-    }catch(e){ alert(e.message); }
+    } catch (e) {
+      alert(e.message);
+    }
   }
 
   function renderWorkshops(workshops){
@@ -215,13 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-  // View workshop details
-  // =======================
-  async function viewWorkshopDetails(id){
-    try{
+// View workshop details
+// =======================
+  async function viewWorkshopDetails(id) {
+    try {
       currentWorkshopId = id;
-      const res = await fetch(`/api/workshops/${id}`, { headers: getAuthHeaders() });
-      if(!res.ok) throw new Error('Workshop niet gevonden');
+      const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
 
       // Basis info
@@ -247,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
       detailParentalConsent.addEventListener('click', e => e.preventDefault());
 
       // Clear en render documenten
-      [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => list.innerHTML='');
+      [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => list.innerHTML = '');
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => addDocumentToDetail(f));
       }
@@ -256,7 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMediaSlideshow(w.files || []);
 
       detailsPopup.style.display = 'flex';
-    }catch(e){ alert(e.message); }
+    } catch (e) {
+      alert(e.message);
+    }
   }
 
   function addDocumentToDetail(f){

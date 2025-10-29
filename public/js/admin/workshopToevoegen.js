@@ -51,6 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =======================
+  // API Base URL
+  // =======================
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://workshoptest.wailsalutem-foundation.com";
+
+  console.log("Backend URL:", API_URL);
+
+  // =======================
   // Helper: Authorization header
   // =======================
   function getAuthHeaders() {
@@ -341,14 +351,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // =======================
   // =======================
 
-  if(saveBtn){
+  if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
       const name = document.getElementById('workshopName').value.trim();
       const desc = document.getElementById('workshopDesc').value.trim();
       const duration = document.getElementById('workshopDuration').value.trim();
       const parentalConsent = document.getElementById('parentalConsent').checked;
 
-      if(!name || !desc || !duration){
+      if (!name || !desc || !duration) {
         showError("Naam, beschrijving en duur zijn verplicht.");
         return;
       }
@@ -379,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem("jwt");
         console.log("🔑 JWT token from localStorage:", token);
 
-        if(!token){
+        if (!token) {
           console.error("❌ Geen token gevonden in localStorage!");
           throw new Error("Geen JWT token beschikbaar");
         }
@@ -388,8 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("📝 Headers voor fetch:", headers);
 
         const url = currentWorkshopId
-          ? `http://localhost:3000/api/workshops/${currentWorkshopId}`
-          : 'http://localhost:3000/api/workshops';
+          ? `${API_URL}/api/workshops/${currentWorkshopId}`
+          : `${API_URL}/api/workshops`;
 
         const method = currentWorkshopId ? 'PUT' : 'POST';
 
@@ -404,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const responseBody = await response.text();
         console.log("Response body:", responseBody);
 
-        if(!response.ok){
+        if (!response.ok) {
           throw new Error('Fout bij opslaan van de workshop');
         }
 
@@ -412,29 +422,34 @@ document.addEventListener('DOMContentLoaded', () => {
         popup.style.display = 'none';
         await loadWorkshops();
 
-      } catch(e) {
+      } catch (e) {
         console.error("💥 Error in saveBtn click handler:", e);
         showError(e.message);
       }
     });
   }
 
+
   // =======================
-  // Workshops ophalen
-  // =======================
-  async function loadWorkshops(){
-    try{
-      const res = await fetch('http://localhost:3000/api/workshops', { headers: getAuthHeaders() });
-      if(!res.ok) throw new Error('Fout bij ophalen workshops');
+// Workshops ophalen
+// =======================
+  async function loadWorkshops() {
+    try {
+      const res = await fetch(`${API_URL}/api/workshops`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Fout bij ophalen workshops');
+
       const workshops = await res.json();
       renderWorkshops(workshops);
-    }catch(e){ alert(e.message); }
+    } catch (e) {
+      alert(e.message);
+    }
   }
 
-// =======================
+
+/// =======================
 // Render workshops (grid)
 // =======================
-  function renderWorkshops(workshops){
+  function renderWorkshops(workshops) {
     grid.innerHTML = '';
     workshops.forEach(w => {
       const card = document.createElement('div');
@@ -442,9 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Pak de eerste afbeelding, fallback naar main image of default
       let firstImage = w.files?.find(m => m.type.startsWith('image'));
+
       let imageUrl = firstImage
-        ? (firstImage.url.startsWith('http') ? firstImage.url : `http://localhost:3000${firstImage.url}`)
-        : (w.imageUrl ? (w.imageUrl.startsWith('http') ? w.imageUrl : `http://localhost:3000${w.imageUrl}`) : '/image/default-workshop.png');
+        ? (firstImage.url.startsWith('http') ? firstImage.url : `${API_URL}${firstImage.url}`)
+        : (w.imageUrl ? (w.imageUrl.startsWith('http') ? w.imageUrl : `${API_URL}${w.imageUrl}`) : '/image/default-workshop.png');
 
       card.style.backgroundImage = `url('${imageUrl}')`;
 
@@ -476,15 +492,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
 // =======================
 // View workshop details
 // =======================
-  async function viewWorkshopDetails(id){
-    try{
+  async function viewWorkshopDetails(id) {
+    try {
       currentWorkshopId = id;
 
-      const res = await fetch(`http://localhost:3000/api/workshops/${id}`, { headers: getAuthHeaders() });
-      if(!res.ok) throw new Error('Workshop niet gevonden');
+      // ✅ Gebruik dynamische API_URL
+      const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
 
       console.log('🔍 Workshop details geladen:', w);
@@ -513,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       detailDemoList.innerHTML = '';
       detailWorksheetsList.innerHTML = '';
 
+      // Documenten
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => {
           const li = document.createElement('li');
@@ -551,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
           right.style.alignItems = 'center';
           right.style.gap = '8px';
 
-          if(f.size){
+          if (f.size) {
             const size = document.createElement('span');
             size.textContent = `${(f.size / 1024).toFixed(1)} KB`;
             size.style.fontSize = '12px';
@@ -559,9 +578,10 @@ document.addEventListener('DOMContentLoaded', () => {
             right.appendChild(size);
           }
 
+          // ✅ Dynamische downloadlink
           const downloadLink = document.createElement('a');
           downloadLink.textContent = 'Download';
-          downloadLink.href = f.url.startsWith('http') ? f.url : `http://localhost:3000${f.url}`;
+          downloadLink.href = f.url.startsWith('http') ? f.url : `${API_URL}${f.url}`;
           downloadLink.setAttribute('download', f.name || 'bestand');
           downloadLink.style.background = '#007bff';
           downloadLink.style.color = 'white';
@@ -575,60 +595,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
           li.appendChild(right);
 
-          // Plaats in juiste categorie
+          // ✅ Voeg toe aan juiste categorie
           const cat = (f.category || f.type || 'worksheets').toLowerCase();
-          if(cat==='instructions') detailInstructionsList.appendChild(li);
-          else if(cat==='manuals' || cat==='handleiding') detailManualsList.appendChild(li);
-          else if(cat==='demo') detailDemoList.appendChild(li);
+          if (cat === 'instructions') detailInstructionsList.appendChild(li);
+          else if (cat === 'manuals' || cat === 'handleiding') detailManualsList.appendChild(li);
+          else if (cat === 'demo') detailDemoList.appendChild(li);
           else detailWorksheetsList.appendChild(li);
         });
       }
 
-      // Slideshow media
+      // ✅ Slideshow media
       const container = document.getElementById('detailMediaContainer');
       container.innerHTML = '';
       const mediaFiles = w.files || [];
-      mediaFiles.forEach((file,i) => {
+      mediaFiles.forEach((file, i) => {
         let el;
-        const fileUrl = file.url.startsWith('http') ? file.url : `http://localhost:3000${file.url}`;
+        const fileUrl = file.url.startsWith('http') ? file.url : `${API_URL}${file.url}`;
 
-        if(file.type.startsWith('image')){
+        if (file.type.startsWith('image')) {
           el = document.createElement('img');
           el.src = fileUrl;
-        } else if(file.type.startsWith('video')){
+        } else if (file.type.startsWith('video')) {
           el = document.createElement('video');
           el.src = fileUrl;
           el.controls = true;
-        } else if(/\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)){
+        } else if (/\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)) {
           el = document.createElement('img');
           el.src = fileUrl;
         } else return;
 
-        el.style.display = i===0 ? 'block' : 'none';
+        el.style.display = i === 0 ? 'block' : 'none';
         container.appendChild(el);
       });
 
       // Slideshow knoppen
       let currentIndex = 0;
       prevBtn.onclick = () => {
-        if(!container.children.length) return;
+        if (!container.children.length) return;
         container.children[currentIndex].style.display = 'none';
         currentIndex = (currentIndex - 1 + container.children.length) % container.children.length;
         container.children[currentIndex].style.display = 'block';
       };
       nextBtn.onclick = () => {
-        if(!container.children.length) return;
+        if (!container.children.length) return;
         container.children[currentIndex].style.display = 'none';
         currentIndex = (currentIndex + 1) % container.children.length;
         container.children[currentIndex].style.display = 'block';
       };
 
       detailsPopup.style.display = 'flex';
-    } catch(e) {
+    } catch (e) {
       alert(e.message);
     }
   }
-
 
   function getContrastYIQ(hexcolor){
     hexcolor = hexcolor.replace('#','');
@@ -675,23 +694,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-  // Delete workshop
-  // =======================
-  if(deleteBtn){
+// Delete workshop
+// =======================
+  if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
-      if(!currentWorkshopId) return;
+      if (!currentWorkshopId) return;
       const confirmDelete = confirm('Weet je zeker dat je deze workshop wilt verwijderen?');
-      if(!confirmDelete) return;
+      if (!confirmDelete) return;
 
-      try{
-        const res = await fetch(`http://localhost:3000/api/workshops/${currentWorkshopId}`, {method:'DELETE', headers: getAuthHeaders()});
-        if(!res.ok) throw new Error('Fout bij verwijderen workshop');
+      try {
+        // ✅ Gebruik dynamische API_URL
+        const res = await fetch(`${API_URL}/api/workshops/${currentWorkshopId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
 
-        detailsPopup.style.display='none';
+        if (!res.ok) throw new Error('Fout bij verwijderen workshop');
+
+        detailsPopup.style.display = 'none';
         clearDetailsPopup();
         await loadWorkshops();
         alert('Workshop succesvol verwijderd!');
-      }catch(e){ alert(e.message); }
+      } catch (e) {
+        alert(e.message);
+      }
     });
   }
 
@@ -779,15 +805,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hours > 0) return `${hours}u ${mins}m`;
     return `${mins}m`;
   }
-  fetch('http://localhost:3000/api/workshops/test-auth', {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-    }
-  })
-    .then(r => r.json())
-    .then(console.log)
-    .catch(console.error);
-
   // =======================
   // Init
   // =======================

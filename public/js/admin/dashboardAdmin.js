@@ -1,6 +1,19 @@
+// =======================
+// API Base URL
+// =======================
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8080" // lokale backend
+    : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
+
+console.log("Backend URL:", API_URL);
+
+// =======================
+// Fetch Pending Users
+// =======================
 async function fetchPendingUsers() {
   const token = localStorage.getItem("jwt");
-  const response = await fetch("http://localhost:8080/register/pending", {
+  const response = await fetch(`${API_URL}/register/pending`, {
     headers: { "Authorization": `Bearer ${token}` }
   });
 
@@ -24,15 +37,15 @@ async function fetchPendingUsers() {
       // Table row
       const tr = document.createElement("tr");
       tr.innerHTML = `
-                <td>${user.firstName} ${user.lastName}</td>
-                <td>${user.email}</td>
-                <td>${user.school}</td>
-                <td>${user.phone}</td>
-                <td>
-                    <button onclick="approveUser(${user.id})">Sta toe</button>
-                    <button onclick="denyUser(${user.id})">Weiger</button>
-                </td>
-            `;
+        <td>${user.firstName} ${user.lastName}</td>
+        <td>${user.email}</td>
+        <td>${user.school}</td>
+        <td>${user.phone}</td>
+        <td>
+            <button onclick="approveUser(${user.id})">Sta toe</button>
+            <button onclick="denyUser(${user.id})">Weiger</button>
+        </td>
+      `;
       tbody.appendChild(tr);
     });
 
@@ -41,9 +54,12 @@ async function fetchPendingUsers() {
   }
 }
 
+// =======================
+// Approve User
+// =======================
 async function approveUser(userId) {
   const token = localStorage.getItem("jwt");
-  const response = await fetch(`http://localhost:8080/register/approve/${userId}`, {
+  const response = await fetch(`${API_URL}/register/approve/${userId}`, {
     method: "PATCH",
     headers: { "Authorization": `Bearer ${token}` }
   });
@@ -53,9 +69,12 @@ async function approveUser(userId) {
   }
 }
 
+// =======================
+// Deny User
+// =======================
 async function denyUser(userId) {
   const token = localStorage.getItem("jwt");
-  const response = await fetch(`http://localhost:8080/register/deny/${userId}`, {
+  const response = await fetch(`${API_URL}/register/deny/${userId}`, {
     method: "PATCH",
     headers: { "Authorization": `Bearer ${token}` }
   });
@@ -65,5 +84,7 @@ async function denyUser(userId) {
   }
 }
 
+// =======================
 // Auto load pending users
+// =======================
 document.addEventListener("DOMContentLoaded", fetchPendingUsers);

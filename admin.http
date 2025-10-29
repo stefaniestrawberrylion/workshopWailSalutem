@@ -1,10 +1,10 @@
 ### Create Admin User
-POST http://localhost:3000/register/admin
+POST http://localhost:3000/api/register/admin
 Content-Type: application/json
 
 
 {
-  "email": "admin2@example.com",
+  "email": "admin@example.com",
   "password": "SecurePassword123",
   "firstName": "Admin",
   "lastName": "User"
