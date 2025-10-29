@@ -8,17 +8,23 @@ import { RegistrationModule } from './security/presentation/controller/registrat
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'production' ? 'prod.env' : 'dev.env',
+    }),
+
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || 'Anne1309#SQL!',
-      database: process.env.DB_NAME || 'workshops',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
     }),
+
     WorkshopModule,
     SecurityModule,
     RegistrationModule,
