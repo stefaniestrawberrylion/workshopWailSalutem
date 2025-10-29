@@ -1,15 +1,12 @@
 ### Create Admin User
-POST http://localhost:3000/api/register/admin
+POST http://localhost:3000/register/admin
 Content-Type: application/json
 
 
 {
-  "email": "admin@example.com",
+  "email": "admin2@example.com",
   "password": "SecurePassword123",
   "firstName": "Admin",
   "lastName": "User"
 }
 
-### Test JWT authorization
-GET http://localhost:3000/api/workshops/test-auth
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJyb2xlcyI6WyJBRE1JTiJdLCJpc3MiOiJ3YWlsc2FsdXRlbS13b3Jrc2hvcHMiLCJhdWQiOiJ3YWlsc2FsdXRlbSIsImlhdCI6MTc2MTY4Njk2OCwiZXhwIjoxNzYxNjkwNTY4fQ.t5-zSRgsvok-tu9hwYyV5ejG4t8pbP--scYCKTWPc6M
