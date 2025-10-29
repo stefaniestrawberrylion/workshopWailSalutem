@@ -1,5 +1,5 @@
 ### Create Admin User
-POST http://localhost:3000/api/register/admin
+POST https://workshoptest.wailsalutem-foundation.com/auth/login
 Content-Type: application/json
 
 
