@@ -23,21 +23,21 @@ export class PageController {
     );
   }
 
-  @Get('dashboardUser')
+  @Get('dashboarduser')
   showDashboardUser(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'user', 'dashboardUser.html'),
     );
   }
 
-  @Get('workshopUser')
+  @Get('workshopuser')
   showWorkshopUser(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'user', 'workshopUser.html'),
     );
   }
 
-  @Get('profielAdmin')
+  @Get('profieladmin')
   showProfileAdmin(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'admin', 'gebruikersProfiel.html'),
