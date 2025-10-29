@@ -1,5 +1,5 @@
 ### Create Admin User
-POST https://workshoptest.wailsalutem-foundation.com/auth/login
+POST https://workshoptest.wailsalutem-foundation.com/register/admin
 Content-Type: application/json
 
 

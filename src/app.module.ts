@@ -12,7 +12,6 @@ import { RegistrationModule } from './security/presentation/controller/registrat
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'production' ? '.env' : 'dev.env',
     }),
-
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
