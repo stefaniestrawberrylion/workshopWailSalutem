@@ -22,7 +22,7 @@ import { RegistrationModule } from './security/presentation/controller/registrat
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
     }),
 
     WorkshopModule,
