@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (roles.includes("ADMIN")) {
           window.location.href = "/dashboard";
         } else if (roles.includes("USER")) {
-          window.location.href = "/dashboardUser";
+          window.location.href = "/dashboarduser";
         } else {
           alert("Geen geldige rol gevonden!");
         }
