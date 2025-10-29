@@ -8,6 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
+
   console.log('DEBUG JWT_SECRET:', config.get('JWT_SECRET'));
 
   // Serve static assets vanuit public/

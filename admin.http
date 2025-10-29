@@ -10,3 +10,14 @@ Content-Type: application/json
   "lastName": "User"
 }
 
+### Create Admin User
+POST http://localhost:3000/register/admin
+Content-Type: application/json
+
+
+{
+  "email": "admin@workshop.com",
+  "password": "H3nf0#iHF@39",
+  "firstName": "Admin",
+  "lastName": "User"
+}
