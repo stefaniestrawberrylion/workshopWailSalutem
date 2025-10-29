@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Vul e-mail en wachtwoord in!");
         return;
       }
+      console.log("Backend URL:", API_URL);
 
       try {
         const response = await fetch(`${API_URL}/auth/login`, {
