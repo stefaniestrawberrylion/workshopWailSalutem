@@ -28,14 +28,14 @@ export class PageController {
   @Get('dashboard')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN)
-  showDashboard(@Res() res: Response) {
-    try {
-      return res.sendFile(
-        join(process.cwd(), 'public', 'html', 'admin', 'dashboardAdmin.html'),
-      );
-    } catch {
-      return res.redirect('/inlog');
-    }
+  getDashboard(): string {
+    return join(
+      process.cwd(),
+      'public',
+      'html',
+      'admin',
+      'dashboardAdmin.html',
+    );
   }
   @Get('profieladmin')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
