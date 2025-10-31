@@ -47,6 +47,17 @@ async function bootstrap() {
 
   // ✅ Uploads publiek beschikbaar maken
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+// Preflight handler – werkt zelfs als CORS middleware niet genoeg is
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      return res.sendStatus(204);
+    }
+    next();
+  });
 
   // ✅ Globale 404-afhandeling
   app.useGlobalFilters(new NotFoundFilter());
