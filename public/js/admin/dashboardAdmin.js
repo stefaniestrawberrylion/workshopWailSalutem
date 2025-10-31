@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Uitlog functionaliteit
   // =======================
   const logoutButton = document.getElementById("logoutButton");
+  console.log("logoutButton gevonden:", logoutButton);
 
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
