@@ -14,6 +14,9 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
+
 import { WorkshopService } from '../../application/workshop.service';
 import { WorkshopDto } from '../dto/workshop.dto';
 import { Workshop } from '../../domain/workshop.entity';
@@ -43,9 +46,26 @@ interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
+// ✅ Multer configuratie: schrijft naar disk en laat tot 200 MB toe
+const storage = diskStorage({
+  destination: join(process.cwd(), 'uploads'), // gebruik absolute pad
+  filename: (req, file, cb) => {
+    const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
+    cb(null, safeName);
+  },
+});
+
+const multerOptions = {
+  storage,
+  limits: {
+    fileSize: 200 * 1024 * 1024, // max 200 MB per file
+  },
+};
+
 @Controller('api/workshops')
 export class WorkshopController {
   constructor(private readonly workshopService: WorkshopService) {}
+
   @Get('test-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -79,14 +99,17 @@ export class WorkshopController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'image', maxCount: 1 },
-      { name: 'media', maxCount: 10 },
-      { name: 'instructionsFiles', maxCount: 10 },
-      { name: 'manualsFiles', maxCount: 10 },
-      { name: 'demoFiles', maxCount: 10 },
-      { name: 'worksheetsFiles', maxCount: 10 },
-    ]),
+    FileFieldsInterceptor(
+      [
+        { name: 'image', maxCount: 1 },
+        { name: 'media', maxCount: 10 },
+        { name: 'instructionsFiles', maxCount: 10 },
+        { name: 'manualsFiles', maxCount: 10 },
+        { name: 'demoFiles', maxCount: 10 },
+        { name: 'worksheetsFiles', maxCount: 10 },
+      ],
+      multerOptions, // ✅ gebruik custom configuratie
+    ),
   )
   async createWorkshop(
     @Req() req: AuthenticatedRequest,
