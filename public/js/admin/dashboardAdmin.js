@@ -39,7 +39,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "/inlog";
     return;
   }
-
+//log out
+  const logoutButton = document.getElementById("logoutButton");
+  if (logoutButton) {
+    logoutButton.addEventListener("click", () => {
+      if (confirm("Weet je zeker dat je wilt uitloggen?")) {
+        localStorage.removeItem("jwt");
+        window.location.href = "/";
+      }
+    });
+  }
   // =======================
   // Fetch Pending Users
   // =======================
@@ -152,21 +161,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("❌ Fout bij denyUser:", err);
     }
   };
-  // =======================
-  // Uitlog functionaliteit
-  // =======================
-  document.addEventListener("DOMContentLoaded", () => {
-    const logoutButton = document.getElementById("logoutButton");
-    if (logoutButton) {
-      logoutButton.addEventListener("click", () => {
-        if (confirm("Weet je zeker dat je wilt uitloggen?")) {
-          localStorage.removeItem("jwt");
-          window.location.href = "/";
-        }
-      });
-    }
-  });
-
 
   // =======================
   // Auto load pending users

@@ -72,7 +72,7 @@ export class WorkshopService {
     workshop.description = data.description;
     workshop.duration = data.duration;
     // Labels ook als JSON-string opslaan
-    workshop.labelsJson = JSON.stringify(data.labelsJson ?? []);
+    workshop.labelsJson = JSON.stringify(data.labels ?? []);
     workshop.parentalConsent = data.parentalConsent ?? false;
 
     return this.workshopRepository.save(workshop);

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as express from 'express';
 import {
   Catch,
   ExceptionFilter,
@@ -25,7 +26,7 @@ async function bootstrap() {
   // ✅ CORS inschakelen met toegestane origins en exposed headers
   app.enableCors({
     origin: [
-      'http://localhost:8080', // jouw lokale frontend
+      'http://localhost:3000', // jouw lokale frontend
       'https://workshoptest.wailsalutem-foundation.com', // productie frontend
     ],
     credentials: true,
@@ -40,6 +41,8 @@ async function bootstrap() {
     console.log('Requested URL:', req.url);
     next();
   });
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+
 
   // Eerst alle modules/controllers initialiseren
   await app.init();

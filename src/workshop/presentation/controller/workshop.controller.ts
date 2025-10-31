@@ -13,7 +13,6 @@ import {
   Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import type { Request } from 'express';
 import { WorkshopService } from '../../application/workshop.service';
 import { WorkshopDto } from '../dto/workshop.dto';
@@ -21,7 +20,6 @@ import { Workshop } from '../../domain/workshop.entity';
 import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
-import { CreateWorkshopDto } from '../dto/create.dto';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 
 interface MulterFile {
@@ -81,34 +79,30 @@ export class WorkshopController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'image', maxCount: 1 },
-        { name: 'media', maxCount: 10 },
-        { name: 'instructionsFiles', maxCount: 10 },
-        { name: 'manualsFiles', maxCount: 10 },
-        { name: 'demoFiles', maxCount: 10 },
-        { name: 'worksheetsFiles', maxCount: 10 },
-      ],
-      { storage: memoryStorage() },
-    ),
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'media', maxCount: 10 },
+      { name: 'instructionsFiles', maxCount: 10 },
+      { name: 'manualsFiles', maxCount: 10 },
+      { name: 'demoFiles', maxCount: 10 },
+      { name: 'worksheetsFiles', maxCount: 10 },
+    ]),
   )
   async createWorkshop(
     @Req() req: AuthenticatedRequest,
-    @Body() body: CreateWorkshopDto,
-    @UploadedFiles()
-    files: {
-      image?: MulterFile[];
-      media?: MulterFile[];
-      instructionsFiles?: MulterFile[];
-      manualsFiles?: MulterFile[];
-      demoFiles?: MulterFile[];
-      worksheetsFiles?: MulterFile[];
-    },
+    @Body() body: any,
+    @UploadedFiles() files: Record<string, MulterFile[]>,
   ): Promise<WorkshopDto> {
-    console.log('🔑 User from request:', req.user);
-    console.log('📦 Files received:', files);
-    console.log('📝 Body received:', body);
+    console.log('📝 Body received before parsing:', body);
+
+    // ✅ Labels als JSON parsen als het een string is
+    if (typeof body.labels === 'string') {
+      try {
+        body.labels = JSON.parse(body.labels);
+      } catch {
+        body.labels = [];
+      }
+    }
 
     const workshop = await this.workshopService.saveWorkshop(
       body,
@@ -165,5 +159,4 @@ export class WorkshopController {
       labels: Array.isArray(w.labelsJson) ? w.labelsJson : [],
     });
   }
-
 }

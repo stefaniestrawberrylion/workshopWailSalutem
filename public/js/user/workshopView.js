@@ -48,15 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem("jwt");
     return { "Authorization": token?.startsWith("Bearer ") ? token : "Bearer " + token };
   }
+
   // =======================
   // API Base URL
   // =======================
   const API_URL =
     window.location.hostname === "localhost"
-      ? "http://localhost:8080" // lokale backend
+      ? "http://localhost:3000" // lokale backend
       : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
 
   console.log("Backend URL:", API_URL);
+
   function showError(message) {
     const popupVisible = popup?.style.display === 'block';
     const container = document.getElementById(popupVisible ? 'popupErrorContainer' : 'errorContainer');
@@ -182,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-// Load workshops
-// =======================
+  // Load workshops
+  // =======================
   async function loadWorkshops() {
     try {
       const res = await fetch(`${API_URL}/api/workshops`, {
@@ -210,16 +212,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const durationStr = formatDuration(w.duration) + " uur";
 
       card.innerHTML = `
-                <div class="workshop-top">
-                    <div class="workshop-badge time">${durationStr}</div>
-                    <div class="like">♡</div>
-                </div>
-                <div class="workshop-info">
-                    <h3>${w.name}</h3>
-                    <p>${w.review || 'Nog geen review'}</p>
-                </div>
-                <button class="workshop-btn">View workshop</button>
-            `;
+        <div class="workshop-top">
+          <div class="workshop-badge time">${durationStr}</div>
+          <div class="like">♡</div>
+        </div>
+        <div class="workshop-info">
+          <h3>${w.name}</h3>
+          <p>${w.review || 'Nog geen review'}</p>
+        </div>
+        <button class="workshop-btn">View workshop</button>
+      `;
       const btn = card.querySelector('.workshop-btn');
       btn.addEventListener('click', () => viewWorkshopDetails(w.id));
       grid.appendChild(card);
@@ -227,8 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-// View workshop details
-// =======================
+  // View workshop details
+  // =======================
   async function viewWorkshopDetails(id) {
     try {
       currentWorkshopId = id;
@@ -236,12 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
 
-      // Basis info
       document.getElementById('detailName').value = w.name;
       document.getElementById('detailDesc').value = w.description;
       document.getElementById('detailDuration').value = formatDuration(w.duration);
 
-      // Labels
       detailLabelPreview.innerHTML = '';
       const labelsArray = w.labels ? (typeof w.labels === 'string' ? JSON.parse(w.labels) : w.labels) : [];
       labelsArray.forEach(label => {
@@ -253,18 +253,15 @@ document.addEventListener('DOMContentLoaded', () => {
         detailLabelPreview.appendChild(span);
       });
 
-      // Oudertoestemming
       const detailParentalConsent = document.getElementById('detailParentalConsent');
       detailParentalConsent.checked = w.parentalConsent || false;
       detailParentalConsent.addEventListener('click', e => e.preventDefault());
 
-      // Clear en render documenten
       [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => list.innerHTML = '');
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => addDocumentToDetail(f));
       }
 
-      // Slideshow media
       renderMediaSlideshow(w.files || []);
 
       detailsPopup.style.display = 'flex';
@@ -380,15 +377,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-// Sluit de details popup bij klikken buiten de popup-content
+
+  // Sluit de details popup bij klikken buiten de popup-content
   detailsPopup.addEventListener('click', (e) => {
     if (e.target === detailsPopup) {
       detailsPopup.style.display = 'none';
-      clearDetailsPopup(); // Optioneel: reset de velden
+      clearDetailsPopup();
     }
   });
 
-// Bestaande close-knop blijft ook werken
+  // Bestaande close-knop blijft ook werken
   closeDetailsBtn.addEventListener('click', () => {
     detailsPopup.style.display = 'none';
     clearDetailsPopup();

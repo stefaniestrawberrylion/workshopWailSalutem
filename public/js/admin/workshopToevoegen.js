@@ -345,62 +345,93 @@ document.addEventListener('DOMContentLoaded', () => {
       default: return 'fa-file';
     }
   }
+// Helperfunctie om veilige bestandsnamen te maken
+  function makeSafeFileName(fileName) {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // verwijder accenten
+      .replace(/\s+/g, '_') // vervang spaties
+      .replace(/[^a-zA-Z0-9._-]/g, ''); // verwijder vreemde tekens
+  }
 
   // =======================
-  // Workshop opslaan
-  // =======================
-  // =======================
-
+// Workshop opslaan
+// =======================
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
       const name = document.getElementById('workshopName').value.trim();
       const desc = document.getElementById('workshopDesc').value.trim();
-      const duration = document.getElementById('workshopDuration').value.trim();
+      const durationStr = document.getElementById('workshopDuration').value.trim();
       const parentalConsent = document.getElementById('parentalConsent').checked;
 
-      if (!name || !desc || !duration) {
+      if (!name || !desc || !durationStr) {
         showError("Naam, beschrijving en duur zijn verplicht.");
+        return;
+      }
+
+      // ✅ Controleer dat duur tussen 1 en 2 uur ligt
+      let totalMinutes = 0;
+      const timeParts = durationStr.split(':');
+      if (timeParts.length === 2) {
+        const [h, m] = timeParts.map(Number);
+        totalMinutes = h * 60 + m;
+      } else {
+        totalMinutes = Number(durationStr);
+      }
+
+      if (isNaN(totalMinutes) || totalMinutes < 60 || totalMinutes > 120) {
+        showError("De duur moet tussen 1 en 2 uur liggen (bijv. 01:15).");
         return;
       }
 
       const formData = new FormData();
       formData.append('name', name);
       formData.append('description', desc);
-      formData.append('duration', duration);
+      formData.append('duration', durationStr);
       formData.append("parentalConsent", parentalConsent);
       formData.append('labels', JSON.stringify(labels));
 
-      if (mainImage) formData.append('image', mainImage);
+      if (mainImage) {
+        const safeName = makeSafeFileName(mainImage.name);
+        const safeFile = new File([mainImage], safeName, { type: mainImage.type });
+        formData.append('image', safeFile);
+      }
 
-      selectedMedia.forEach(file => formData.append('media', file));
-      selectedInstructions.forEach(f => formData.append('instructionsFiles', f));
-      selectedManuals.forEach(f => formData.append('manualsFiles', f));
-      selectedDemo.forEach(f => formData.append('demoFiles', f));
-      selectedWorksheets.forEach(f => formData.append('worksheetsFiles', f));
+// 🔹 Voor al je bestanden in verschillende categorieën:
+      const appendFilesSafely = (files, key) => {
+        files.forEach(f => {
+          const safeName = makeSafeFileName(f.name);
+          const safeFile = new File([f], safeName, { type: f.type });
+          formData.append(key, safeFile);
+        });
+      };
 
+      appendFilesSafely(selectedMedia, 'media');
+      appendFilesSafely(selectedInstructions, 'instructionsFiles');
+      appendFilesSafely(selectedManuals, 'manualsFiles');
+      appendFilesSafely(selectedDemo, 'demoFiles');
+      appendFilesSafely(selectedWorksheets, 'worksheetsFiles');
+
+// 🔹 Ook de meta-data opslaan met veilige namen
       formData.append('documentMeta', JSON.stringify([
-        ...selectedInstructions.map(f => ({ name: f.name, category: 'instructions' })),
-        ...selectedManuals.map(f => ({ name: f.name, category: 'manuals' })),
-        ...selectedDemo.map(f => ({ name: f.name, category: 'demo' })),
-        ...selectedWorksheets.map(f => ({ name: f.name, category: 'worksheets' })),
+        ...selectedInstructions.map(f => ({ name: makeSafeFileName(f.name), category: 'instructions' })),
+        ...selectedManuals.map(f => ({ name: makeSafeFileName(f.name), category: 'manuals' })),
+        ...selectedDemo.map(f => ({ name: makeSafeFileName(f.name), category: 'demo' })),
+        ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
       ]));
+
 
       try {
         const token = localStorage.getItem("jwt");
-        console.log("🔑 JWT token from localStorage:", token);
-
         if (!token) {
           console.error("❌ Geen token gevonden in localStorage!");
           throw new Error("Geen JWT token beschikbaar");
         }
 
         const headers = { "Authorization": `Bearer ${token}` };
-        console.log("📝 Headers voor fetch:", headers);
-
         const url = currentWorkshopId
           ? `${API_URL}/api/workshops/${currentWorkshopId}`
           : `${API_URL}/api/workshops`;
-
         const method = currentWorkshopId ? 'PUT' : 'POST';
 
         console.log(`📡 Verzenden ${method} request naar ${url}...`);
@@ -456,27 +487,41 @@ document.addEventListener('DOMContentLoaded', () => {
       card.classList.add('workshop-card');
 
       // Pak de eerste afbeelding, fallback naar main image of default
-      let firstImage = w.files?.find(m => m.type.startsWith('image'));
 
-      let imageUrl = firstImage
-        ? (firstImage.url.startsWith('http') ? firstImage.url : `${API_URL}${firstImage.url}`)
-        : (w.imageUrl ? (w.imageUrl.startsWith('http') ? w.imageUrl : `${API_URL}${w.imageUrl}`) : '/image/default-workshop.png');
+      let firstImage = w.files?.find(f => f.type?.includes('image'));
+      let imageUrl = '/image/default-workshop.png';
 
-      card.style.backgroundImage = `url('${imageUrl}')`;
+      if (firstImage) {
+        const rawUrl = firstImage.url || firstImage.path || firstImage.filename || firstImage.name;
+        if (rawUrl) imageUrl = rawUrl.startsWith('http')
+          ? rawUrl
+          : `${API_URL}/uploads/${encodeURIComponent(rawUrl.replace(/^\/+|uploads\/+/g, ''))}`;
+      } else if (w.imageUrl) {
+        imageUrl = w.imageUrl.startsWith('http')
+          ? w.imageUrl
+          : `${API_URL}/uploads/${encodeURIComponent(w.imageUrl.replace(/^\/+|uploads\/+/g, ''))}`;
+      }
+
 
       let durationStr = formatDuration(w.duration) + " uur";
 
       card.innerHTML = `
-      <div class="workshop-top">
-        <div class="workshop-badge time">${durationStr}</div>
-        <div class="like">♡</div>
-      </div>
+  <div class="workshop-image" style="background-image: url('${imageUrl}')">
+    <div class="workshop-top">
+      <div class="workshop-badge time">${durationStr}</div>
+      <div class="like">♡</div>
+    </div>
+    <div class="workshop-bottom">
       <div class="workshop-info">
         <h3>${w.name}</h3>
         <p>${w.review || 'Nog geen review'}</p>
       </div>
-      <button class="workshop-btn">View workshop</button>
-    `;
+      <button class="workshop-btn">Bekijk workshop</button>
+    </div>
+  </div>
+`;
+
+
 
       // Like knop
       const likeBadge = card.querySelector('.like');
@@ -504,8 +549,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
-
-      console.log('🔍 Workshop details geladen:', w);
 
       // Basis info
       document.getElementById('detailName').value = w.name;
@@ -583,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
           downloadLink.textContent = 'Download';
           downloadLink.href = f.url.startsWith('http') ? f.url : `${API_URL}${f.url}`;
           downloadLink.setAttribute('download', f.name || 'bestand');
-          downloadLink.style.background = '#007bff';
+          downloadLink.style.background = '#486c8a';
           downloadLink.style.color = 'white';
           downloadLink.style.border = 'none';
           downloadLink.style.padding = '4px 10px';
@@ -593,7 +636,32 @@ document.addEventListener('DOMContentLoaded', () => {
           downloadLink.addEventListener('click', e => e.stopPropagation());
           right.appendChild(downloadLink);
 
-          li.appendChild(right);
+            // ✅ Bekijk knop (openen in nieuw tabblad)
+            const viewLink = document.createElement('a');
+            viewLink.textContent = 'Bekijk';
+
+
+          const fileUrl = `${API_URL}${f.url}`;
+          if (fileUrl.endsWith('.docx')) {
+            viewLink.href = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+          } else {
+            viewLink.href = fileUrl;
+          }
+
+
+          viewLink.target = '_blank';
+            viewLink.rel = 'noopener noreferrer';
+            viewLink.style.background = '#6C757D';
+            viewLink.style.color = 'white';
+            viewLink.style.border = 'none';
+            viewLink.style.padding = '4px 10px';
+            viewLink.style.borderRadius = '4px';
+            viewLink.style.cursor = 'pointer';
+            viewLink.style.textDecoration = 'none';
+            viewLink.addEventListener('click', e => e.stopPropagation());
+            right.appendChild(viewLink);
+
+            li.appendChild(right);
 
           // ✅ Voeg toe aan juiste categorie
           const cat = (f.category || f.type || 'worksheets').toLowerCase();
@@ -610,7 +678,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const mediaFiles = w.files || [];
       mediaFiles.forEach((file, i) => {
         let el;
-        const fileUrl = file.url.startsWith('http') ? file.url : `${API_URL}${file.url}`;
+        const rawUrl = file.url || file.path || file.filename || file.name;
+        if (!rawUrl) return; // geen geldig pad, sla over
+        const fileUrl = rawUrl.startsWith('http')
+          ? rawUrl
+          : `${API_URL}/uploads/${encodeURIComponent(rawUrl.replace(/^\/+|uploads\/+/g, ''))}`;
 
         if (file.type.startsWith('image')) {
           el = document.createElement('img');

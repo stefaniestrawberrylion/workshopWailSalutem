@@ -1,4 +1,4 @@
-import { IsString, IsBoolean, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsBoolean, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class CreateWorkshopDto {
   @IsString()
@@ -12,6 +12,10 @@ export class CreateWorkshopDto {
   @IsString()
   @IsNotEmpty()
   duration: string;
+
+  @IsOptional()
+  @IsArray()
+  labels?: any[];
 
   @IsString()
   @IsOptional()
