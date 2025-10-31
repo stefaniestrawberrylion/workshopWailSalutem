@@ -155,17 +155,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   // =======================
   // Uitlog functionaliteit
   // =======================
-  const logoutButton = document.getElementById("logoutButton");
-  console.log("logoutButton gevonden:", logoutButton);
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutButton = document.getElementById("logoutButton");
+    if (logoutButton) {
+      logoutButton.addEventListener("click", () => {
+        if (confirm("Weet je zeker dat je wilt uitloggen?")) {
+          localStorage.removeItem("jwt");
+          window.location.href = "/";
+        }
+      });
+    }
+  });
 
-  if (logoutButton) {
-    logoutButton.addEventListener("click", () => {
-      if (confirm("Weet je zeker dat je wilt uitloggen?")) {
-        localStorage.removeItem("jwt"); // verwijder token
-        window.location.href = "/";
-      }
-    });
-  }
 
   // =======================
   // Auto load pending users
