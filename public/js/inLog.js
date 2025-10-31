@@ -89,15 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem("jwt", token);
 
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
+        const roles = payload.roles
+          ? (Array.isArray(payload.roles) ? payload.roles : [payload.roles])
+          : (payload.role ? [payload.role] : []);
 
-        if (roles.includes("ADMIN")) {
-          window.location.href = "/dashboard";
-        } else if (roles.includes("USER")) {
-          window.location.href = "/dashboarduser";
-        } else {
-          alert("Geen geldige rol gevonden!");
+        if (!roles.includes('ADMIN')) {
+          alert('Geen toegang!');
+          window.location.href = '/dashboarduser';
+          return;
         }
+
 
       } catch (err) {
         console.error("Fout bij inloggen:", err);
