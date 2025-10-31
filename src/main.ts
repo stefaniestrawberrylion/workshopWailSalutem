@@ -2,7 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { Catch, ExceptionFilter, NotFoundException, ArgumentsHost } from '@nestjs/common';
+import {
+  Catch,
+  ExceptionFilter,
+  NotFoundException,
+  ArgumentsHost,
+} from '@nestjs/common';
 import type { Response } from 'express';
 
 @Catch(NotFoundException)
@@ -17,22 +22,35 @@ class NotFoundFilter implements ExceptionFilter {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Statische bestanden uit public/
+  // ✅ CORS inschakelen met toegestane origins en exposed headers
+  app.enableCors({
+    origin: [
+      'http://localhost:8080', // jouw lokale frontend
+      'https://workshoptest.wailsalutem-foundation.com', // productie frontend
+    ],
+    credentials: true,
+    exposedHeaders: ['Authorization'], // ✅ hierdoor kan je frontend de JWT header lezen
+  });
+
+  // Statische bestanden uit de public-map serveren
   app.useStaticAssets(join(process.cwd(), 'public'));
 
-  // Logging van requests
+  // Logging van requests (handig voor debugging)
   app.use((req, _res, next) => {
     console.log('Requested URL:', req.url);
     next();
   });
 
-  // Init eerst alle modules/controllers
+  // Eerst alle modules/controllers initialiseren
   await app.init();
 
-  // Globale 404-handler
+  // Globale 404-afhandeling
   app.useGlobalFilters(new NotFoundFilter());
 
-  await app.listen(process.env.PORT ?? 3000);
+  // Start de app
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`✅ Server running on port ${port}`);
 }
 
 bootstrap();

@@ -1,12 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ================== JWT & ROLCHECK (ADMIN TOEGANG) ==================
+  const token = localStorage.getItem('jwt');
+  if (!token) {
+    alert('Niet ingelogd!');
+    window.location.href = '/inlog';
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
+
+    if (!roles.includes('ADMIN')) {
+      alert('Geen toegang!');
+      window.location.href = '/dashboarduser';
+      return;
+    }
+  } catch (err) {
+    console.error('Fout bij het decoderen van JWT:', err);
+    localStorage.removeItem('jwt');
+    window.location.href = '/inlog';
+    return;
+  }
+
   // ================== API Base URL ==================
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://workshoptest.wailsalutem-foundation.com";
 
-  console.log("Backend URL:", API_URL);
 
   // ================== Panel Switching ==================
   const cardContainer = document.getElementById('cardContainer');
@@ -39,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Vul e-mail en wachtwoord in!");
         return;
       }
+
       console.log("Backend URL:", API_URL);
 
       try {
@@ -54,13 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const tokenHeader = response.headers.get("Authorization");
-        if (!tokenHeader) {
+        // ✅ Lees token uit body (veiliger & zekerder)
+        const data = await response.json();
+        const token = data.access_token;
+        if (!token) {
           alert("Geen token ontvangen!");
           return;
         }
 
-        const token = tokenHeader.replace("Bearer ", "");
         localStorage.setItem("jwt", token);
 
         const payload = JSON.parse(atob(token.split('.')[1]));
