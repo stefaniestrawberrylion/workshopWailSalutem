@@ -23,7 +23,7 @@ import { RegistrationModule } from './security/presentation/controller/registrat
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: false,
       }),
     }),
 

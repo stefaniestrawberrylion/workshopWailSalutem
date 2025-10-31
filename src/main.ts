@@ -2,52 +2,37 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { ConfigService } from '@nestjs/config';
+import { Catch, ExceptionFilter, NotFoundException, ArgumentsHost } from '@nestjs/common';
+import type { Response } from 'express';
+
+@Catch(NotFoundException)
+class NotFoundFilter implements ExceptionFilter {
+  catch(_: NotFoundException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const res = ctx.getResponse<Response>();
+    res.status(404).sendFile(join(process.cwd(), 'public', 'html', '404.html'));
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const config = app.get(ConfigService);
 
-
-  console.log('DEBUG JWT_SECRET:', config.get('JWT_SECRET'));
-
-  // Serve static assets vanuit public/
+  // Statische bestanden uit public/
   app.useStaticAssets(join(process.cwd(), 'public'));
 
-  // Debug: log alle requests
-  app.use((req, res, next) => {
+  // Logging van requests
+  app.use((req, _res, next) => {
     console.log('Requested URL:', req.url);
     next();
   });
 
-  // SPA fallback — alleen voor frontend routes, niet voor API
-  app.use((req, res, next) => {
-    const apiPaths = ['/register', '/auth', '/api']; // alle API-routes
-    const ignoredPaths = [
-      '/inlog',
-      '/toevoegen',
-      '/dashboard',
-      '/dashboarduser',
-      '/workshopuser',
-      '/profieladmin',
-      '/profieluser',
-    ];
+  // Init eerst alle modules/controllers
+  await app.init();
 
-    const path = req.path.toLowerCase();
-
-    // Laat API en bekende frontend routes door
-    if (
-      apiPaths.some((p) => path.startsWith(p)) ||
-      ignoredPaths.some((p) => path.startsWith(p))
-    ) {
-      next();
-      return;
-    }
-
-    // Anders: fallback naar index.html
-    res.sendFile(join(process.cwd(), 'public', 'index.html'));
-  });
+  // Globale 404-handler
+  app.useGlobalFilters(new NotFoundFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 }
+
 bootstrap();
