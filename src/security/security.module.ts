@@ -6,7 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './presentation/strategies/jwt.strategy';
 import { AuthService } from './application/auth.service';
 import { AuthController } from './presentation/controller/auth.controller';
-import { Admin } from './domain/admin.entity'; // Je Admin entity
+import { Admin } from './domain/admin.entity';
+import { JwtSignOptions } from '@nestjs/jwt'; // ✅ importeer type
 
 @Module({
   imports: [
@@ -16,16 +17,20 @@ import { Admin } from './domain/admin.entity'; // Je Admin entity
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET') || 'defaultSecret',
-        signOptions: {
-          expiresIn: config.get<string>('JWT_EXPIRATION') ?? '1h', // nullish coalescing
-        } as any, // forceer type
-      }),
+      useFactory: (config: ConfigService) => {
+        const expiresIn: JwtSignOptions['expiresIn'] = (config.get<string>(
+          'JWT_EXPIRATION',
+        ) ?? '1h') as JwtSignOptions['expiresIn'];
+
+        return {
+          secret: config.get<string>('JWT_SECRET') || 'defaultSecret',
+          signOptions: { expiresIn },
+        };
+      },
     }),
   ],
   controllers: [AuthController],
-  providers: [JwtStrategy, AuthService], // AdminRepository niet hier
-  exports: [JwtStrategy, AuthService],
+  providers: [JwtStrategy, AuthService],
+  exports: [JwtModule, PassportModule, ConfigModule, JwtStrategy, AuthService],
 })
 export class SecurityModule {}

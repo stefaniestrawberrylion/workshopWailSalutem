@@ -140,9 +140,15 @@ export class RegistrationController {
       );
     }
 
-    console.log(`Login succesvol voor gebruiker: ${user.email}`);
-    console.log(`Rol van gebruiker: ${user.role}`);
+    console.log(
+      `✅ Login succesvol voor gebruiker: ${user.email} (${user.role})`,
+    );
 
-    return { message: 'Login succesvol' };
+    // 🔥 JWT genereren via UserService
+    const token = await this.userService.login(user);
+    return {
+      message: 'Login succesvol',
+      ...token,
+    };
   }
 }

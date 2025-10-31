@@ -1,28 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-  // ================== JWT & ROLCHECK (ADMIN TOEGANG) ==================
-  const token = localStorage.getItem('jwt');
-  if (!token) {
-    alert('Niet ingelogd!');
-    window.location.href = '/inlog';
-    return;
-  }
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
-
-    if (!roles.includes('ADMIN')) {
-      alert('Geen toegang!');
-      window.location.href = '/dashboarduser';
-      return;
-    }
-  } catch (err) {
-    console.error('Fout bij het decoderen van JWT:', err);
-    localStorage.removeItem('jwt');
-    window.location.href = '/inlog';
-    return;
-  }
+  console.log("🟢 inlog.js geladen");
 
   // ================== API Base URL ==================
   const API_URL =
@@ -30,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ? "http://localhost:3000"
       : "https://workshoptest.wailsalutem-foundation.com";
 
+  console.log("Backend URL:", API_URL);
 
   // ================== Panel Switching ==================
   const cardContainer = document.getElementById('cardContainer');
@@ -50,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================== Login ==================
+  // ================== LOGIN ==================
   const loginBtn = document.querySelector(".login button");
 
   if (loginBtn) {
@@ -63,72 +41,73 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      console.log("Backend URL:", API_URL);
+      console.log("🔐 Login attempt:", email);
+
+      // ✨ Slim bepalen of het om een admin gaat
+      const isAdminLogin = email.toLowerCase().includes("admin");
+      const endpoint = isAdminLogin
+        ? `${API_URL}/auth/login`
+        : `${API_URL}/register/login`;
+
+      console.log("🌐 Login endpoint:", endpoint);
 
       try {
-        const response = await fetch(`${API_URL}/auth/login`, {
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
 
+        console.log("📡 Response status:", response.status);
+
         if (!response.ok) {
           const data = await response.json();
+          console.error("❌ Login failed:", data);
           alert("Login mislukt: " + (data.message || response.status));
           return;
         }
 
-        // ✅ Lees token uit body (veiliger & zekerder)
+        // ✅ Lees token uit body
         const data = await response.json();
+        console.log("📦 Response body:", data);
+
         const token = data.access_token;
         if (!token) {
-          alert("Geen token ontvangen!");
+          alert("⚠️ Geen token ontvangen van server!");
+          console.error("⚠️ Response bevat geen access_token veld");
           return;
         }
 
+        // ✅ Sla token op in localStorage
         localStorage.setItem("jwt", token);
+        console.log("✅ Token opgeslagen in localStorage");
 
+        // ✅ Decodeer token en controleer rol
         const payload = JSON.parse(atob(token.split('.')[1]));
         const roles = payload.roles
           ? (Array.isArray(payload.roles) ? payload.roles : [payload.roles])
           : (payload.role ? [payload.role] : []);
 
-        if (!roles.includes('ADMIN')) {
-          alert('Geen toegang!');
+        console.log("👤 Ingelogde rollen:", roles);
+
+        if (roles.includes('ADMIN')) {
+          alert('Welkom admin!');
+          window.location.href = '/dashboard';
+        } else if (roles.includes('USER')) {
+          alert('Welkom gebruiker!');
           window.location.href = '/dashboarduser';
-          return;
+        } else {
+          alert('Onbekende rol!');
         }
 
-
       } catch (err) {
-        console.error("Fout bij inloggen:", err);
-        alert("Fout bij inloggen. Controleer netwerkverbinding.");
+        console.error("💥 Fout bij inloggen:", err);
+        alert("Fout bij inloggen. Controleer netwerkverbinding of backend.");
       }
     });
   }
 
-  // ================== Fetch Workshops (ADMIN alleen) ==================
-  async function fetchWorkshops() {
-    const token = localStorage.getItem("jwt");
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${API_URL}/api/workshops`, {
-        headers: { "Authorization": "Bearer " + token },
-      });
-
-      if (response.ok) {
-        const workshops = await response.json();
-        console.log(workshops);
-      } else {
-        console.error("Failed fetching workshops", response.status);
-      }
-    } catch (err) {
-      console.error("Error fetching workshops:", err);
-    }
-  }
-
-  // ================== Registratie ==================
+  // ================== REGISTRATIE ==================
   const sendEmailBtn = document.getElementById('sendEmail');
   if (sendEmailBtn) {
     sendEmailBtn.addEventListener('click', async () => {
@@ -144,6 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // ❌ Verbied e-mails met 'admin'
+      if (email.toLowerCase().includes('admin')) {
+        alert("Gebruik geen e-mailadres met 'admin' erin. Dit is alleen voor beheerders.");
+        return;
+      }
+
+      // ✅ Controleer wachtwoordvereisten
       const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*]).{12,}$/;
       if (!pwdRegex.test(password)) {
         alert("Wachtwoord voldoet niet aan de eisen! Minimaal 12 tekens, hoofdletter, kleine letter en speciaal teken.");
@@ -176,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================== Toggle Password ==================
+  // ================== TOGGLE PASSWORD ==================
   const togglePasswordBtn = document.querySelector(".toggle-password");
   const passwordInput = document.getElementById("password");
 
@@ -191,5 +177,4 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-}); // einde DOMContentLoaded
+});

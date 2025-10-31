@@ -805,6 +805,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hours > 0) return `${hours}u ${mins}m`;
     return `${mins}m`;
   }
+  // terug naar de dashboard (registreer direct binnen de outer DOMContentLoaded)
+  const backBtn = document.getElementById("backToDashboardBtn");
+  if (backBtn) {
+    backBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.location.href = "/dashboard";
+    });
+  }
+
   // =======================
   // Init
   // =======================

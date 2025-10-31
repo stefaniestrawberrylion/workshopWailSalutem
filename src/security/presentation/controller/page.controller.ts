@@ -1,11 +1,7 @@
 // src/presentation/page.controller.ts
-import { Controller, Get, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { join } from 'path';
-import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../guards/role.guard';
-import { Roles } from '../auth/role.decorator';
-import { Role } from '../../domain/enums/role.enum';
 
 @Controller()
 export class PageController {
@@ -17,8 +13,6 @@ export class PageController {
 
   // --- ADMIN ROUTES ---
   @Get('toevoegen')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN)
   showWorkshopToevoegen(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'admin', 'workshopToevoegen.html'),
@@ -26,20 +20,13 @@ export class PageController {
   }
 
   @Get('dashboard')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN)
-  getDashboard(): string {
-    return join(
-      process.cwd(),
-      'public',
-      'html',
-      'admin',
-      'dashboardAdmin.html',
+  showDashboard(@Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'public', 'html', 'admin', 'dashboardAdmin.html'),
     );
   }
+
   @Get('profieladmin')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN)
   showProfileAdmin(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'admin', 'gebruikersProfiel.html'),
@@ -48,8 +35,6 @@ export class PageController {
 
   // --- USER ROUTES ---
   @Get('dashboarduser')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.USER)
   showDashboardUser(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'user', 'dashboardUser.html'),
@@ -57,8 +42,6 @@ export class PageController {
   }
 
   @Get('workshopuser')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.USER)
   showWorkshopUser(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'user', 'workshopUser.html'),
