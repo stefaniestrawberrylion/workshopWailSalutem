@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 
+// 🔹 Custom 404-pagina
 @Catch(NotFoundException)
 class NotFoundFilter implements ExceptionFilter {
   catch(_: NotFoundException, host: ArgumentsHost) {
@@ -21,39 +22,39 @@ class NotFoundFilter implements ExceptionFilter {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  // ✅ CORS inschakelen met toegestane origins en exposed headers
-  app.enableCors({
-    origin: [
-      'http://localhost:3000', // jouw lokale frontend
-      'https://workshoptest.wailsalutem-foundation.com', // productie frontend
-    ],
-    credentials: true,
-    exposedHeaders: ['Authorization'], // ✅ hierdoor kan je frontend de JWT header lezen
+  // ✅ Maak app aan mét CORS correct geconfigureerd
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: {
+      origin: [
+        'http://localhost:3000',
+        'https://workshoptest.wailsalutem-foundation.com',
+      ],
+      credentials: true,
+      exposedHeaders: ['Authorization'], // laat frontend Authorization header zien
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Authorization', 'Content-Type'],
+    },
   });
 
-  // Statische bestanden uit de public-map serveren
+  // ✅ Statische assets (voor HTML/CSS/JS)
   app.useStaticAssets(join(process.cwd(), 'public'));
 
-  // Logging van requests (handig voor debugging)
+  // ✅ Logging (optioneel, handig voor debuggen)
   app.use((req, _res, next) => {
-    console.log('Requested URL:', req.url);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
   });
+
+  // ✅ Uploads publiek beschikbaar maken
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
-
-  // Eerst alle modules/controllers initialiseren
-  await app.init();
-
-  // Globale 404-afhandeling
+  // ✅ Globale 404-afhandeling
   app.useGlobalFilters(new NotFoundFilter());
 
-  // Start de app
+  // ✅ Start de applicatie
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`✅ Server running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 }
 
 bootstrap();
