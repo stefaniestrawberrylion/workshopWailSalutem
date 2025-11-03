@@ -16,7 +16,6 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
-
 import { WorkshopService } from '../../application/workshop.service';
 import { WorkshopDto } from '../dto/workshop.dto';
 import { Workshop } from '../../domain/workshop.entity';
@@ -118,27 +117,36 @@ export class WorkshopController {
   ): Promise<WorkshopDto> {
     console.log('📝 Body received before parsing:', body);
 
-    // ✅ Labels als JSON parsen als het een string is
     if (typeof body.labels === 'string') {
       try {
         body.labels = JSON.parse(body.labels);
-      } catch {
+      } catch (err) {
+        console.error('❌ Error parsing labels JSON:', err);
         body.labels = [];
       }
     }
 
-    const workshop = await this.workshopService.saveWorkshop(
-      body,
-      files.image?.[0],
-      files.media,
-      files.instructionsFiles,
-      files.manualsFiles,
-      files.demoFiles,
-      files.worksheetsFiles,
-    );
+    console.log('📦 Parsed body:', body);
+    console.log('📁 Uploaded files:', Object.keys(files));
 
-    return this.toDto(workshop);
+    try {
+      const workshop = await this.workshopService.saveWorkshop(
+        body,
+        files.image?.[0],
+        files.media,
+        files.instructionsFiles,
+        files.manualsFiles,
+        files.demoFiles,
+        files.worksheetsFiles,
+      );
+      console.log('✅ Workshop saved:', workshop);
+      return this.toDto(workshop);
+    } catch (err) {
+      console.error('💥 Error in createWorkshop:', err);
+      throw err;
+    }
   }
+
 
   // =======================
   // Workshop verwijderen (ADMIN only)
