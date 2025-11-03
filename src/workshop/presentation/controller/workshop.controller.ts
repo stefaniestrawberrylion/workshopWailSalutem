@@ -147,7 +147,6 @@ export class WorkshopController {
     }
   }
 
-
   // =======================
   // Workshop verwijderen (ADMIN only)
   // =======================

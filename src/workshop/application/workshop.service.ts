@@ -11,8 +11,10 @@ export interface MulterFile {
   originalname: string;
   encoding: string;
   mimetype: string;
-  buffer: Buffer;
+  buffer?: Buffer;
   size: number;
+  path?: string;
+  filename?: string;
 }
 
 @Injectable()
@@ -53,32 +55,29 @@ export class WorkshopService {
 
     const workshop = new Workshop();
 
-    workshop.imagePath = image ? await this.saveFile(image) : '';
+    // ✅ geen await nodig want saveFile is sync
+    workshop.imagePath = image ? this.saveFile(image) : '';
 
-    // Media opslaan
-    workshop.files = await this.saveFiles(media);
+    // ✅ sync methodes, dus geen await
+    workshop.files = this.saveFiles(media);
 
-    // Documenten opslaan
     const documents: DocumentInfo[] = [
-      ...(await this.createDocumentInfos(instructionsFiles, 'instructions')),
-      ...(await this.createDocumentInfos(manualsFiles, 'manuals')),
-      ...(await this.createDocumentInfos(demoFiles, 'demo')),
-      ...(await this.createDocumentInfos(worksheetsFiles, 'worksheets')),
+      ...this.createDocumentInfos(instructionsFiles, 'instructions'),
+      ...this.createDocumentInfos(manualsFiles, 'manuals'),
+      ...this.createDocumentInfos(demoFiles, 'demo'),
+      ...this.createDocumentInfos(worksheetsFiles, 'worksheets'),
     ];
-    // JSON-string opslaan
-    workshop.documentsJson = JSON.stringify(documents);
 
+    workshop.documentsJson = JSON.stringify(documents);
     workshop.name = data.name;
     workshop.description = data.description;
     workshop.duration = data.duration;
-    // Labels ook als JSON-string opslaan
     workshop.labelsJson = JSON.stringify(data.labels ?? []);
     workshop.parentalConsent = data.parentalConsent ?? false;
 
     return this.workshopRepository.save(workshop);
   }
 
-  // Helpers
   private async ensureUploadDir(): Promise<void> {
     try {
       await fs.access(this.uploadDir);
@@ -87,34 +86,36 @@ export class WorkshopService {
     }
   }
 
-  private async saveFile(file: MulterFile): Promise<string> {
-    const fileName = `${Date.now()}_${file.originalname}`;
-    const filePath = join(this.uploadDir, fileName);
-    await fs.writeFile(filePath, file.buffer);
-    return `/uploads/${fileName}`;
+  private saveFile(file: MulterFile): string {
+    if (!file) return '';
+    const absolutePath =
+      file.path ?? join(process.cwd(), 'uploads', file.filename ?? '');
+    const relativePath = absolutePath
+      .replace(process.cwd(), '')
+      .replace(/\\/g, '/'); // Windows fix
+    return relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
   }
 
-  private async saveFiles(files?: MulterFile[]): Promise<string[]> {
+  private saveFiles(files?: MulterFile[]): string[] {
     if (!files) return [];
     const paths: string[] = [];
     for (const file of files) {
-      paths.push(await this.saveFile(file));
+      paths.push(this.saveFile(file));
     }
     return paths;
   }
 
-  private async createDocumentInfos(
+  private createDocumentInfos(
     files?: MulterFile[],
     category?: string,
-  ): Promise<DocumentInfo[]> {
+  ): DocumentInfo[] {
     if (!files) return [];
     const docs: DocumentInfo[] = [];
     for (const f of files) {
-      // category default op 'unknown' als het undefined is
       docs.push(
         new DocumentInfo(
           f.originalname,
-          await this.saveFile(f),
+          this.saveFile(f),
           category ?? 'unknown',
         ),
       );
