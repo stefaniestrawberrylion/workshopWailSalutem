@@ -178,15 +178,18 @@ export class WorkshopController {
             return { name: f.split('/').pop() ?? '', url: f, type };
           })
         : [],
-      documents: Array.isArray(w.documentsJson)
-        ? w.documentsJson.map((d) => ({
-            name: d.name,
-            url: d.url,
-            type: 'document',
-            category: d.category,
-          }))
-        : [],
-      labels: Array.isArray(w.labelsJson) ? w.labelsJson : [],
+      documents:
+        typeof w.documentsJson === 'string'
+          ? JSON.parse(w.documentsJson)
+          : Array.isArray(w.documentsJson)
+            ? w.documentsJson
+            : [],
+      labels:
+        typeof w.labelsJson === 'string'
+          ? JSON.parse(w.labelsJson)
+          : Array.isArray(w.labelsJson)
+            ? w.labelsJson
+            : [],
     });
   }
 }

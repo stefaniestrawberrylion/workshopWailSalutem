@@ -73,8 +73,7 @@ export class WorkshopService {
     workshop.description = data.description;
     workshop.duration = data.duration;
     workshop.labelsJson = JSON.stringify(data.labels ?? []);
-    workshop.parentalConsent = data.parentalConsent ?? false;
-
+    workshop.parentalConsent = String(data.parentalConsent) === 'true';
     return this.workshopRepository.save(workshop);
   }
 
