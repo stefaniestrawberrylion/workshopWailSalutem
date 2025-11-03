@@ -182,18 +182,30 @@
     const worksheetsInput = document.getElementById('worksheetsInput');
 
     function handleCategoryFiles(input, array) {
-      if(!input) return;
+      if (!input) return;
       input.addEventListener('change', e => {
         const files = Array.from(e.target.files);
-        files.forEach(file => {
-          if(!array.some(f => f.name === file.name)) {
+        const forbiddenExtensions = ['doc', 'docx'];
+
+        for (const file of files) {
+          const ext = file.name.split('.').pop().toLowerCase();
+
+          if (forbiddenExtensions.includes(ext)) {
+            showError(`Bestandstype .${ext} is niet toegestaan. Gebruik PDF of TXT.`);
+            input.value = ''; // reset input
+            return;
+          }
+
+          if (!array.some(f => f.name === file.name)) {
             array.push(file);
           }
-        });
+        }
+
         updateCategoryPreview(array, input.dataset.previewId);
         input.value = ''; // reset input
       });
     }
+
     function updateCategoryPreview(array, previewId) {
       const container = document.getElementById(previewId);
       if(!container) return;
