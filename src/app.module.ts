@@ -36,7 +36,7 @@ import { UserModule } from './security/presentation/controller/user.module';
     // ✅ Statische serve van uploadmap
     ServeStaticModule.forRoot({
       rootPath: join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
-      serveRoot: '/uploads', // publiek pad
+      serveRoot: '/uploads',
     }),
 
     // ✅ Jouw andere modules
