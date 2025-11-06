@@ -6,11 +6,13 @@ import { UserService } from '../../application/user.service';
 import { Admin } from '../../domain/admin.entity';
 import { User } from '../../domain/user.entity';
 import { SecurityModule } from '../../security.module';
+import { MailModule } from '../../../mail/mail.modules';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Admin, User]),
     SecurityModule,
+    MailModule,
   ],
   controllers: [RegistrationController],
   providers: [AdminService, UserService],

@@ -7,7 +7,7 @@ import { JwtStrategy } from './presentation/strategies/jwt.strategy';
 import { AuthService } from './application/auth.service';
 import { AuthController } from './presentation/controller/auth.controller';
 import { Admin } from './domain/admin.entity';
-import { JwtSignOptions } from '@nestjs/jwt'; // ✅ importeer type
+import { JwtSignOptions } from '@nestjs/jwt';
 
 @Module({
   imports: [

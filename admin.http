@@ -21,3 +21,6 @@ Content-Type: application/json
   "firstName": "Admin",
   "lastName": "User"
 }
+
+###
+DELETE http://localhost:3000/register/annelene1309%40gmail.com

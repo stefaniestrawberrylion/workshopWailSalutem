@@ -12,6 +12,7 @@ import { Role } from '../domain/enums/role.enum';
 import { Status } from '../domain/enums/state.enum';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { MailService } from '../../mail/application/mail.service';
 
 @Injectable()
 export class UserService {
@@ -22,6 +23,7 @@ export class UserService {
     private readonly adminRepository: Repository<Admin>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(
@@ -75,16 +77,49 @@ export class UserService {
     });
 
     await this.userRepository.save(user);
+
+    await this.mailService.sendAdminNotification(
+      email,
+      `${firstName} ${lastName}`,
+    );
   }
 
   async updateStatus(userId: number, status: Status): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
+      console.error(`[UserService] Gebruiker niet gevonden: ${userId}`);
       throw new NotFoundException(`Gebruiker niet gevonden met id: ${userId}`);
     }
 
+    console.log(`[UserService] Update status van ${user.email} naar ${status}`);
+
+    if (status === Status.DENIED) {
+      // Verwijder gebruiker uit de database
+      await this.userRepository.delete(userId);
+      console.log(
+        `[UserService] Gebruiker ${user.email} verwijderd wegens DENIED status`,
+      );
+
+      try {
+        await this.mailService.sendUserStatus(user.email, 'afgewezen');
+      } catch (err) {
+        console.error('[UserService] Fout bij verzenden e-mail status:', err);
+      }
+
+      return; // Stop hier, gebruiker is verwijderd
+    }
+
+    // Voor alle andere status updates (bijv. APPROVED)
     user.status = status;
     await this.userRepository.save(user);
+
+    if (status === Status.APPROVED) {
+      try {
+        await this.mailService.sendUserStatus(user.email, 'goedgekeurd');
+      } catch (err) {
+        console.error('[UserService] Fout bij verzenden e-mail status:', err);
+      }
+    }
   }
 
   async getPendingUsers(): Promise<User[]> {
@@ -139,5 +174,12 @@ export class UserService {
     });
     // ✅ Vergeet dit niet!
     return { access_token: token };
+  }
+
+  async deleteUserByEmail(email: string): Promise<void> {
+    const result = await this.userRepository.delete({ email });
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
   }
 }

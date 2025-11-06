@@ -9,6 +9,7 @@ import { SecurityModule } from './security/security.module';
 import { PageController } from './security/presentation/controller/page.controller';
 import { RegistrationModule } from './security/presentation/controller/registration.module';
 import { UserModule } from './security/presentation/controller/user.module';
+import { MailModule } from './mail/mail.modules';
 
 @Module({
   imports: [
@@ -30,6 +31,12 @@ import { UserModule } from './security/presentation/controller/user.module';
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
+        // ⚡ Extra opties voor MySQL 8
+        extra: {
+          ssl: false,
+          allowPublicKeyRetrieval: true,
+
+        },
       }),
     }),
 
@@ -44,6 +51,7 @@ import { UserModule } from './security/presentation/controller/user.module';
     SecurityModule,
     RegistrationModule,
     UserModule,
+    MailModule,
   ],
   controllers: [PageController],
 })

@@ -61,10 +61,25 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("📡 Response status:", response.status);
 
         if (!response.ok) {
-          const data = await response.json();
-          console.error("❌ Login failed:", data);
-          alert("Login mislukt: " + (data.message || response.status));
-          return;
+          let message = "Login mislukt.";
+          try {
+            const data = await response.json();
+            console.error("❌ Login failed:", data);
+
+            // Backend geeft nu specifieke fouten bij DENIED of PENDING
+            if (data.message) {
+              message = data.message;
+            } else if (response.status === 403) {
+              message = "Uw account is nog niet goedgekeurd of is geweigerd.";
+            } else if (response.status === 401) {
+              message = "Ongeldige e-mail of wachtwoord.";
+            }
+          } catch (parseError) {
+            console.error("⚠️ Kon foutmelding niet parsen:", parseError);
+          }
+
+          alert(message);
+          return; // stop direct bij fout
         }
 
         // ✅ Lees token uit body

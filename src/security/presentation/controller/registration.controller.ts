@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -17,9 +18,16 @@ function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
+
+  if (typeof error === 'object' && error !== null) {
+    const maybeError = error as { message?: unknown };
+    if (typeof maybeError.message === 'string') {
+      return maybeError.message;
+    }
+  }
+
   return String(error);
 }
-
 @Controller('register')
 export class RegistrationController {
   constructor(
@@ -133,22 +141,33 @@ export class RegistrationController {
       );
     }
 
-    if (user.status !== Status.APPROVED) {
+    // ❌ Als de gebruiker is afgekeurd, geef een duidelijke foutmelding
+    if (user.status === Status.DENIED) {
       throw new HttpException(
-        { message: 'Account nog niet goedgekeurd door admin' },
+        { message: 'Uw account is geweigerd door de administrator.' },
         HttpStatus.FORBIDDEN,
       );
     }
 
-    console.log(
-      `✅ Login succesvol voor gebruiker: ${user.email} (${user.role})`,
-    );
-
-    // 🔥 JWT genereren via UserService
+    // ⚠️ Als de gebruiker nog niet is goedgekeurd
+    if (user.status === Status.PENDING) {
+      throw new HttpException(
+        {
+          message: 'Uw account is nog niet goedgekeurd door de administrator.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const token = await this.userService.login(user);
     return {
       message: 'Login succesvol',
       ...token,
     };
+  }
+
+  @Delete(':email')
+  async deleteUser(@Param('email') email: string) {
+    await this.userService.deleteUserByEmail(email);
+    return { message: `User with email ${email} has been deleted` };
   }
 }

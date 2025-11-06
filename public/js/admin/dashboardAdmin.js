@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // =======================
   const API_URL =
     window.location.hostname === "localhost"
-      ? "http://localhost:3000" // lokale backend
-      : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
+      ? "http://localhost:3000"
+      : "https://workshoptest.wailsalutem-foundation.com";
 
   console.log("Backend URL:", API_URL);
 
