@@ -3,6 +3,9 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as express from 'express';
+import * as bodyParser from 'body-parser';
+import { createServer } from 'http';
+
 import {
   Catch,
   ExceptionFilter,
@@ -22,32 +25,28 @@ class NotFoundFilter implements ExceptionFilter {
 }
 
 async function bootstrap() {
-  // ✅ Maak app aan mét CORS correct geconfigureerd
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
       origin: [
         'http://localhost:3000',
-        'https://workshoptest.wailsalutem-foundation.com',
+        '[https://workshoptest.wailsalutem-foundation.com](https://workshoptest.wailsalutem-foundation.com)',
       ],
       credentials: true,
-      exposedHeaders: ['Authorization'], // laat frontend Authorization header zien
+      exposedHeaders: ['Authorization'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Authorization', 'Content-Type'],
     },
   });
 
-  // ✅ Statische assets (voor HTML/CSS/JS)
   app.useStaticAssets(join(process.cwd(), 'public'));
 
-  // ✅ Logging (optioneel, handig voor debuggen)
   app.use((req, _res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
   });
 
-  // ✅ Uploads publiek beschikbaar maken
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-  // Preflight handler – werkt zelfs als CORS middleware niet genoeg is
+
   app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
       res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -57,22 +56,22 @@ async function bootstrap() {
       );
       res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
       res.header('Access-Control-Allow-Credentials', 'true');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return res.sendStatus(204);
+      res.sendStatus(204);
+      return;
     }
     next();
   });
 
-  // ✅ Globale 404-afhandeling
-  app.useGlobalFilters(new NotFoundFilter());
-  // ⬇️ Limieten verhogen voor grote uploads
-  app.use(express.json({ limit: '200mb' }));
-  app.use(express.urlencoded({ limit: '200mb', extended: true }));
+  app.use(bodyParser.json({ limit: '200mb' }));
+  app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
 
-  // ✅ Start de applicatie
+  app.useGlobalFilters(new NotFoundFilter());
+
+  // ✅ Node.js HTTP-server gebruiken om timeout in te stellen
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`🚀 Server running on port ${port}`);
+  const server = createServer(app.getHttpAdapter().getInstance());
+  server.timeout = 0; // geen timeout
+  server.listen(port, () => console.log(`🚀 Server running on port ${port}`));
 }
 
 bootstrap();
