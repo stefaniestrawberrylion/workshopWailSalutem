@@ -192,4 +192,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  const phoneInput = document.getElementById('phone');
+  const phoneError = document.getElementById('phoneError');
+
+  phoneInput.addEventListener('input', function() {
+    const value = this.value.trim();
+
+    // Regex: alleen mobiel nummer toegestaan (06 of +316)
+    const mobileRegex = /^(?:\+316|06)\d{8}$/;
+
+    if (!mobileRegex.test(value)) {
+      phoneError.style.display = 'inline';
+    } else {
+      phoneError.style.display = 'none';
+    }
+  });
 });
