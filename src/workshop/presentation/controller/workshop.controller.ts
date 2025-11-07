@@ -23,14 +23,17 @@ import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
+import { promises as fs } from 'fs';
 
 interface MulterFile {
   fieldname: string;
   originalname: string;
   encoding: string;
   mimetype: string;
-  buffer: Buffer;
+  buffer?: Buffer;
   size: number;
+  path?: string;
+  filename?: string;
 }
 
 interface JwtPayload {
@@ -45,9 +48,11 @@ interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
-// ✅ Multer configuratie: schrijft naar disk en laat tot 200 MB toe
+// =====================
+// Multer configuratie
+// =====================
 const storage = diskStorage({
-  destination: join(process.cwd(), 'uploads'), // gebruik absolute pad
+  destination: join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
   filename: (req, file, cb) => {
     const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
     cb(null, safeName);
@@ -57,7 +62,7 @@ const storage = diskStorage({
 const multerOptions = {
   storage,
   limits: {
-    fileSize: 200 * 1024 * 1024, // max 200 MB per file
+    fileSize: 200 * 1024 * 1024, // 200 MB per bestand
   },
 };
 
@@ -65,11 +70,13 @@ const multerOptions = {
 export class WorkshopController {
   constructor(private readonly workshopService: WorkshopService) {}
 
+  // =======================
+  // Test Auth
+  // =======================
   @Get('test-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   testAuth(@Req() req: AuthenticatedRequest) {
-    console.log('req.user:', req.user);
     return { user: req.user };
   }
 
@@ -106,8 +113,9 @@ export class WorkshopController {
         { name: 'manualsFiles', maxCount: 10 },
         { name: 'demoFiles', maxCount: 10 },
         { name: 'worksheetsFiles', maxCount: 10 },
+        { name: 'labelsFile', maxCount: 1 }, // optionele JSON file voor labels
       ],
-      multerOptions, // ✅ gebruik custom configuratie
+      multerOptions,
     ),
   )
   async createWorkshop(
@@ -115,36 +123,44 @@ export class WorkshopController {
     @Body() body: any,
     @UploadedFiles() files: Record<string, MulterFile[]>,
   ): Promise<WorkshopDto> {
-    console.log('📝 Body received before parsing:', body);
-
-    if (typeof body.labels === 'string') {
+    // =========================
+    // Labels parsen
+    // =========================
+    if (files.labelsFile?.[0]?.path) {
+      // JSON file upload aanwezig
       try {
-        body.labels = JSON.parse(body.labels);
+        const json = await fs.readFile(files.labelsFile[0].path, 'utf8');
+        body.labels = JSON.parse(json);
       } catch (err) {
-        console.error('❌ Error parsing labels JSON:', err);
+        console.error('❌ Error reading labelsFile:', err);
         body.labels = [];
       }
+    } else if (typeof body.labels === 'string') {
+      // labels als string in body
+      try {
+        body.labels = JSON.parse(body.labels);
+      } catch {
+        body.labels = [];
+      }
+    } else {
+      // geen labels meegegeven
+      body.labels = [];
     }
 
-    console.log('📦 Parsed body:', body);
-    console.log('📁 Uploaded files:', Object.keys(files));
+    // =========================
+    // Workshop opslaan
+    // =========================
+    const workshop = await this.workshopService.saveWorkshop(
+      body,
+      files.image?.[0],
+      files.media,
+      files.instructionsFiles,
+      files.manualsFiles,
+      files.demoFiles,
+      files.worksheetsFiles,
+    );
 
-    try {
-      const workshop = await this.workshopService.saveWorkshop(
-        body,
-        files.image?.[0],
-        files.media,
-        files.instructionsFiles,
-        files.manualsFiles,
-        files.demoFiles,
-        files.worksheetsFiles,
-      );
-      console.log('✅ Workshop saved:', workshop);
-      return this.toDto(workshop);
-    } catch (err) {
-      console.error('💥 Error in createWorkshop:', err);
-      throw err;
-    }
+    return this.toDto(workshop);
   }
 
   // =======================
@@ -184,12 +200,11 @@ export class WorkshopController {
           : Array.isArray(w.documentsJson)
             ? w.documentsJson
             : [],
-      labels:
-        typeof w.labelsJson === 'string'
+      labels: Array.isArray(w.labelsJson)
+        ? w.labelsJson
+        : typeof w.labelsJson === 'string'
           ? JSON.parse(w.labelsJson)
-          : Array.isArray(w.labelsJson)
-            ? w.labelsJson
-            : [],
+          : [],
     });
   }
 }

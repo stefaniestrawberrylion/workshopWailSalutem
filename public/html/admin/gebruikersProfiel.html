@@ -85,15 +85,7 @@
       box-shadow: 0 8px 20px var(--shadow);
     }
 
-    .user-card img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 15px;
-      border: 3px solid var(--theme-color);
-      background-color: #ddd;
-    }
+
 
     .user-card h2 {
       font-size: 18px;
@@ -166,13 +158,18 @@
       color: var(--theme-color);
     }
 
+    .user-card img,
     .modal-content img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      margin-bottom: 12px;
-      border: 3px solid var(--theme-color);
+        width: 100px; /* 120px voor modal */
+        height: 100px; /* 120px voor modal */
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px; /* 12px voor modal */
+        border: 3px solid var(--theme-color);
+        box-sizing: border-box; /* zorgt dat border binnen de afmetingen valt */
+        background-color: #ddd;
     }
+
     #backBtn {
       background-color: var(--theme-color);
       color: white;
@@ -276,7 +273,7 @@
         card.className = "user-card";
 
         const img = document.createElement("img");
-        img.src = user.profileImage || "/public/image/profiel.png";
+        img.src = user.profileImage || "/image/profiel.png";
         card.appendChild(img);
 
         const name = document.createElement("h2");
@@ -290,7 +287,7 @@
         // Modal gedrag
         card.addEventListener("click", () => {
           modal.style.display = "block";
-          modalImage.src = user.profileImage || "https://via.placeholder.com/120?text=👤";
+          modalImage.src = user.profileImage || "/image/profiel.png";
           modalName.textContent = `${user.firstName} ${user.lastName}`;
           modalEmail.textContent = "Email: " + user.email;
           modalSchool.textContent = "School: " + user.school;
