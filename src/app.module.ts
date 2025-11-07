@@ -31,12 +31,6 @@ import { MailModule } from './mail/mail.modules';
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
-        // ⚡ Extra opties voor MySQL 8
-        extra: {
-          ssl: false,
-          allowPublicKeyRetrieval: true,
-
-        },
       }),
     }),
 
