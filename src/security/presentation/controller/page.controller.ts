@@ -5,7 +5,7 @@ import { join } from 'path';
 
 @Controller()
 export class PageController {
-  // Publieke loginpagina
+  // --- Publieke loginpagina ---
   @Get('inlog')
   showLogin(@Res() res: Response) {
     return res.sendFile(join(process.cwd(), 'public', 'html', 'inLog.html'));
@@ -45,6 +45,28 @@ export class PageController {
   showWorkshopUser(@Res() res: Response) {
     return res.sendFile(
       join(process.cwd(), 'public', 'html', 'user', 'workshopUser.html'),
+    );
+  }
+
+  // --- NIEUWE PUBLIEKE ROUTES (savePageParents map) ---
+  @Get('privacyParents')
+  showPrivacyParents(@Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'public', 'html', 'savePageParents', 'parentPage.html'),
+    );
+  }
+
+  @Get('posters')
+  showPosters(@Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'public', 'html', 'savePageParents', 'posterPage.html'),
+    );
+  }
+
+  @Get('privacy')
+  showPrivacy(@Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'public', 'html', 'savePageParents', 'safePage.html'),
     );
   }
 }

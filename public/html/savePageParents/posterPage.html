@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Posters voor Kinderen | KinderPrivacy</title>
+  <link rel="stylesheet" href="/css/safePageParents/posterPage.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Lightbox Overlay -->
+<div id="lightbox" class="lightbox">
+  <span class="close">&times;</span>
+  <img class="lightbox-img" src="" alt="Grote poster">
+  <h3 class="lightbox-title"></h3>
+  <p class="lightbox-desc"></p>
+</div>
+
+<header>
+  <div class="logo">KinderPrivacy</div>
+  <nav>
+    <a href="/privacy">Home</a>
+    <a href="/privacyParents">Voor Ouders</a>
+    <a href="/posters" class="active">Posters</a>
+  </nav>
+</header>
+
+<!-- Hero sectie -->
+<section class="hero">
+  <h1>🎨 Posters voor Kinderen</h1>
+  <p>Bekijk deze leuke posters om meer te leren over veilig internet! 🌐</p>
+</section>
+
+<!-- Info sectie -->
+<section class="intro">
+  <p>
+    Hoi! Hier vind je handige posters die je helpen om veilig online te zijn. Bekijk ze goed en onthoud de tips! 🌟
+  </p>
+</section>
+
+<!-- Poster Slideshow -->
+<section class="poster-section">
+  <div class="poster-slider">
+    <div class="poster-slide active">
+      <img src="/image/Poster 2.webp" alt="Poster 1 - Privacy Basisregels">
+      <h3>Privacy Basisregels</h3>
+      <p>Ontdek hoe je veilig omgaat met persoonlijke gegevens online.</p>
+    </div>
+
+    <div class="poster-slide">
+      <img src="/image/poster%201.webp" alt="Poster 2 - Digital ethiek">
+      <h3>Digital ethiek</h3>
+      <p>Leer bewust keuzes maken bij social media en apps.</p>
+    </div>
+
+    <div class="poster-slide">
+      <img src="/image/poster%203.webp" alt="Poster 3 - Ai workshops">
+      <h3>Ai workshops</h3>
+      <p>Word slim met technologie en bescherm je digitale privacy!</p>
+    </div>
+  </div>
+
+  <div class="poster-controls">
+    <button class="prev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="next"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+</section>
+
+
+<!-- Tips sectie -->
+<section class="tips">
+  <h2>💡 Onthoud Dit!</h2>
+  <div class="tips-grid">
+    <div class="tip">
+      <i class="fa-solid fa-user-secret"></i>
+      <h3>Deel niet alles</h3>
+      <p>Houd adressen en school privé.</p>
+    </div>
+    <div class="tip">
+      <i class="fa-solid fa-thought-bubble"></i>
+      <h3>Denk na</h3>
+      <p>Over wat je online post of deelt.</p>
+    </div>
+    <div class="tip">
+      <i class="fa-solid fa-comments"></i>
+      <h3>Vertel het</h3>
+      <p>Aan een volwassene als iets raar is.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const slides = document.querySelectorAll('.poster-slide');
+  const nextBtn = document.querySelector('.next');
+  const prevBtn = document.querySelector('.prev');
+  let index = 0;
+
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.querySelector('.lightbox-img');
+  const lightboxTitle = document.querySelector('.lightbox-title');
+  const lightboxDesc = document.querySelector('.lightbox-desc');
+  const closeBtn = document.querySelector('.lightbox .close');
+
+  function showSlide(i) {
+    slides.forEach(slide => slide.classList.remove('active'));
+    slides[i].classList.add('active');
+  }
+
+  nextBtn.addEventListener('click', () => {
+    index = (index + 1) % slides.length;
+    showSlide(index);
+  });
+
+  prevBtn.addEventListener('click', () => {
+    index = (index - 1 + slides.length) % slides.length;
+    showSlide(index);
+  });
+
+  setInterval(() => {
+    index = (index + 1) % slides.length;
+    showSlide(index);
+  }, 6000);
+
+  // Lightbox functionaliteit
+  slides.forEach(slide => {
+    slide.addEventListener('click', () => {
+      const img = slide.querySelector('img').src;
+      const title = slide.querySelector('h3').textContent;
+      const desc = slide.querySelector('p').textContent;
+
+      lightboxImg.src = img;
+      lightboxTitle.textContent = title;
+      lightboxDesc.textContent = desc;
+
+      lightbox.style.display = 'flex';
+    });
+  });
+
+  closeBtn.addEventListener('click', () => {
+    lightbox.style.display = 'none';
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      lightbox.style.display = 'none';
+    }
+  });
+
+</script>
+
+</body>
+</html>
