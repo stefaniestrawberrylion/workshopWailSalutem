@@ -3,48 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/workshopUser/dashboardUser.css">
+    <title>Workshop Hub Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboardUser.css">
 
-    <title>User Dashboard</title>
-    <style>
-
-    </style>
 </head>
 <body>
-<header>
-    <h1>Welkom, <span id="username">Gebruiker</span>!</h1>
-</header>
-
-<div class="container">
-    <div class="sidebar">
-        <h2>Menu</h2>
-        <button onclick="alert('Profiel geopend')">Profiel</button>
-        <button onclick="alert('Instellingen geopend')">Instellingen</button>
-        <button onclick="alert('Uitgelogd')">Uitloggen</button>
+<!-- ====== SIDEBAR ====== -->
+<aside class="sidebar">
+    <div>
+        <h2>Workshop Hub</h2>
+        <nav>
+            <a href="#">🏠 Dashboard</a>
+            <a href="/workshopuser">📚 Workshops</a>
+            <a href="#">📊 Statistieken</a>
+            <a href="#">🕓 Geschiedenis</a>
+            <a href="#" id="logoutBtn">🚪 Uitloggen</a>
+        </nav>
     </div>
+    <a href="#" style="color:var(--text-muted);font-size:0.9rem;">🚪 Uitloggen</a>
+</aside>
 
-    <div class="main">
-        <h2>Overzicht</h2>
-        <div class="card">
-            <strong>Berichten:</strong> 5
-        </div>
-        <div class="card">
-            <strong>Notificaties:</strong> 3
-        </div>
-        <div class="card">
-            <strong>Laatste login:</strong> 16-10-2025 10:00
-        </div>
+<!-- ====== MAIN ====== -->
+<main class="main">
+    <div class="header">
+        <h1>Welkom terug! 👋</h1>
     </div>
-</div>
-<div class="sidebar">
-    <h2>Menu</h2>
-    <button onclick="window.location.href='/workshopuser'">Workshop</button>
-</div>
+    <!-- Recent -->
+    <section class="section">
+        <div class="section-header">
+            <h2>📘 Recent Bekeken</h2>
+            <button class="btn toggle-btn" data-target="recent-cards">Bekijk Alles</button>
+        </div>
+        <div class="cards recent-cards">
+            <div class="card">
+                <h3>React Fundamentals</h3>
+                <p>Leer de basis van React development met praktijkvoorbeelden.</p>
+                <a href="#" class="btn">Bekijk Workshop</a>
+            </div>
+            <div class="card">
+                <h3>UX Design Principles</h3>
+                <p>Ontdek de kernprincipes van gebruiksvriendelijk design.</p>
+                <a href="#" class="btn">Bekijk Workshop</a>
+            </div>
+        </div>
+    </section>
 
-<script>
-    // Voorbeeld van dynamische username
-    const username = "Stefanie";
-    document.getElementById('username').textContent = username;
-</script>
+    <!-- Populair -->
+    <section class="section">
+        <div class="section-header">
+            <h2>🔥 Populaire Workshops</h2>
+            <button class="btn toggle-btn" data-target="pop-cards">Bekijk Alles</button>
+        </div>
+        <div class="cards pop-cards">
+            <div class="card"><h3>TypeScript Mastery</h3><p>Beheers TypeScript van basis tot gevorderde concepten.</p><a href="#" class="btn">Bekijk Workshop</a></div>
+            <div class="card"><h3>Agile Project Management</h3><p>Leer effectief projecten te managen met Agile methodologieën.</p><a href="#" class="btn">Bekijk Workshop</a></div>
+            <div class="card"><h3>Data Analytics Basics</h3><p>Introductie tot data-analyse en visualisatietechnieken.</p><a href="#" class="btn">Bekijk Workshop</a></div>
+        </div>
+    </section>
+
+    <!-- Nieuw -->
+    <section class="section">
+        <div class="section-header">
+            <h2>🆕 Nieuw Toegevoegd</h2>
+            <button class="btn toggle-btn" data-target="new-cards">Bekijk Alles</button>
+        </div>
+        <div class="cards new-cards">
+            <div class="card"><h3>AI & Machine Learning Intro</h3><p>Eerste stappen in de wereld van kunstmatige intelligentie.</p><a href="#" class="btn">Bekijk Workshop</a></div>
+            <div class="card"><h3>Cybersecurity Fundamentals</h3><p>Bescherm je applicaties tegen moderne security threats.</p><a href="#" class="btn">Bekijk Workshop</a></div>
+        </div>
+    </section>
+</main>
+
+<!-- ====== SCRIPT ====== -->
+<script src="/js/user/dashboardUser.js"></script>
 </body>
 </html>
