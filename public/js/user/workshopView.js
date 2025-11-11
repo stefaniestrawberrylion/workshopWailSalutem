@@ -123,6 +123,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
+  function openFilePreview(f) {
+    const fileUrl = f.url;
+    const fileName = f.name || 'bestand';
+
+    // Voor afbeeldingen
+    if(fileName.match(/\.(jpeg|jpg|gif|png)$/i)) {
+      const imgWindow = window.open('');
+      imgWindow.document.write(`<img src="${fileUrl}" style="max-width:100%; height:auto;">`);
+    }
+    // Voor PDF
+    else if(fileName.match(/\.pdf$/i)) {
+      const pdfWindow = window.open(fileUrl, '_blank');
+    }
+    // Voor andere bestanden (fallback: download)
+    else {
+      alert('Preview niet beschikbaar, download het bestand om te bekijken.');
+      window.open(fileUrl, '_blank');
+    }
+  }
 
   // =======================
   // Load workshops
@@ -275,6 +294,17 @@ document.addEventListener('DOMContentLoaded', () => {
     right.appendChild(downloadLink);
 
     li.appendChild(right);
+
+    const viewLink = document.createElement('button');
+    viewLink.textContent = 'Bekijk';
+    Object.assign(viewLink.style, { background:'#28a745', color:'white', border:'none', padding:'4px 10px', borderRadius:'4px', cursor:'pointer' });
+    viewLink.addEventListener('click', e => {
+      e.stopPropagation();
+      openFilePreview(f);
+    });
+    right.appendChild(viewLink);
+
+
 
     const cat = (f.category || f.type || 'worksheets').toLowerCase();
     if(cat==='instructions') detailInstructionsList.appendChild(li);
