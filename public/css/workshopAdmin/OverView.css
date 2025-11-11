@@ -232,6 +232,15 @@ main {
     opacity: 1;
 }
 
+#no-results {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+    color: #000000;
+    font-size: 1.1rem;
+}
+
 /* ======= LANGUAGE SWITCHER ======= */
 .language-switcher {
     position: fixed;

@@ -199,31 +199,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderWorkshops(workshops){
+  function renderWorkshops(workshops) {
     grid.innerHTML = '';
-    workshops.forEach(w=>{
+
+    workshops.forEach(w => {
       const card = document.createElement('div');
       card.classList.add('workshop-card');
 
-      const firstImage = w.files?.find(m=>m.type==='image');
-      const imageUrl = firstImage ? firstImage.url : (w.imageUrl || '/image/default-workshop.png');
+      // Pak de eerste afbeelding, fallback naar main image of default
+      let firstImage = w.files?.find(f => f.type?.startsWith('image'));
+      let imageUrl = '/image/default-workshop.png';
+
+      if (firstImage) {
+        const rawUrl = firstImage.url || firstImage.name;
+        if (rawUrl) {
+          const fileName = rawUrl.split(/[/\\]/).pop();
+          imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+        }
+      } else if (w.imageUrl) {
+        const fileName = w.imageUrl.split(/[/\\]/).pop();
+        imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+      }
+
+      // Zet de achtergrond op de card zelf
       card.style.backgroundImage = `url('${imageUrl}')`;
+      card.style.backgroundSize = 'cover';
+      card.style.backgroundPosition = 'center';
 
       const durationStr = formatDuration(w.duration) + " uur";
 
       card.innerHTML = `
-        <div class="workshop-top">
-          <div class="workshop-badge time">${durationStr}</div>
-          <div class="like">♡</div>
-        </div>
-        <div class="workshop-info">
-          <h3>${w.name}</h3>
-          <p>${w.review || 'Nog geen review'}</p>
-        </div>
-        <button class="workshop-btn">View workshop</button>
-      `;
+      <div class="workshop-top">
+        <div class="workshop-badge time">${durationStr}</div>
+        <div class="like">♡</div>
+      </div>
+      <div class="workshop-info">
+        <h3>${w.name}</h3>
+        <p>${w.review || 'Nog geen review'}</p>
+      </div>
+      <button class="workshop-btn">Bekijk workshop</button>
+    `;
+
+      // Like knop
+      const likeBadge = card.querySelector('.like');
+      likeBadge.addEventListener('click', () => {
+        likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
+      });
+
+      // Open details popup
       const btn = card.querySelector('.workshop-btn');
       btn.addEventListener('click', () => viewWorkshopDetails(w.id));
+
       grid.appendChild(card);
     });
   }
@@ -321,15 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = '';
     mediaFiles.forEach((file,i)=>{
       let el;
-      if(file.type.startsWith('image')) el = document.createElement('img');
-      else if(file.type.startsWith('video')){
+      if(file.type?.startsWith('image') || /\.(png|jpe?g|gif|webp)$/i.test(file.url)) {
+        el = document.createElement('img');
+      } else if(file.type?.startsWith('video') || /\.(mp4|webm|ogg)$/i.test(file.url)) {
         el = document.createElement('video');
         el.controls = true;
-      }
-      else if(file.url && /\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)) el = document.createElement('img');
-      else return;
+      } else return;
 
-      el.src = file.url;
+      el.src = file.url.startsWith('http') ? file.url : `${API_URL}${file.url}`;
       el.style.display = i===0 ? 'block' : 'none';
       container.appendChild(el);
     });

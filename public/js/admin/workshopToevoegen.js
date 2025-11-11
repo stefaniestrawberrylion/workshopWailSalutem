@@ -504,15 +504,16 @@
           let imageUrl = '/image/default-workshop.png';
 
           if (firstImage) {
-            const rawUrl = firstImage.url || firstImage.path || firstImage.filename || firstImage.name;
-            if (rawUrl) imageUrl = rawUrl.startsWith('http')
-              ? rawUrl
-              : `${API_URL}/uploads/${encodeURIComponent(rawUrl.replace(/^\/+|uploads\/+/g, ''))}`;
+            const rawUrl = firstImage.url || firstImage.name;
+            if (rawUrl) {
+              const fileName = rawUrl.split(/[/\\]/).pop(); // pak alleen de bestandsnaam
+              imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+            }
           } else if (w.imageUrl) {
-            imageUrl = w.imageUrl.startsWith('http')
-              ? w.imageUrl
-              : `${API_URL}/uploads/${encodeURIComponent(w.imageUrl.replace(/^\/+|uploads\/+/g, ''))}`;
+            const fileName = w.imageUrl.split(/[/\\]/).pop();
+            imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
           }
+
 
 
           let durationStr = formatDuration(w.duration) + " uur";
@@ -807,40 +808,31 @@
         });
       }
 
-      // =======================
-  // Search
-  // =======================
+      //search
       if (searchInput) {
-        const main = document.querySelector('main');
-        const noResultsMsg = document.createElement('p');
-        noResultsMsg.textContent = 'Kan uw zoekopdracht niet vinden';
-        noResultsMsg.style.display = 'none';
-        noResultsMsg.style.textAlign = 'center';
-        noResultsMsg.style.marginTop = '20px';
-        noResultsMsg.style.fontWeight = 'bold';
-        main.appendChild(noResultsMsg); // zet het bericht in <main>
+        const noResultsMsg = document.getElementById('no-results');
 
         searchInput.addEventListener('input', () => {
-          const query = searchInput.value.toLowerCase();
+          const query = searchInput.value.trim().toLowerCase();
           const cards = document.querySelectorAll('.workshop-card');
           let visibleCount = 0;
 
-          cards.forEach(c => {
-            const name = c.querySelector('.workshop-info h3').textContent.toLowerCase();
-            const desc = c.querySelector('.workshop-info p').textContent.toLowerCase();
-            const match = name.includes(query) || desc.includes(query);
-            c.style.display = match ? 'flex' : 'none';
-            if (match) visibleCount++;
+          cards.forEach(card => {
+            const nameElem = card.querySelector('.workshop-info h3');
+            const descElem = card.querySelector('.workshop-info p');
+
+            const name = nameElem ? nameElem.textContent.toLowerCase() : '';
+            const desc = descElem ? descElem.textContent.toLowerCase() : '';
+
+            const isMatch = name.includes(query) || desc.includes(query);
+            card.style.display = isMatch ? 'flex' : 'none';
+            if (isMatch) visibleCount++;
           });
 
-          // Toon of verberg het 'geen resultaten'-bericht
-          if (visibleCount === 0 && query.trim() !== '') {
-            noResultsMsg.style.display = 'block';
-          } else {
-            noResultsMsg.style.display = 'none';
-          }
+          noResultsMsg.style.display = (visibleCount === 0 && query !== '') ? 'block' : 'none';
         });
       }
+
 
       // =======================
     // Toggle categorieën (maar één tegelijk open)
