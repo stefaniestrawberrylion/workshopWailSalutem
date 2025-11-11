@@ -494,27 +494,22 @@
     // =======================
       function renderWorkshops(workshops) {
         grid.innerHTML = '';
+
         workshops.forEach(w => {
           const card = document.createElement('div');
           card.classList.add('workshop-card');
 
-          // Pak de eerste afbeelding, fallback naar main image of default
-
+          // Pak de eerste afbeelding, fallback naar default
           let firstImage = w.files?.find(f => f.type?.includes('image'));
           let imageUrl = '/image/default-workshop.png';
-
           if (firstImage) {
-            const rawUrl = firstImage.url || firstImage.name;
+            const rawUrl = firstImage.url || firstImage.name || firstImage.path;
             if (rawUrl) {
-              const fileName = rawUrl.split(/[/\\]/).pop(); // pak alleen de bestandsnaam
-              imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+              imageUrl = rawUrl.startsWith('http')
+                ? rawUrl
+                : `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
             }
-          } else if (w.imageUrl) {
-            const fileName = w.imageUrl.split(/[/\\]/).pop();
-            imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
           }
-
-
 
           let durationStr = formatDuration(w.duration) + " uur";
 
@@ -534,24 +529,26 @@
       </div>
     `;
 
-
-
           // Like knop
           const likeBadge = card.querySelector('.like');
-          likeBadge.addEventListener('click', () => {
-            likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
-          });
+          if (likeBadge) {
+            likeBadge.addEventListener('click', () => {
+              likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
+            });
+          }
 
           // Open details popup
           const btn = card.querySelector('.workshop-btn');
-          btn.addEventListener('click', () => viewWorkshopDetails(w.id));
+          if (btn) {
+            btn.addEventListener('click', () => viewWorkshopDetails(w.id));
+          }
 
           grid.appendChild(card);
-        });
+        }); // <-- sluit forEach correct af
       }
 
 
-    // =======================
+      // =======================
     // View workshop details
     // =======================
       async function viewWorkshopDetails(id) {
@@ -651,32 +648,27 @@
               downloadLink.addEventListener('click', e => e.stopPropagation());
               right.appendChild(downloadLink);
 
-                // ✅ Bekijk knop (openen in nieuw tabblad)
-                const viewLink = document.createElement('a');
-                viewLink.textContent = 'Bekijk';
+              const viewLink = document.createElement('a');
 
+              const fileUrl = (f.url || f.name || f.path).startsWith('http')
+                ? (f.url || f.name || f.path)
+                : `${API_URL}/uploads/${encodeURIComponent((f.url || f.name || f.path).split(/[/\\]/).pop())}`;
 
-              const fileUrl = `${API_URL}${f.url}`;
-              if (fileUrl.endsWith('.docx')) {
-                viewLink.href = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-              } else {
-                viewLink.href = fileUrl;
-              }
-
-
+              viewLink.href = fileUrl;
+              viewLink.textContent = 'Bekijk';
               viewLink.target = '_blank';
-                viewLink.rel = 'noopener noreferrer';
-                viewLink.style.background = '#6C757D';
-                viewLink.style.color = 'white';
-                viewLink.style.border = 'none';
-                viewLink.style.padding = '4px 10px';
-                viewLink.style.borderRadius = '4px';
-                viewLink.style.cursor = 'pointer';
-                viewLink.style.textDecoration = 'none';
-                viewLink.addEventListener('click', e => e.stopPropagation());
-                right.appendChild(viewLink);
+              viewLink.rel = 'noopener noreferrer';
+              viewLink.style.background = '#6C757D';
+              viewLink.style.color = 'white';
+              viewLink.style.border = 'none';
+              viewLink.style.padding = '4px 10px';
+              viewLink.style.borderRadius = '4px';
+              viewLink.style.cursor = 'pointer';
+              viewLink.style.textDecoration = 'none';
+              viewLink.addEventListener('click', e => e.stopPropagation());
+              right.appendChild(viewLink);
 
-                li.appendChild(right);
+              li.appendChild(right);
 
               // ✅ Voeg toe aan juiste categorie
               const cat = (f.category || f.type || 'worksheets').toLowerCase();
@@ -692,28 +684,13 @@
           container.innerHTML = '';
           const mediaFiles = w.files || [];
           mediaFiles.forEach((file, i) => {
-            let el;
-            const rawUrl = file.url || file.path || file.filename || file.name;
-            if (!rawUrl) return; // geen geldig pad, sla over
-            const fileUrl = rawUrl.startsWith('http')
-              ? rawUrl
-              : `${API_URL}/uploads/${encodeURIComponent(rawUrl.replace(/^\/+|uploads\/+/g, ''))}`;
-
-            if (file.type.startsWith('image')) {
-              el = document.createElement('img');
-              el.src = fileUrl;
-            } else if (file.type.startsWith('video')) {
-              el = document.createElement('video');
-              el.src = fileUrl;
-              el.controls = true;
-            } else if (/\.(png|jpg|jpeg|gif|webp)$/i.test(file.url)) {
-              el = document.createElement('img');
-              el.src = fileUrl;
-            } else return;
-
+            const el = getMediaElement(file);
+            if (!el) return;
             el.style.display = i === 0 ? 'block' : 'none';
             container.appendChild(el);
           });
+
+
 
           // Slideshow knoppen
           let currentIndex = 0;
@@ -735,6 +712,32 @@
           alert(e.message);
         }
       }
+      // Helper: bepaal type en URL
+      function getMediaElement(file) {
+        let rawUrl = file.url || file.name;
+        if (!rawUrl) return null;
+
+        const ext = rawUrl.split('.').pop()?.toLowerCase();
+        let fileUrl = rawUrl.startsWith('http')
+          ? rawUrl
+          : `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
+
+        if (!ext) return null;
+
+        if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
+          const img = document.createElement('img');
+          img.src = fileUrl;
+          return img;
+        } else if (['mp4','webm','ogg'].includes(ext)) {
+          const video = document.createElement('video');
+          video.src = fileUrl;
+          video.controls = true;
+          return video;
+        }
+
+        return null;
+      }
+
 
       function getContrastYIQ(hexcolor){
         hexcolor = hexcolor.replace('#','');
