@@ -52,16 +52,16 @@ async function bootstrap() {
     res.setHeader(
       'Content-Security-Policy',
       [
-        "default-src 'self'",                                               // Alles van eigen domein
-        "img-src 'self' http://localhost:3000 data:",                       // Afbeeldingen
-        "media-src 'self' http://localhost:3000 data:",                     // Video/audio inclusief base64
-        "object-src 'none'",                                                // Geen object/embed tags
-        "script-src 'self' http://localhost:3000 'unsafe-inline'",          // JS
+        "default-src 'self'", // Alles van eigen domein
+        "img-src 'self' http://localhost:3000 data:", // Afbeeldingen
+        "media-src 'self' http://localhost:3000 data:", // Video/audio inclusief base64
+        "object-src 'none'", // Geen object/embed tags
+        "script-src 'self' http://localhost:3000 'unsafe-inline'", // JS
         "style-src 'self' http://localhost:3000 'unsafe-inline' https://cdnjs.cloudflare.com", // CSS extern + inline
-        "connect-src 'self' http://localhost:3000",                         // API calls
+        "connect-src 'self' http://localhost:3000", // API calls
         "font-src 'self' http://localhost:3000 https://cdnjs.cloudflare.com", // Fonts extern
-        "frame-src 'self'"                                                  // Iframes
-      ].join("; ")
+        "frame-src 'self'", // Iframes
+      ].join('; '),
     );
     next();
   });
@@ -73,7 +73,7 @@ async function bootstrap() {
 
   // ================== HTML route ==================
   expressApp.get('/inlog', (req: Request, res: Response) => {
-    const filePath = join(process.cwd(), 'public', 'html', 'inlog.html');
+    const filePath = join(process.cwd(), 'public', 'html', 'inLog.html');
     if (fs.existsSync(filePath)) {
       res.sendFile(filePath);
     } else {

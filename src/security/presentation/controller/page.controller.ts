@@ -52,14 +52,26 @@ export class PageController {
   @Get('privacyParents')
   showPrivacyParents(@Res() res: Response) {
     return res.sendFile(
-      join(process.cwd(), 'public', 'html', 'savePageParents', 'parentPage.html'),
+      join(
+        process.cwd(),
+        'public',
+        'html',
+        'savePageParents',
+        'parentPage.html',
+      ),
     );
   }
 
   @Get('posters')
   showPosters(@Res() res: Response) {
     return res.sendFile(
-      join(process.cwd(), 'public', 'html', 'savePageParents', 'posterPage.html'),
+      join(
+        process.cwd(),
+        'public',
+        'html',
+        'savePageParents',
+        'posterPage.html',
+      ),
     );
   }
 
