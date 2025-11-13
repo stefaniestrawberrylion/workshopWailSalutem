@@ -23,7 +23,6 @@ import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
-import { promises as fs } from 'fs';
 
 interface MulterFile {
   fieldname: string;
@@ -62,7 +61,7 @@ const storage = diskStorage({
 const multerOptions = {
   storage,
   limits: {
-    fileSize: 200 * 1024 * 1024, // 200 MB per bestand
+    fileSize: 200 * 1024 * 1024,
   },
 };
 
@@ -98,9 +97,6 @@ export class WorkshopController {
     return this.toDto(workshop);
   }
 
-  // =======================
-  // Workshop toevoegen (ADMIN only)
-  // =======================
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -113,7 +109,7 @@ export class WorkshopController {
         { name: 'manualsFiles', maxCount: 10 },
         { name: 'demoFiles', maxCount: 10 },
         { name: 'worksheetsFiles', maxCount: 10 },
-        { name: 'labelsFile', maxCount: 1 }, // optionele JSON file voor labels
+        { name: 'labelsFile', maxCount: 1 },
       ],
       multerOptions,
     ),
@@ -123,41 +119,10 @@ export class WorkshopController {
     @Body() body: any,
     @UploadedFiles() files: Record<string, MulterFile[]>,
   ): Promise<WorkshopDto> {
-    // =========================
-    // Labels parsen
-    // =========================
-    if (files.labelsFile?.[0]?.path) {
-      // JSON file upload aanwezig
-      try {
-        const json = await fs.readFile(files.labelsFile[0].path, 'utf8');
-        body.labels = JSON.parse(json);
-      } catch (err) {
-        console.error('❌ Error reading labelsFile:', err);
-        body.labels = [];
-      }
-    } else if (typeof body.labels === 'string') {
-      // labels als string in body
-      try {
-        body.labels = JSON.parse(body.labels);
-      } catch {
-        body.labels = [];
-      }
-    } else {
-      // geen labels meegegeven
-      body.labels = [];
-    }
-
-    // =========================
-    // Workshop opslaan
-    // =========================
-    const workshop = await this.workshopService.saveWorkshop(
+    // Parsing logica is verplaatst naar de service
+    const workshop = await this.workshopService.createWorkshopWithParsedLabels(
       body,
-      files.image?.[0],
-      files.media,
-      files.instructionsFiles,
-      files.manualsFiles,
-      files.demoFiles,
-      files.worksheetsFiles,
+      files,
     );
 
     return this.toDto(workshop);

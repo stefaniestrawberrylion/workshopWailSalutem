@@ -416,6 +416,30 @@ document.addEventListener('DOMContentLoaded', () => {
     detailsPopup.style.display = 'none';
     clearDetailsPopup();
   });
+  //search
+  if (searchInput) {
+    const noResultsMsg = document.getElementById('no-results');
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      const cards = document.querySelectorAll('.workshop-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const nameElem = card.querySelector('.workshop-info h3');
+        const descElem = card.querySelector('.workshop-info p');
+
+        const name = nameElem ? nameElem.textContent.toLowerCase() : '';
+        const desc = descElem ? descElem.textContent.toLowerCase() : '';
+
+        const isMatch = name.includes(query) || desc.includes(query);
+        card.style.display = isMatch ? 'flex' : 'none';
+        if (isMatch) visibleCount++;
+      });
+
+      noResultsMsg.style.display = (visibleCount === 0 && query !== '') ? 'block' : 'none';
+    });
+  }
 
   // =======================
   // Init

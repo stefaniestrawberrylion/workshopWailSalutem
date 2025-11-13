@@ -55,10 +55,8 @@ export class WorkshopService {
 
     const workshop = new Workshop();
 
-    // ✅ geen await nodig want saveFile is sync
     workshop.imagePath = image ? this.saveFile(image) : '';
 
-    // ✅ sync methodes, dus geen await
     workshop.files = this.saveFiles(media);
 
     const documents: DocumentInfo[] = [
@@ -102,6 +100,48 @@ export class WorkshopService {
       paths.push(this.saveFile(file));
     }
     return paths;
+  }
+  private async parseLabels(
+    files: Record<string, MulterFile[]>,
+    body: any,
+  ): Promise<string[]> {
+    try {
+      let parsed: unknown = [];
+
+      if (files.labelsFile?.[0]?.path) {
+        const json = await fs.readFile(files.labelsFile[0].path, 'utf8');
+        parsed = JSON.parse(json);
+      } else if (typeof body.labels === 'string') {
+        parsed = JSON.parse(body.labels);
+      }
+
+      // ✅ controleer of het echt een array is
+      if (Array.isArray(parsed)) {
+        return parsed as string[];
+      }
+
+      return [];
+    } catch (err) {
+      console.error('❌ Error parsing labels:', err);
+      return [];
+    }
+  }
+
+  async createWorkshopWithParsedLabels(
+    body: any,
+    files: Record<string, MulterFile[]>,
+  ): Promise<Workshop> {
+    body.labels = await this.parseLabels(files, body);
+
+    return this.saveWorkshop(
+      body,
+      files.image?.[0],
+      files.media,
+      files.instructionsFiles,
+      files.manualsFiles,
+      files.demoFiles,
+      files.worksheetsFiles,
+    );
   }
 
   private createDocumentInfos(
