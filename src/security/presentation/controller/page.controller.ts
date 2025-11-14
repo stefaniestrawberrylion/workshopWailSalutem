@@ -81,4 +81,11 @@ export class PageController {
       join(process.cwd(), 'public', 'html', 'savePageParents', 'safePage.html'),
     );
   }
+
+  @Get('profiel')
+  showpProfielUser(@Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'public', 'html', 'user', 'profielPage.html'),
+    );
+  }
 }
