@@ -90,6 +90,10 @@ nav a:hover {
     background-color: #FFD580;
     color: #2E4F75;
 }
+.btn.back {
+    background-color: #2aa800;
+    color: #2E4F75;
+}
 
 .btn:hover {
     transform: translateY(-2px);
