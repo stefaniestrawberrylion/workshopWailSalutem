@@ -185,7 +185,11 @@ nav a:hover, nav a.active {
     padding: 25px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.05);
 }
-
+.tip:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    background: #ffffff;
+}
 .tip i {
     color: #5481B7;
     font-size: 2rem;
