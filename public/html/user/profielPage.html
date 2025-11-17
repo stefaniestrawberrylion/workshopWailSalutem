@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profielpagina</title>
+  <title>Profiel</title>
   <link rel="stylesheet" href="/css/workshopUser/profielPage.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-left">
     <img src="/image/logo.png" class="logo" alt="Logo">
@@ -16,44 +15,54 @@
   </div>
 </nav>
 
-<!-- PAGE WRAPPER -->
 <div class="page">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <a href="/dashboarduser"><i class="fas fa-home"></i>Dashboard</a>
     <a href="/workshopuser"><i class="fas fa-chalkboard"></i>Workshops</a>
-    <a href="/profiel"><i class="fas fa-user"></i>Profiel</a>
+    <a class="active" href="/profiel"><i class="fas fa-user"></i>Profiel</a>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main class="content">
     <div class="profile-card">
+
       <div class="header-banner"></div>
 
       <div class="profile-top">
         <div class="profile-photo"></div>
-        <div class="name-container">
-          <input type="text" class="name-input" placeholder="Naam + achternaam">
+
+        <div>
+          <label>Naam</label>
+          <input id="fullname" type="text" class="form-input">
         </div>
       </div>
 
       <div class="input-list">
-        <div><input type="email" class="form-input" placeholder="E-mail"></div>
-        <div><input type="password" class="form-input" placeholder="Wachtwoord"></div>
-        <div><input type="text" class="form-input" placeholder="Telefoonnummer"></div>
-        <div><input type="text" class="form-input" placeholder="School"></div>
+        <div>
+          <label>E-mail</label>
+          <input id="email" type="email" class="form-input">
+        </div>
+
+        <div>
+          <label>Telefoonnummer</label>
+          <input id="phone" type="text" class="form-input">
+        </div>
+
+        <div>
+          <label>School</label>
+          <input id="school" type="text" class="form-input">
+        </div>
       </div>
 
-      <button class="delete-btn">Account verwijderen</button>
+      <button id="deleteAccount" class="delete-btn">
+        <i class="fas fa-trash"></i> Account verwijderen
+      </button>
+
     </div>
   </main>
 
 </div>
 
 <script src="/js/user/profielPage.js"></script>
-
 </body>
 </html>
-
-

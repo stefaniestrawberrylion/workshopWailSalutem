@@ -154,6 +154,13 @@ export class UserService {
     const isMatch: boolean = await bcrypt.compare(rawPassword, user.password);
     return isMatch;
   }
+  async updateUser(id: number, updateData: Partial<User>) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new Error('Gebruiker niet gevonden');
+
+    Object.assign(user, updateData);
+    return this.userRepository.save(user);
+  }
 
   /**
    * Genereer JWT token voor goedgekeurde gebruiker
@@ -181,5 +188,9 @@ export class UserService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
+  }
+
+  async getUserById(id: number) {
+    return this.userRepository.findOne({ where: { id } });
   }
 }
