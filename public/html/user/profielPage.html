@@ -4,63 +4,85 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profiel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/workshopUser/profielPage.css">
 </head>
 <body>
 
-<nav class="navbar">
-  <div class="nav-left">
-    <img src="/image/logo.png" class="logo" alt="Logo">
-    <h1 class="brand">WAIL SALUTEM</h1>
+<header class="header">
+  <div class="header-left">
+    <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+    <img src="/image/logo.png" alt="Logo" class="logo">
   </div>
-</nav>
+</header>
 
-<div class="page">
+<div class="page-wrapper">
 
-  <aside class="sidebar">
-    <a href="/dashboarduser"><i class="fas fa-home"></i>Dashboard</a>
-    <a href="/workshopuser"><i class="fas fa-chalkboard"></i>Workshops</a>
-    <a class="active" href="/profiel"><i class="fas fa-user"></i>Profiel</a>
+  <aside class="sidebar" id="sidebar">
+    <a href="/dashboarduser"><i class="fas fa-home"></i> <span class="sidebar-text">Dashboard</span></a>
+    <a href="/workshopuser"><i class="fas fa-chalkboard"></i> <span class="sidebar-text">Workshops</span></a>
+    <a class="active" href="/profiel"><i class="fas fa-user"></i> <span class="sidebar-text">Profiel</span></a>
   </aside>
 
   <main class="content">
-    <div class="profile-card">
 
-      <div class="header-banner"></div>
+    <div class="card">
 
-      <div class="profile-top">
-        <div class="profile-photo"></div>
-
+      <div class="card-header">
         <div>
-          <label>Naam</label>
-          <input id="fullname" type="text" class="form-input">
+          <h2 class="card-title">Mijn Profiel</h2>
+          <p class="card-sub">Beheer je gegevens hier</p>
         </div>
       </div>
 
-      <div class="input-list">
-        <div>
-          <label>E-mail</label>
-          <input id="email" type="email" class="form-input">
-        </div>
-
-        <div>
-          <label>Telefoonnummer</label>
-          <input id="phone" type="text" class="form-input">
-        </div>
-
-        <div>
-          <label>School</label>
-          <input id="school" type="text" class="form-input">
+      <div class="profile-row">
+        <div class="profile-left">
+          <div class="profile-photo-container">
+            <div class="profile-photo" id="profilePhoto"></div>
+            <label for="photoInput" class="photo-overlay">
+              <div class="icon-wrap"><i class="fas fa-camera"></i></div>
+            </label>
+            <input type="file" id="photoInput" accept="image/*">
+          </div>
+          <div class="profile-info">
+            <p class="profile-name">Naam Gebruiker</p>
+            <p class="profile-email">email@example.com</p>
+            <p class="profile-school">Schoolnaam</p>
+          </div>
         </div>
       </div>
 
-      <button id="deleteAccount" class="delete-btn">
-        <i class="fas fa-trash"></i> Account verwijderen
-      </button>
+      <form class="form-grid">
+        <div class="form-field">
+          <label for="fullname">Volledige naam</label>
+          <input id="fullname" type="text" class="form-input" value="Hregds SDfesx">
+        </div>
+
+        <div class="form-field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" class="form-input" value="anne@gmail.com">
+        </div>
+
+        <div class="form-field">
+          <label for="phone">Telefoonnummer</label>
+          <input id="phone" type="text" class="form-input" value="0620556968">
+        </div>
+
+        <div class="form-field">
+          <label for="school">School</label>
+          <input id="school" type="text" class="form-input" value="Revius">
+        </div>
+
+        <div class="form-field fullwidth">
+          <div class="actions">
+            <button type="button" class="btn btn-danger" id="deleteAccount"><i class="fas fa-trash"></i> Account verwijderen</button>
+          </div>
+        </div>
+      </form>
 
     </div>
-  </main>
 
+  </main>
 </div>
 
 <script src="/js/user/profielPage.js"></script>

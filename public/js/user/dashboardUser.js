@@ -1,30 +1,24 @@
-// "Bekijk Alles" knoppen → redirect naar /workshopuser met filter
-document.querySelectorAll(".toggle-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const targetClass = btn.dataset.target;
+window.addEventListener('DOMContentLoaded', () => {
 
-    // Maak een filterparameter op basis van het target
-    let filterType = "";
-    if (targetClass.includes("recent")) filterType = "recent";
-    else if (targetClass.includes("pop")) filterType = "populair";
-    else if (targetClass.includes("new")) filterType = "nieuw";
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const logoutBtn = document.getElementById('logoutBtn');
 
-    // Redirect naar workshopuser met filter query
-    window.location.href = `/workshopuser?filter=${filterType}`;
-  });
-});
+  // MOBILE SIDEBAR
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-open');
+    });
+  }
 
+  // LOGOUT
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('jwt');
+      alert("Je bent uitgelogd!");
+      window.location.href = "/";
+    });
+  }
 
-document.getElementById("logoutBtn").addEventListener("click", (e) => {
-  e.preventDefault();
-
-  // Simuleer verwijderen van lokale sessiegegevens
-  localStorage.removeItem("user");
-  sessionStorage.removeItem("user");
-
-  // Eventueel melding
-  alert("Je bent succesvol uitgelogd!");
-
-  // Doorsturen naar loginpagina
-  window.location.href = "/";
 });

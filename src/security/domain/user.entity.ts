@@ -39,10 +39,8 @@ export class User {
   @Column({ nullable: false })
   phone: string;
 
-  // ===== Helper methods (vergelijkbaar met Spring UserDetails) =====
-  getAuthorities(): string[] {
-    return [this.role];
-  }
+  @Column({ nullable: true })
+  avatarUrl?: string;
 
   getUsername(): string {
     return this.email;

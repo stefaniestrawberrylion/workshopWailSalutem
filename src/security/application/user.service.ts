@@ -193,4 +193,11 @@ export class UserService {
   async getUserById(id: number) {
     return this.userRepository.findOne({ where: { id } });
   }
+  async updateUserAvatar(userId: number, avatarUrl: string): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) throw new Error('Gebruiker niet gevonden');
+
+    user.avatarUrl = avatarUrl;
+    return this.userRepository.save(user);
+  }
 }

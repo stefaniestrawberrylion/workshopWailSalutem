@@ -3,78 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop Hub Dashboard</title>
-    <link rel="stylesheet" href="/css/dashboardUser.css">
+    <title>Dashboard</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/workshopUser/dashboardUser.css">
 </head>
+
 <body>
-<!-- ====== SIDEBAR ====== -->
-<aside class="sidebar">
-    <div>
-        <h2>Workshop Hub</h2>
-        <nav>
-            <a href="#">🏠 Dashboard</a>
-            <a href="/workshopuser">📚 Workshops</a>
-            <a href="/profiel">Profiel</a>
-            <a href="#">🕓 Geschiedenis</a>
-            <a href="#" id="logoutBtn">🚪 Uitloggen</a>
-        </nav>
-    </div>
-    <a href="#" style="color:var(--text-muted);font-size:0.9rem;">🚪 Uitloggen</a>
-</aside>
 
-<!-- ====== MAIN ====== -->
-<main class="main">
-    <div class="header">
+<header class="header">
+    <div class="header-left">
+        <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+        <img src="/image/logo.png" alt="Logo" class="logo">
+    </div>
+</header>
+
+<div class="page-wrapper">
+
+    <aside class="sidebar" id="sidebar">
+
+        <a class="active" href="/dashboarduser">
+            <i class="fas fa-home"></i>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+
+        <a href="/workshopuser">
+            <i class="fas fa-chalkboard"></i>
+            <span class="sidebar-text">Workshops</span>
+        </a>
+
+        <a href="/profiel">
+            <i class="fas fa-user"></i>
+            <span class="sidebar-text">Profiel</span>
+        </a>
+
+        <a href="#" id="logoutBtn" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i> <span class="sidebar-text">Uitloggen</span>
+        </a>
+
+    </aside>
+
+    <main class="content">
+
         <h1>Welkom terug! 👋</h1>
-    </div>
-    <!-- Recent -->
-    <section class="section">
-        <div class="section-header">
-            <h2>📘 Recent Bekeken</h2>
-            <button class="btn toggle-btn" data-target="recent-cards">Bekijk Alles</button>
-        </div>
-        <div class="cards recent-cards">
-            <div class="card">
-                <h3>React Fundamentals</h3>
-                <p>Leer de basis van React development met praktijkvoorbeelden.</p>
-                <a href="#" class="btn">Bekijk Workshop</a>
+
+        <section class="card">
+            <div class="section-header">
+                <h2 class="card-title">📘 Recent Bekeken</h2>
             </div>
-            <div class="card">
-                <h3>UX Design Principles</h3>
-                <p>Ontdek de kernprincipes van gebruiksvriendelijk design.</p>
-                <a href="#" class="btn">Bekijk Workshop</a>
+
+            <div class="cards">
+                <div class="card-item">
+                    <h3>React Fundamentals</h3>
+                    <p>Leer de basis van React development met praktijkvoorbeelden.</p>
+                    <a class="btn" href="#">Bekijk Workshop</a>
+                </div>
+
+                <div class="card-item">
+                    <h3>UX Design Principles</h3>
+                    <p>Ontdek de kernprincipes van gebruiksvriendelijk design.</p>
+                    <a class="btn" href="#">Bekijk Workshop</a>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Populair -->
-    <section class="section">
-        <div class="section-header">
-            <h2>🔥 Populaire Workshops</h2>
-            <button class="btn toggle-btn" data-target="pop-cards">Bekijk Alles</button>
-        </div>
-        <div class="cards pop-cards">
-            <div class="card"><h3>TypeScript Mastery</h3><p>Beheers TypeScript van basis tot gevorderde concepten.</p><a href="#" class="btn">Bekijk Workshop</a></div>
-            <div class="card"><h3>Agile Project Management</h3><p>Leer effectief projecten te managen met Agile methodologieën.</p><a href="#" class="btn">Bekijk Workshop</a></div>
-            <div class="card"><h3>Data Analytics Basics</h3><p>Introductie tot data-analyse en visualisatietechnieken.</p><a href="#" class="btn">Bekijk Workshop</a></div>
-        </div>
-    </section>
+        <section class="card">
+            <div class="section-header">
+                <h2 class="card-title">🔥 Populaire Workshops</h2>
+            </div>
 
-    <!-- Nieuw -->
-    <section class="section">
-        <div class="section-header">
-            <h2>🆕 Nieuw Toegevoegd</h2>
-            <button class="btn toggle-btn" data-target="new-cards">Bekijk Alles</button>
-        </div>
-        <div class="cards new-cards">
-            <div class="card"><h3>AI & Machine Learning Intro</h3><p>Eerste stappen in de wereld van kunstmatige intelligentie.</p><a href="#" class="btn">Bekijk Workshop</a></div>
-            <div class="card"><h3>Cybersecurity Fundamentals</h3><p>Bescherm je applicaties tegen moderne security threats.</p><a href="#" class="btn">Bekijk Workshop</a></div>
-        </div>
-    </section>
-</main>
+            <div class="cards">
+                <div class="card-item">
+                    <h3>TypeScript Mastery</h3>
+                    <p>Beheers TypeScript van basis tot gevorderde concepten.</p>
+                    <a class="btn" href="#">Bekijk Workshop</a>
+                </div>
 
-<!-- ====== SCRIPT ====== -->
+                <div class="card-item">
+                    <h3>Agile Project Management</h3>
+                    <p>Leer effectief projecten te managen met Agile methodologieën.</p>
+                    <a class="btn" href="#">Bekijk Workshop</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
 <script src="/js/user/dashboardUser.js"></script>
 </body>
 </html>
