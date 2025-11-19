@@ -3,15 +3,26 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #e6e6e6;
+    overflow-y: hidden;
+    /* 🛠️ NIEUW: Zorg dat 100vh correct is */
+    height: 100%;
 }
+/* 🛠️ NIEUW: Zorg dat 100vh correct is */
+html {
+    height: 100%;
+}
+
 
 header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    /* 🚀 FIX: Gebruik de verlaagde vaste hoogte en Flexbox om te centreren */
+    align-items: center; /* Centreert 80px logo in 98px header */
     background-color: #5481B7;
     color: white;
-    padding: 10px 20px;
+    /* 🚀 FIX: Verwijder de 10px verticale padding die de berekening onzeker maakte */
+    padding: 0 20px;
+    height: var(--header-height); /* Vaste hoogte van 98px */
 }
 
 header .logo {
@@ -21,6 +32,7 @@ header .logo {
 }
 
 header .logo img {
+    /* Logo blijft 80px */
     height: 80px;
 }
 
@@ -43,6 +55,165 @@ header .icons {
     align-items: center;
     gap: 30px;
     font-size: 30px;
+}
+:root{
+    --accent: #698ac1;
+    --muted:#6b7280;
+    --card-bg:#fff;
+    --page-bg:#f3f4f6;
+    --header-height: 98px;
+    /* ✂️ VERKLEIND: In de ingeklapte modus */
+    --sidebar-width-collapsed: 60px;
+    /* ✂️ VERKLEIND: In de uitgeklapte modus */
+    --sidebar-width-expanded: 180px;
+    --sidebar-transition: 0.3s ease;
+}
+
+.page-wrapper {
+    display: flex;
+    min-height: calc(100vh - var(--header-height));
+    width: 100%;
+}
+
+
+
+.sidebar a:hover {
+    background: #9cc1ff;
+}
+
+.sidebar a.active{
+    background:var(--accent);
+    color:white;
+}
+
+
+
+.sidebar {
+    width: var(--sidebar-width-collapsed);
+    background: #cbe0ff;
+    border-right: 1px solid #e6e7eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* ✂️ AANGEPAST: Minder horizontale padding in de ingeklapte staat */
+    padding: 20px 0 20px 0;
+    gap: 12px;
+    transition: width var(--sidebar-transition), padding var(--sidebar-transition), left var(--sidebar-transition);
+    flex-shrink: 0;
+    overflow-x: hidden;
+    z-index: 1000;
+
+    /* ✅ BLIJFT STICKY */
+    position: sticky;
+    top: var(--header-height);
+
+    /* ✅ Berekent de hoogte op basis van de viewport */
+    height: calc(100vh - var(--header-height));
+}
+/* Ensure each link stays its natural height and doesn't stretch */
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #374151;
+    text-decoration: none;
+    /* ✂️ AANGEPAST: Minder horizontale padding */
+    padding: 10px 15px;
+    border-radius: 0 8px 8px 0;
+    transition: background 0.2s;
+    justify-content: flex-start;
+    flex: 0 0 auto; /* don't stretch vertically */
+}
+
+.sidebar a:hover {
+    background: #9cc1ff;
+}
+
+.sidebar a.active{
+    background:var(--accent);
+    color:white;
+    /* ✂️ AANGEPAST: Minder horizontale padding */
+    padding-left: 15px;
+}
+
+.sidebar a.active:hover {
+    background: var(--accent);
+}
+
+/* Text in de sidebar (standaard verborgen op collapsed desktop) */
+.sidebar-text {
+    opacity: 0;
+    transition: opacity 0.1s ease 0.1s;
+    white-space: nowrap;
+}
+
+.logout-btn {
+    margin-top: auto;
+    margin-bottom: 30px;
+}
+
+
+
+
+
+/* SIDEBAR EXPANDS ON HOVER (Desktop) */
+@media (min-width: 721px) {
+    .sidebar:hover {
+        width: var(--sidebar-width-expanded);
+        /* ✂️ AANGEPAST: Evenredig verkleinde padding */
+        padding: 20px 15px;
+    }
+    .sidebar:hover .sidebar-text {
+        opacity: 1;
+    }
+}
+
+/* CONTENT AREA */
+.content {
+    margin-left: 10px;
+    padding: 20px;
+    transition: margin-left var(--sidebar-transition);
+    flex: 1;
+    overflow-y: auto;
+    /* Hoogte is 100% van de resterende min-height van de page-wrapper */
+    height: calc(100vh - var(--header-height));
+}
+@media (min-width: 721px) {
+    .sidebar:hover ~ .content {
+        margin-left: 10px; /* iets kleiner dan de sidebar-expanded width */
+    }
+}
+
+
+/* MOBILE */
+@media (max-width: 720px) {
+
+    .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        left: -100%;
+        width: var(--sidebar-width-expanded);
+        padding: 20px;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 1005;
+    }
+
+    .sidebar.sidebar-open {
+        left: 0;
+    }
+
+    .sidebar .sidebar-text {
+        opacity: 1;
+    }
+
+    .logout-btn {
+        margin-top: auto;
+    }
+
+    .content {
+        padding: 10px;
+    }
 }
 
 /* wailSalutem.Main en Workshop overzicht */

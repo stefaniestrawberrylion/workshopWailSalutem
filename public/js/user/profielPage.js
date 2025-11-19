@@ -36,11 +36,17 @@ window.addEventListener('DOMContentLoaded', async () => {
       throw new Error(data.message || 'Kon profiel niet ophalen');
     }
 
-    // ✅ Vul de inputvelden
+    // Vul profieldisplay velden
+    document.querySelector('.profile-name').textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+    document.querySelector('.profile-email').textContent = data.email || '';
+    document.querySelector('.profile-school').textContent = data.school || '';
+
+// Vul inputvelden
     document.getElementById('fullname').value = `${data.firstName || ''} ${data.lastName || ''}`.trim();
     document.getElementById('email').value = data.email || '';
     document.getElementById('phone').value = data.phone || '';
     document.getElementById('school').value = data.school || '';
+
 
     // ✅ Toon bestaande profielfoto
     if (data.avatarUrl) {
@@ -131,7 +137,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     console.error(err);
     alert(`Er is een fout opgetreden bij het ophalen van uw gegevens: ${err.message}`);
   }
-
+  // LOGOUT
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('jwt');
+      alert("Je bent uitgelogd!");
+      window.location.href = "/";
+    });
+  }
 // --- Mobiele Sidebar Toggle Logica ---
   const toggleBtn = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');

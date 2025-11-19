@@ -22,6 +22,9 @@
     <a href="/dashboarduser"><i class="fas fa-home"></i> <span class="sidebar-text">Dashboard</span></a>
     <a href="/workshopuser"><i class="fas fa-chalkboard"></i> <span class="sidebar-text">Workshops</span></a>
     <a class="active" href="/profiel"><i class="fas fa-user"></i> <span class="sidebar-text">Profiel</span></a>
+    <a href="#" id="logoutBtn" class="logout-btn">
+      <i class="fas fa-right-from-bracket"></i> <span class="sidebar-text">Uitloggen</span>
+    </a>
   </aside>
 
   <main class="content">
@@ -31,7 +34,7 @@
       <div class="card-header">
         <div>
           <h2 class="card-title">Mijn Profiel</h2>
-          <p class="card-sub">Beheer je gegevens hier</p>
+          <p class="card-sub">Hier kan u uw gegevens bekijken</p>
         </div>
       </div>
 
@@ -45,9 +48,9 @@
             <input type="file" id="photoInput" accept="image/*">
           </div>
           <div class="profile-info">
-            <p class="profile-name">Naam Gebruiker</p>
-            <p class="profile-email">email@example.com</p>
-            <p class="profile-school">Schoolnaam</p>
+            <p class="profile-name"></p>
+            <p class="profile-email"></p>
+            <p class="profile-school"></p>
           </div>
         </div>
       </div>
@@ -55,22 +58,22 @@
       <form class="form-grid">
         <div class="form-field">
           <label for="fullname">Volledige naam</label>
-          <input id="fullname" type="text" class="form-input" value="Hregds SDfesx">
+          <input id="fullname" type="text" class="form-input">
         </div>
 
         <div class="form-field">
           <label for="email">E-mail</label>
-          <input id="email" type="email" class="form-input" value="anne@gmail.com">
+          <input id="email" type="email" class="form-input">
         </div>
 
         <div class="form-field">
           <label for="phone">Telefoonnummer</label>
-          <input id="phone" type="text" class="form-input" value="0620556968">
+          <input id="phone" type="text" class="form-input">
         </div>
 
         <div class="form-field">
           <label for="school">School</label>
-          <input id="school" type="text" class="form-input" value="Revius">
+          <input id="school" type="text" class="form-input">
         </div>
 
         <div class="form-field fullwidth">

@@ -363,7 +363,24 @@ document.addEventListener('DOMContentLoaded', () => {
       container.children[currentIndex].style.display='block';
     };
   }
+  // LOGOUT
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('jwt');
+      alert("Je bent uitgelogd!");
+      window.location.href = "/";
+    });
+  }
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
 
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      // Gebruik 'sidebar-open' om de sidebar van links naar binnen te schuiven
+      sidebar.classList.toggle('sidebar-open');
+    });
+  }
   // =======================
   // File category toggle
   // =======================

@@ -18,6 +18,32 @@
         <input type="text" id="searchInput" placeholder="Zoek workshops...">
     </div>
 </header>
+<div class="page-wrapper">
+
+    <aside class="sidebar" id="sidebar">
+        <a class="active" href="/dashboarduser">
+            <i class="fas fa-home"></i>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+
+        <a href="/workshopuser">
+            <i class="fas fa-chalkboard"></i>
+            <span class="sidebar-text">Workshops</span>
+        </a>
+
+        <a href="/profiel">
+            <i class="fas fa-user"></i>
+            <span class="sidebar-text">Profiel</span>
+        </a>
+
+        <a href="#" id="logoutBtn" class="logout-btn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="sidebar-text">Uitloggen</span>
+        </a>
+    </aside>
+
+    <div class="content">
+
 <!-- Foutmelding container -->
 <div id="errorContainer" class="error-container" style="display:none;">
     <span id="errorMessage"></span>
@@ -101,6 +127,8 @@
 <script src="/js/user/workshopView.js"></script>
 
 
+    </div> <!-- content -->
+</div> <!-- page-wrapper -->
 
 </body>
 </html>
