@@ -4,12 +4,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
-import { WorkshopModule } from './workshop/workshop.module';
+import { WorkshopModule } from './workshop/presentation/module/workshop.module';
 import { SecurityModule } from './security/security.module';
 import { PageController } from './security/presentation/controller/page.controller';
 import { RegistrationModule } from './security/presentation/controller/registration.module';
 import { UserModule } from './security/presentation/controller/user.module';
 import { MailModule } from './mail/mail.modules';
+import { ReviewModule } from './workshop/presentation/module/review.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { MailModule } from './mail/mail.modules';
     RegistrationModule,
     UserModule,
     MailModule,
+    ReviewModule,
   ],
   controllers: [PageController],
 })

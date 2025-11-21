@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =======================
   // Elementen ophalen
   // =======================
+  // ... (Alle elementen ophalen hier) ...
   const popup = document.getElementById('workshopPopup');
   const closeBtn = document.getElementById('closePopupBtn');
   const grid = document.getElementById('workshopGrid');
@@ -35,7 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxVideo = document.getElementById('lightboxVideo');
   const closeLightbox = document.querySelector('.close-lightbox');
 
-  let currentWorkshopId = null;
+  // =======================
+  // Gedeelde Variabelen
+  // =======================
+  let currentWorkshopId = null; // ✅ Deze variabele is nu centraal
+  let selectedStars = 0; // ✅ Gedeeld met de review module
+
   let labels = [];
   let mainImage = null;
   let selectedMedia = [];
@@ -159,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ---------------------------------
+  // RENDER WORKSHOPS (AANGEPAST VOOR STERREN)
+  // ---------------------------------
   function renderWorkshops(workshops) {
     grid.innerHTML = '';
 
@@ -176,8 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const fileName = rawUrl.split(/[/\\]/).pop();
           imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
         }
-      } else if (w.imageUrl) {
-        const fileName = w.imageUrl.split(/[/\\]/).pop();
+      } else if (w.imagePath) {
+        const fileName = w.imagePath.split(/[/\\]/).pop();
         imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
       }
 
@@ -188,6 +197,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const durationStr = formatDuration(w.duration) + " uur";
 
+      // --- REVIEW GEMIDDELDE VAN DE WORKSHOP ---
+      let reviewCount = (w.reviews && Array.isArray(w.reviews)) ? w.reviews.length : 0;
+      let averageStars = 0;
+      let reviewContent = 'Nog geen review';
+
+      if (reviewCount > 0) {
+        averageStars = w.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviewCount;
+        const rounded = Math.round(averageStars);
+        const filledStars = Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('');
+        const emptyStars = Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
+        reviewContent = `<div class="stars-summary">${filledStars}${emptyStars} (${reviewCount})</div>`;
+      }
+
+
+      // --- EINDE: REVIEW CONTENT AANPASSING ---
+
+
       card.innerHTML = `
       <div class="workshop-top">
         <div class="workshop-badge time">${durationStr}</div>
@@ -195,8 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="workshop-info">
         <h3>${w.name}</h3>
-        <p>${w.review || 'Nog geen review'}</p>
-      </div>
+        <p>${reviewContent}</p> </div>
       <button class="workshop-btn">Bekijk workshop</button>
     `;
 
@@ -214,22 +239,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
   // =======================
   // View workshop details
   // =======================
   async function viewWorkshopDetails(id) {
     try {
       currentWorkshopId = id;
-      const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Workshop niet gevonden');
-      const w = await res.json();
 
-      document.getElementById('detailName').value = w.name;
-      document.getElementById('detailDesc').value = w.description;
-      document.getElementById('detailDuration').value = formatDuration(w.duration);
+      // Haal workshop op
+      const resWorkshop = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
+      if (!resWorkshop.ok) throw new Error('Workshop niet gevonden');
+      const workshop = await resWorkshop.json();
 
+      const detailMyReviewStars = document.getElementById('detailMyReviewStars');
+      detailMyReviewStars.style.cursor = 'pointer'; // Optioneel: visuele hint
+      detailMyReviewStars.onclick = () => openReviewPopup(currentWorkshopId);
+
+      // Vul workshopgegevens
+      document.getElementById('detailName').value = workshop.name;
+      document.getElementById('detailDesc').value = workshop.description;
+      document.getElementById('detailDuration').value = formatDuration(workshop.duration);
+
+      // Labels
+      const labelsArray = workshop.labels ? (typeof workshop.labels === 'string' ? JSON.parse(workshop.labels) : workshop.labels) : [];
       detailLabelPreview.innerHTML = '';
-      const labelsArray = w.labels ? (typeof w.labels === 'string' ? JSON.parse(w.labels) : w.labels) : [];
       labelsArray.forEach(label => {
         const span = document.createElement('span');
         span.textContent = label.name;
@@ -239,22 +273,23 @@ document.addEventListener('DOMContentLoaded', () => {
         detailLabelPreview.appendChild(span);
       });
 
-      const detailParentalConsent = document.getElementById('detailParentalConsent');
-      detailParentalConsent.checked = w.parentalConsent || false;
-      detailParentalConsent.addEventListener('click', e => e.preventDefault());
+      document.getElementById('detailParentalConsent').checked = workshop.parentalConsent || false;
 
-      [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => list.innerHTML = '');
-      if (w.documents && Array.isArray(w.documents)) {
-        w.documents.forEach(f => addDocumentToDetail(f));
+      // Media & documenten
+      renderMediaSlideshow(workshop.files || []);
+      if (workshop.documents && Array.isArray(workshop.documents)) {
+        workshop.documents.forEach(f => addDocumentToDetail(f));
       }
 
-      renderMediaSlideshow(w.files || []);
+      // Haal review op (om de review-popup te vullen)
+      await loadReviews(id);
 
       detailsPopup.style.display = 'flex';
     } catch (e) {
       alert(e.message);
     }
   }
+
 
   function addDocumentToDetail(f){
     const li = document.createElement('li');
@@ -364,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
   // LOGOUT
+  const logoutBtn = document.getElementById('logoutBtn'); // Zorg dat deze bestaat in je HTML
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -457,6 +493,170 @@ document.addEventListener('DOMContentLoaded', () => {
       noResultsMsg.style.display = (visibleCount === 0 && query !== '') ? 'block' : 'none';
     });
   }
+
+  // ===================================
+  //   REVIEW MODULE
+  // ===================================
+
+  // -------------------------------
+  //   STERREN AANKLIKKEN
+  // -------------------------------
+  document.querySelectorAll(".stars i").forEach((star) => {
+    star.addEventListener("click", () => {
+      selectedStars = parseInt(star.dataset.value);
+
+      document.querySelectorAll(".stars i").forEach((s) => {
+        s.classList.toggle("selected", s.dataset.value <= selectedStars);
+      });
+    });
+  });
+
+  // -------------------------------
+  //   POPUP OPENEN
+  // -------------------------------
+  function openReviewPopup(workshopId) {
+    currentWorkshopId = workshopId;
+    const popupOverlay = document.getElementById("reviewPopup");
+    popupOverlay.style.display = "flex"; // flex = overlay + gecentreerde popup
+    loadReviews(currentWorkshopId);
+  }
+
+  function closeReviewPopup() {
+    const popupOverlay = document.getElementById("reviewPopup");
+    popupOverlay.style.display = "none";
+    clearReview();
+  }
+
+
+  function clearReview() {
+    selectedStars = 0;
+    document.querySelectorAll(".stars i").forEach((s) =>
+      s.classList.remove("selected")
+    );
+    document.getElementById("reviewText").value = "";
+  }
+
+  // -------------------------------
+  //   REVIEW OPSLAAN
+  // -------------------------------
+  async function submitReview() {
+    if (!currentWorkshopId) return alert("Geen workshop geselecteerd.");
+
+    const text = document.getElementById("reviewText").value.trim();
+    if (selectedStars === 0) return alert("Selecteer een aantal sterren.");
+    // Woordenlimiet is 800 karakters in de HTML, dus deze check is optioneel
+    // if (text.length > 800) return alert("Maximaal 800 karakters.");
+
+    const token = localStorage.getItem("jwt");
+    if (!token) return alert("Je moet ingelogd zijn.");
+
+    try {
+      const res = await fetch(`${API_URL}/reviews`, {
+        method: "POST", // Gebruikt POST voor maken/updaten
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ workshopId: currentWorkshopId, stars: selectedStars, text })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(`Kon review niet opslaan: ${errorData.message || res.statusText}`);
+      }
+
+      // Na opslaan meteen herladen om updates zichtbaar te maken
+      await loadWorkshops(); // Herlaad alle workshops om de review in de kaart te updaten
+      await loadReviews(currentWorkshopId); // Herlaad de review (niet strikt nodig, maar veilig)
+      alert("Review opgeslagen!");
+      closeReviewPopup();
+    } catch (err) {
+      console.error(err);
+      alert("Er ging iets mis bij opslaan. Details: " + err.message);
+    }
+  }
+
+  // -------------------------------
+  //   BESTAANDE REVIEW LADEN (VOOR DE HUIDIGE GEBRUIKER)
+  // -------------------------------
+  async function loadReviews(workshopId) {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      clearReview();
+      displayUserReviewInDetailPopup(null); // Toon 'Nog geen review' in detail popup
+      return;
+    }
+
+    try {
+      // Dit endpoint moet de review van de huidige *ingelogde* gebruiker voor deze workshop ID teruggeven
+      const res = await fetch(`${API_URL}/reviews/${workshopId}/user`, {
+        headers: { Authorization: "Bearer " + token },
+      });
+
+      if (res.status === 404 || !res.ok) {
+        clearReview();
+        displayUserReviewInDetailPopup(null); // Geen review gevonden voor deze gebruiker/workshop
+        return;
+      }
+
+      const review = await res.json(); // Verwacht één review object
+
+      // 1. Vul de Review Popup (om aan te passen)
+      selectedStars = review.stars;
+      document.getElementById("reviewText").value = review.text || '';
+      document.querySelectorAll(".stars i").forEach((star) => {
+        star.classList.toggle("selected", star.dataset.value <= review.stars);
+      });
+
+      // 2. Toon de Review in de Detail Popup (om te bekijken)
+      displayUserReviewInDetailPopup(review);
+
+    } catch (err) {
+      console.error("Fout bij review laden:", err);
+      clearReview();
+      displayUserReviewInDetailPopup(null);
+    }
+  }
+// Nieuwe functie om de geladen review in de detail popup te tonen
+  function displayUserReviewInDetailPopup(review) {
+    const starsContainer = document.getElementById('detailMyReviewStars');
+    starsContainer.innerHTML = '';
+
+    if (!review || review.stars === undefined) {
+      const emptyStars = Array(5).fill('<i class="fa-regular fa-star"></i>').join('');
+      starsContainer.innerHTML = `<div class="stars-summary">${emptyStars}</div>`;
+    } else {
+      const filledStars = Array(review.stars).fill('<i class="fa-solid fa-star filled-star"></i>').join('');
+      const emptyStars = Array(5 - review.stars).fill('<i class="fa-regular fa-star"></i>').join('');
+      starsContainer.innerHTML = `<div class="stars-summary">${filledStars}${emptyStars}</div>`;
+    }
+
+    // **Event listener opnieuw toevoegen**
+    starsContainer.style.cursor = 'pointer';
+    starsContainer.onclick = () => openReviewPopup(currentWorkshopId);
+  }
+  // -------------------------------
+  //   KOPPEL KNOPPEN (Statische elementen)
+  // -------------------------------
+
+  document.getElementById("closeReviewPopup")?.addEventListener("click", () => {
+    closeReviewPopup();
+  });
+
+  document.getElementById("submitReviewBtn")?.addEventListener("click", () => {
+    submitReview();
+  });
+
+  document.getElementById("clearReviewBtn")?.addEventListener("click", () => {
+    clearReview();
+  });
+  document.querySelectorAll(".sidebar a").forEach(link => {
+    link.addEventListener("click", function () {
+
+      // Verwijder active van alle links
+      document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+
+      // Voeg active toe aan de geklikte link
+      this.classList.add("active");
+    });
+  });
 
   // =======================
   // Init

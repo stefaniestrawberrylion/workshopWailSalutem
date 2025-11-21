@@ -12,7 +12,8 @@ export class WorkshopDto {
   reviews: string[];
   documents: FileDto[];
   parentalConsent: boolean;
-
+  averageStars?: number;
+  reviewCount?: number;
   constructor(partial?: Partial<WorkshopDto>) {
     this.id = partial?.id ?? 0;
     this.name = partial?.name ?? '';

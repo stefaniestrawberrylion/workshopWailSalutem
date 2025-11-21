@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/workshopUser/popup.css">
     <link rel="stylesheet" href="/css/workshopUser/viewPopup.css">
     <link rel="stylesheet" href="/css/workshopUser/detailPopup.css">
+    <link rel="stylesheet" href="/css/workshopUser/reviewPopup.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -21,7 +22,7 @@
 <div class="page-wrapper">
 
     <aside class="sidebar" id="sidebar">
-        <a class="active" href="/dashboarduser">
+        <a href="/dashboarduser">
             <i class="fas fa-home"></i>
             <span class="sidebar-text">Dashboard</span>
         </a>
@@ -44,91 +45,120 @@
 
     <div class="content">
 
-<!-- Foutmelding container -->
-<div id="errorContainer" class="error-container" style="display:none;">
-    <span id="errorMessage"></span>
-    <button id="closeErrorBtn">&times;</button>
-</div>
+        <div id="errorContainer" class="error-container" style="display:none;">
+            <span id="errorMessage"></span>
+            <button id="closeErrorBtn">&times;</button>
+        </div>
 
-<main>
-    <div class="workshop-grid" id="workshopGrid"></div>
-    <p id="no-results">
-        Kan uw zoekopdracht niet vinden
-    </p>
-</main>
+        <main>
+            <div class="workshop-grid" id="workshopGrid"></div>
+            <p id="no-results">
+                Kan uw zoekopdracht niet vinden
+            </p>
+        </main>
 
-<!-- Detail popup -->
-<div class="popup" id="workshopDetailsPopup">
-    <div class="popup-content workshop-form">
-        <span class="close" id="closeDetailsPopupBtn">&times;</span>
-        <div class="popup-header"><img src="../../image/logo.png" class="popup-logo"></div>
+        <div class="popup" id="workshopDetailsPopup">
+            <div class="popup-content workshop-form">
+                <span class="close" id="closeDetailsPopupBtn">&times;</span>
+                <div class="popup-header"><img src="../../image/logo.png" class="popup-logo"></div>
 
-        <div class="popup-body">
-            <div class="popup-left">
-                <div class="media-upload">
-                    <div id="detailMediaContainer"></div>
-                    <button id="prevDetailMedia">◀</button>
-                    <button id="nextDetailMedia">▶</button>
+                <div class="popup-body">
+                    <div class="popup-left">
+                        <div class="media-upload">
+                            <div id="detailMediaContainer"></div>
+                            <button id="prevDetailMedia">◀</button>
+                            <button id="nextDetailMedia">▶</button>
+                        </div>
+                        <div id="detailFilesContainer">
+                            <div class="file-category" data-category="instructions">
+                                <div class="file-category-header">Instructies <i class="fa fa-chevron-down"></i></div>
+                                <div class="file-category-content">
+                                    <ul class="category-file-list" id="detail_instructionsList"></ul>
+                                </div>
+                            </div>
+
+                            <div class="file-category" data-category="manuals">
+                                <div class="file-category-header">Handleiding <i class="fa fa-chevron-down"></i></div>
+                                <div class="file-category-content">
+                                    <ul class="category-file-list" id="detail_manualsList"></ul>
+                                </div>
+                            </div>
+
+                            <div class="file-category" data-category="demo">
+                                <div class="file-category-header">Demo code <i class="fa fa-chevron-down"></i></div>
+                                <div class="file-category-content">
+                                    <ul class="category-file-list" id="detail_demoList"></ul>
+                                </div>
+                            </div>
+
+                            <div class="file-category" data-category="worksheets">
+                                <div class="file-category-header">Werkbladeren <i class="fa fa-chevron-down"></i></div>
+                                <div class="file-category-content">
+                                    <ul class="category-file-list" id="detail_worksheetsList"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="popup-right">
+                        <label>Naam</label><input type="text" id="detailName" readonly>
+                        <label>Omschrijving</label><textarea id="detailDesc" readonly></textarea>
+                        <label>Duur</label><input type="time" id="detailDuration" readonly>
+                        <label>Labels</label><div id="detailLabelPreview"></div>
+
+                        <!-- Wrapper die beide items naast elkaar zet -->
+                        <div class="consent-review-row">
+                            <div class="consent-box">
+                                <label for="detailParentalConsent">Oudertoestemming</label>
+                                <input id="detailParentalConsent" type="checkbox" readonly />
+                            </div>
+
+                            <div class="my-review-display">
+                                <h4>Mijn Review:</h4>
+                                <div id="detailMyReviewStars" class="stars-summary">
+                                    <!-- sterren worden hier dynamisch geplaatst door je JS -->
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
                 </div>
-                <!-- Bestanden per categorie (zelfde structuur als create popup) -->
-                <div id="detailFilesContainer">
-                    <div class="file-category" data-category="instructions">
-                        <div class="file-category-header">Instructies <i class="fa fa-chevron-down"></i></div>
-                        <div class="file-category-content">
-                            <ul class="category-file-list" id="detail_instructionsList"></ul>
-                        </div>
-                    </div>
-
-                    <div class="file-category" data-category="manuals">
-                        <div class="file-category-header">Handleiding <i class="fa fa-chevron-down"></i></div>
-                        <div class="file-category-content">
-                            <ul class="category-file-list" id="detail_manualsList"></ul>
-                        </div>
-                    </div>
-
-                    <div class="file-category" data-category="demo">
-                        <div class="file-category-header">Demo code <i class="fa fa-chevron-down"></i></div>
-                        <div class="file-category-content">
-                            <ul class="category-file-list" id="detail_demoList"></ul>
-                        </div>
-                    </div>
-
-                    <div class="file-category" data-category="worksheets">
-                        <div class="file-category-header">Werkbladeren <i class="fa fa-chevron-down"></i></div>
-                        <div class="file-category-content">
-                            <ul class="category-file-list" id="detail_worksheetsList"></ul>
-                        </div>
-                    </div>
+                <div id="mediaLightbox" class="lightbox">
+                    <span class="close-lightbox">&times;</span>
+                    <img id="lightboxImage" src="" alt="Vergrote weergave">
+                    <video id="lightboxVideo" controls></video>
                 </div>
 
             </div>
-            <div class="popup-right">
-                <label>Naam</label><input type="text" id="detailName" readonly>
-                <label>Omschrijving</label><textarea id="detailDesc" readonly></textarea>
-                <label>Duur</label><input type="time" id="detailDuration" readonly>
-                <label>Labels</label><div id="detailLabelPreview"></div>
+        </div>
+        <div id="reviewPopup" class="popupReview-overlay">
+            <div class="popupReview">
+                <h2>Review Workshop</h2>
 
-                <label>Oudertoestemming</label>
-                <input type="checkbox" id="detailParentalConsent">
+                <div class="stars">
+                    <i class="fa-solid fa-star" data-value="1"></i>
+                    <i class="fa-solid fa-star" data-value="2"></i>
+                    <i class="fa-solid fa-star" data-value="3"></i>
+                    <i class="fa-solid fa-star" data-value="4"></i>
+                    <i class="fa-solid fa-star" data-value="5"></i>
+                </div>
 
+                <textarea id="reviewText" maxlength="800" placeholder="Schrijf hier je review..."></textarea>
+
+                <div class="popupReview-actions">
+                    <button id="submitReviewBtn">Versturen</button>
+                    <button id="clearReviewBtn">Wissen</button>
+                </div>
+
+                <button id="closeReviewPopup" style="position: absolute; top: 10px; right: 10px;">&times;</button>
 
             </div>
         </div>
-        <!-- Lightbox voor mediaweergave -->
-        <div id="mediaLightbox" class="lightbox">
-            <span class="close-lightbox">&times;</span>
-            <img id="lightboxImage" src="" alt="Vergrote weergave">
-            <video id="lightboxVideo" controls></video>
-        </div>
 
-    </div>
-</div>
-
-<script src="/js/user/workshopView.js"></script>
+        <script src="/js/user/workshopView.js"></script>
 
 
-    </div> <!-- content -->
-</div> <!-- page-wrapper -->
-
-</body>
+    </div> </div> </body>
 </html>

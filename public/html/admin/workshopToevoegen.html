@@ -176,13 +176,24 @@
                 <label>Duur</label><input type="time" id="detailDuration" readonly>
                 <label>Labels</label><div id="detailLabelPreview"></div>
 
-                <label>Oudertoestemming</label>
-                <input type="checkbox" id="detailParentalConsent">
+                <!-- ✅ Voeg een container toe -->
+                <div class="consent-and-reviews">
+                    <label for="detailParentalConsent">
+                        <input type="checkbox" id="detailParentalConsent">
+                        Oudertoestemming
+                    </label>
+
+                    <div id="detailReviewBox"></div>
+                </div>
 
                 <div class="popup-buttons">
                     <button class="btn-primary" id="updateWorkshopBtn">Opslaan</button>
                     <button class="btn-secondary" id="deleteWorkshopBtn">Verwijderen</button>
                 </div>
+            </div>
+
+
+
             </div>
         </div>
         <!-- Lightbox voor mediaweergave -->
@@ -194,6 +205,15 @@
 
     </div>
 </div>
+
+<div id="reviewsPopup" class="reviews-popup">
+    <div class="reviews-content">
+        <span id="closeReviewsPopup" class="close-reviews">&times;</span>
+        <h2>Reviews</h2>
+        <ul id="reviewsList"></ul>
+    </div>
+</div>
+
 <button id="backToDashboardBtn" class="dashboard-button">⬅ Terug naar Dashboard</button>
 <script src="/js/admin/workshopToevoegen.js"></script>
 

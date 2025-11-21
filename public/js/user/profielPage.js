@@ -146,6 +146,18 @@ window.addEventListener('DOMContentLoaded', async () => {
       window.location.href = "/";
     });
   }
+
+  document.querySelectorAll(".sidebar a").forEach(link => {
+    link.addEventListener("click", function () {
+
+      // Verwijder active van alle links
+      document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+
+      // Voeg active toe aan de geklikte link
+      this.classList.add("active");
+    });
+  });
+
 // --- Mobiele Sidebar Toggle Logica ---
   const toggleBtn = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');

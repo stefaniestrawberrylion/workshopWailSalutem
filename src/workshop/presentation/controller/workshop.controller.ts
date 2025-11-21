@@ -23,6 +23,8 @@ import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
+import { WorkshopRepository } from '../../data/workshop.repository';
+import { ReviewService } from '../../application/review.service';
 
 interface MulterFile {
   fieldname: string;
@@ -67,7 +69,11 @@ const multerOptions = {
 
 @Controller('api/workshops')
 export class WorkshopController {
-  constructor(private readonly workshopService: WorkshopService) {}
+  constructor(
+    private readonly workshopService: WorkshopService,
+    private readonly workshopRepository: WorkshopRepository,
+    private readonly reviewService: ReviewService,
+  ) {}
 
   // =======================
   // Test Auth
@@ -85,7 +91,16 @@ export class WorkshopController {
   @Get()
   async getAllWorkshops(): Promise<WorkshopDto[]> {
     const workshops = await this.workshopService.getAllWorkshops();
-    return workshops.map((w) => this.toDto(w));
+
+    return Promise.all(
+      workshops.map(async (w) => {
+        const average = await this.reviewService.getAverageForWorkshop(w.id);
+        const count = await this.reviewService.getCountForWorkshop(w.id);
+        const reviews = await this.reviewService.findByWorkshop(w.id);
+
+        return this.toDto(w, average, count, reviews);
+      }),
+    );
   }
 
   @Get(':id')
@@ -94,7 +109,12 @@ export class WorkshopController {
   ): Promise<WorkshopDto> {
     const workshop = await this.workshopService.getWorkshop(id);
     if (!workshop) throw new NotFoundException('Workshop not found');
-    return this.toDto(workshop);
+
+    const average = await this.reviewService.getAverageForWorkshop(id);
+    const count = await this.reviewService.getCountForWorkshop(id);
+    const reviews = await this.reviewService.findByWorkshop(id);
+
+    return this.toDto(workshop, average, count, reviews);
   }
 
   @Post()
@@ -141,7 +161,12 @@ export class WorkshopController {
   // =======================
   // Helper: DTO converter
   // =======================
-  private toDto(w: Workshop): WorkshopDto {
+  private toDto(
+    w: Workshop,
+    averageStars?: number,
+    reviewCount?: number,
+    reviews?: any[],
+  ): WorkshopDto {
     return new WorkshopDto({
       id: w.id,
       name: w.name,
@@ -170,6 +195,9 @@ export class WorkshopController {
         : typeof w.labelsJson === 'string'
           ? JSON.parse(w.labelsJson)
           : [],
+      reviews: reviews ?? [],
+      averageStars,
+      reviewCount,
     });
   }
 }

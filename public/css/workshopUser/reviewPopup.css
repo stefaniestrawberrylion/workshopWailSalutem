@@ -1,0 +1,124 @@
+/* ==================================== */
+/* 🛠️ REVIEW POPUP STIJL */
+/* ==================================== */
+.popupReview-overlay {
+    display: none;
+    position: fixed;         /* overlay over de hele pagina */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;          /* hoger dan workshopDetailsPopup */
+    justify-content: center; /* horizontaal centreren */
+    align-items: center;     /* verticaal centreren */
+}
+
+
+.popupReview {
+    background: white;
+    padding: 30px;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;      /* belangrijk voor sluitknop */
+}
+
+
+.popupReview h2 {
+    color: var(--accent); /* Merk kleur */
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.stars i {
+    font-size: 40px; /* VEEL GROTERE STERREN */
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.2s;
+}
+
+.stars i.selected,
+.stars i:hover {
+    color: gold;
+}
+.popupReview textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    resize: none;                 /* voorkomt lelijke resizer */
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-family: inherit;
+    background: #f9f9f9;
+}
+
+/* Focus effect */
+.popupReview textarea:focus {
+    border-color: #5481B7;       /* zelfde merk-kleur als knop */
+    box-shadow: 0 0 5px rgba(84,129,183,0.4);
+    background: white;
+}
+.popupReview textarea {
+    width: 100%;
+    box-sizing: border-box;     /* voorkomt dat padding de breedte kapot maakt */
+    max-width: 100%;            /* voorkomt uitsteken */
+    min-height: 120px;
+    margin-top: 15px;
+
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    background: #f7f9fc;
+    font-size: 15px;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.popupReview textarea:focus {
+    border-color: #5481B7;
+    box-shadow: 0 0 6px rgba(84,129,183,0.4);
+    background: white;
+}
+
+
+.popupReview-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.popupReview-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Afgeronde knoppen */
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#submitReviewBtn {
+    background-color: #5481B7; /* Blauwe merk-kleur */
+    color: white;
+}
+/* ... (hover effecten) */
+
+#closeReviewPopup {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 30px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}

@@ -512,7 +512,18 @@
           }
 
           let durationStr = formatDuration(w.duration) + " uur";
+// --- REVIEW GEMIDDELDE VAN DE WORKSHOP ---
+          let reviewCount = (w.reviews && Array.isArray(w.reviews)) ? w.reviews.length : 0;
+          let averageStars = 0;
+          let reviewContent = 'Nog geen review';
 
+          if (reviewCount > 0) {
+            averageStars = w.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviewCount;
+            const rounded = Math.round(averageStars);
+            const filledStars = Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('');
+            const emptyStars = Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
+            reviewContent = `<div class="stars-summary">${filledStars}${emptyStars} (${reviewCount})</div>`;
+          }
           card.innerHTML = `
       <div class="workshop-image" style="background-image: url('${imageUrl}')">
         <div class="workshop-top">
@@ -522,7 +533,9 @@
         <div class="workshop-bottom">
           <div class="workshop-info">
             <h3>${w.name}</h3>
-            <p>${w.review || 'Nog geen review'}</p>
+              <div class="workshop-rating">
+                ${reviewContent}
+              </div>
           </div>
           <button class="workshop-btn">Bekijk workshop</button>
         </div>
@@ -549,16 +562,16 @@
 
 
       // =======================
-    // View workshop details
-    // =======================
+// View workshop details
+// =======================
       async function viewWorkshopDetails(id) {
         try {
           currentWorkshopId = id;
 
-          // ✅ Gebruik dynamische API_URL
           const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
           if (!res.ok) throw new Error('Workshop niet gevonden');
           const w = await res.json();
+          window.currentWorkshopData = w;
 
           // Basis info
           document.getElementById('detailName').value = w.name;
@@ -633,7 +646,6 @@
                 right.appendChild(size);
               }
 
-              // ✅ Dynamische downloadlink
               const downloadLink = document.createElement('a');
               downloadLink.textContent = 'Download';
               downloadLink.href = f.url.startsWith('http') ? f.url : `${API_URL}${f.url}`;
@@ -649,7 +661,6 @@
               right.appendChild(downloadLink);
 
               const viewLink = document.createElement('a');
-
               const fileUrl = (f.url || f.name || f.path).startsWith('http')
                 ? (f.url || f.name || f.path)
                 : `${API_URL}/uploads/${encodeURIComponent((f.url || f.name || f.path).split(/[/\\]/).pop())}`;
@@ -670,7 +681,6 @@
 
               li.appendChild(right);
 
-              // ✅ Voeg toe aan juiste categorie
               const cat = (f.category || f.type || 'worksheets').toLowerCase();
               if (cat === 'instructions') detailInstructionsList.appendChild(li);
               else if (cat === 'manuals' || cat === 'handleiding') detailManualsList.appendChild(li);
@@ -679,7 +689,7 @@
             });
           }
 
-          // ✅ Slideshow media
+          // Slideshow media
           const container = document.getElementById('detailMediaContainer');
           container.innerHTML = '';
           const mediaFiles = w.files || [];
@@ -690,7 +700,61 @@
             container.appendChild(el);
           });
 
+          // ⭐⭐⭐⭐⭐ Reviews verwerken
+          const reviewBox = document.getElementById('detailReviewBox');
+          const reviewsPopup = document.getElementById('reviewsPopup');
+          const reviewsList = document.getElementById('reviewsList');
 
+          reviewBox.innerHTML = '';
+          reviewsList.innerHTML = '';
+
+          // Klik om popup te openen
+          reviewBox.onclick = () => { reviewsPopup.style.display = 'flex'; };
+
+          if (w.reviews && w.reviews.length > 0) {
+            // Gemiddelde sterren
+            const avg = w.reviews.reduce((s, r) => s + r.stars, 0) / w.reviews.length;
+            const rounded = Math.round(avg);
+            const stars =
+              Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('') +
+              Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
+
+            // Review summary
+            reviewBox.innerHTML = `
+        <div class="review-summary">
+            ${stars} <span>(${w.reviews.length}) reviews</span>
+        </div>
+      `;
+
+            // Reviews in popup
+            for (const r of w.reviews) {
+              const user = r.userId ? await getUserMail(r.userId) : { email: 'unknown@example.com' };
+              const displayName = user.email || 'Onbekend';
+
+              const li = document.createElement('li');
+              li.className = "review-item";
+              li.style.border = '1px solid #ccc';
+              li.style.borderRadius = '8px';
+              li.style.padding = '10px';
+              li.style.marginBottom = '8px';
+              li.style.background = '#f9f9f9';
+
+              li.innerHTML = `
+          <div class="review-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <strong>${displayName}</strong>
+              <span class="review-stars">
+                  ${Array(r.stars).fill('<i class="fa-solid fa-star filled-star"></i>').join('')}
+                  ${Array(5 - r.stars).fill('<i class="fa-regular fa-star"></i>').join('')}
+              </span>
+          </div>
+          <p class="review-text" style="margin:0;">${r.text}</p>
+        `;
+
+              reviewsList.appendChild(li);
+            }
+          } else {
+            reviewBox.innerHTML = '<p>Nog geen reviews</p>';
+          }
 
           // Slideshow knoppen
           let currentIndex = 0;
@@ -712,6 +776,21 @@
           alert(e.message);
         }
       }
+
+// Fetch user info (email)
+      async function getUserMail(userId) {
+        try {
+          const res = await fetch(`${API_URL}/users/${userId}`, { headers: getAuthHeaders() });
+          if (!res.ok) throw new Error('Gebruiker niet gevonden');
+          const user = await res.json();
+          return { email: user.email || 'Onbekend' };
+        } catch (e) {
+          console.error(e);
+          return { email: 'Onbekend' };
+        }
+      }
+
+
       // Helper: bepaal type en URL
       function getMediaElement(file) {
         let rawUrl = file.url || file.name;
@@ -914,6 +993,37 @@
           window.location.href = "/dashboard";
         });
       }
+
+      const reviewsPopup = document.getElementById('reviewsPopup');
+      const closeReviewsPopup = document.getElementById('closeReviewsPopup');
+      const reviewsList = document.getElementById('reviewsList');
+
+// Review pop-up openen
+      document.addEventListener('click', (e) => {
+        if (e.target.id === 'openReviewsPopup') {
+          const workshop = window.currentWorkshopData; // wordt in viewWorkshopDetails gezet
+
+          // lijst vullen
+          reviewsList.innerHTML = '';
+          workshop.reviews.forEach(r => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+        <strong>${r.userName}</strong>  
+        <div>${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+        <p>${r.comment || ''}</p>
+      `;
+            reviewsList.appendChild(li);
+          });
+
+          reviewsPopup.style.display = 'flex';
+        }
+      });
+
+// Popup sluiten
+      closeReviewsPopup.addEventListener('click', () => {
+        reviewsPopup.style.display = 'none';
+      });
+
 
       // =======================
       // Init

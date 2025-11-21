@@ -16,24 +16,18 @@ html {
 header {
     display: flex;
     justify-content: space-between;
-    /* 🚀 FIX: Gebruik de verlaagde vaste hoogte en Flexbox om te centreren */
-    align-items: center; /* Centreert 80px logo in 98px header */
+    align-items: center;
     background-color: #5481B7;
     color: white;
-    /* 🚀 FIX: Verwijder de 10px verticale padding die de berekening onzeker maakte */
     padding: 0 20px;
-    height: var(--header-height); /* Vaste hoogte van 98px */
+    height: var(--header-height);
 }
 
-header .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+header .logo{height:40px;margin-right:auto;}
+
 
 header .logo img {
-    /* Logo blijft 80px */
-    height: 80px;
+    height: 40px;
 }
 
 header .title h1 {
@@ -61,7 +55,7 @@ header .icons {
     --muted:#6b7280;
     --card-bg:#fff;
     --page-bg:#f3f4f6;
-    --header-height: 98px;
+    --header-height: 60px;
     /* ✂️ VERKLEIND: In de ingeklapte modus */
     --sidebar-width-collapsed: 60px;
     /* ✂️ VERKLEIND: In de uitgeklapte modus */
@@ -84,6 +78,16 @@ header .icons {
 .sidebar a.active{
     background:var(--accent);
     color:white;
+}
+
+.sidebar a.active {
+    background: #5481B7 !important;
+    color: white !important;
+}
+
+.sidebar:hover a.active {
+    background: #5481B7 !important;
+    color: white !important;
 }
 
 
@@ -153,7 +157,19 @@ header .icons {
 }
 
 
-
+/* Voeg toe aan je CSS */
+.workshop-info .filled-star {
+    color: gold; /* Of een andere opvallende kleur */
+}
+.workshop-info .fa-star {
+    font-size: 14px; /* Of passend bij je ontwerp */
+    margin-right: 2px;
+}
+.workshop-info p {
+    /* Zorg dat de sterren op één lijn staan */
+    display: flex;
+    align-items: center;
+}
 
 
 /* SIDEBAR EXPANDS ON HOVER (Desktop) */
@@ -254,7 +270,13 @@ main {
     position: relative;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     margin: 10px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
+.workshop-card:hover {
+    transform: translateY(-8px) scale(1.03);
+}
+
 
 .workshop-top {
     position: absolute;
@@ -528,3 +550,4 @@ main {
     color: #000000;
     font-size: 1.1rem;
 }
+

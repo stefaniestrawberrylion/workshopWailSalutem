@@ -96,6 +96,14 @@ export class UserController {
       );
     }
   }
+  @Get(':id')
+  async getUserById(@Param('id') id: number) {
+    const user = await this.userService.getUserById(id);
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return { id: user.id, name: user.firstName, email: user.email };
+  }
+
+
   @UseGuards(JwtAuthGuard)
   @Post('me/avatar')
   @UseInterceptors(

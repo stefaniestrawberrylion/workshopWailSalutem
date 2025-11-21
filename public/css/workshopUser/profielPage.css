@@ -147,6 +147,16 @@ html,body{
     /* ✂️ AANGEPAST: Minder horizontale padding */
     padding-left: 15px;
 }
+.sidebar a.active {
+    background: #5481B7 !important;
+    color: white !important;
+}
+
+.sidebar:hover a.active {
+    background: #5481B7 !important;
+    color: white !important;
+}
+
 
 .sidebar a.active:hover {
     background: var(--accent);
