@@ -98,7 +98,15 @@ export class RegistrationController {
 
   @Get('pending')
   async getPendingUsers() {
-    return this.userService.getPendingUsers();
+    try {
+      return await this.userService.getPendingUsers();
+    } catch (err) {
+      console.error('Error fetching pending users:', err);
+      throw new HttpException(
+        { message: 'Kon pending gebruikers niet ophalen' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch('approve/:id')
@@ -132,37 +140,71 @@ export class RegistrationController {
   @Post('login')
   async login(@Body() body: Record<string, string>) {
     const { email, password } = body;
-    const user = await this.userService.findByEmail(email);
 
-    if (!user || !(await this.userService.checkPassword(user, password))) {
+    try {
+      // 1) veilig ophalen, vang interne errors van de service op
+      let user;
+      try {
+        user = await this.userService.findByEmail(email);
+      } catch (err) {
+        console.error('Error in userService.findByEmail:', err);
+        throw new HttpException(
+          { message: 'Interne serverfout bij gebruiker-lookup' },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      // 2) duidelijke checks: eerst null-check, daarna pas password-check
+      if (!user) {
+        throw new HttpException(
+          { message: 'Ongeldige e-mail of wachtwoord' },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const passwordOk = await this.userService.checkPassword(user, password);
+      if (!passwordOk) {
+        throw new HttpException(
+          { message: 'Ongeldige e-mail of wachtwoord' },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      // 3) status checks
+      if (user.status === Status.DENIED) {
+        throw new HttpException(
+          { message: 'Uw account is geweigerd door de administrator.' },
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (user.status === Status.PENDING) {
+        throw new HttpException(
+          {
+            message:
+              'Uw account is nog niet goedgekeurd door de administrator.',
+          },
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      // 4) login & token
+      const token = await this.userService.login(user);
+      return {
+        message: 'Login succesvol',
+        ...token,
+      };
+    } catch (err: unknown) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      console.error('Unexpected error in register/login:', err);
       throw new HttpException(
-        { message: 'Ongeldige e-mail of wachtwoord' },
-        HttpStatus.UNAUTHORIZED,
+        { message: 'Interne serverfout' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    // ❌ Als de gebruiker is afgekeurd, geef een duidelijke foutmelding
-    if (user.status === Status.DENIED) {
-      throw new HttpException(
-        { message: 'Uw account is geweigerd door de administrator.' },
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    // ⚠️ Als de gebruiker nog niet is goedgekeurd
-    if (user.status === Status.PENDING) {
-      throw new HttpException(
-        {
-          message: 'Uw account is nog niet goedgekeurd door de administrator.',
-        },
-        HttpStatus.FORBIDDEN,
-      );
-    }
-    const token = await this.userService.login(user);
-    return {
-      message: 'Login succesvol',
-      ...token,
-    };
   }
 
   @Delete(':email')
