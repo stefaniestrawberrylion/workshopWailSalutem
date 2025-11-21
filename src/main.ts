@@ -10,7 +10,7 @@ import * as fs from 'fs';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
-      origin: ['http://localhost:3000'],
+      origin: ['https://workshoptest.wailsalutem-foundation.com/'],
       credentials: true,
     },
   });
@@ -58,7 +58,7 @@ async function bootstrap() {
         "object-src 'none'", // Geen object/embed tags
         "script-src 'self' http://localhost:3000 'unsafe-inline'", // JS
         "style-src 'self' http://localhost:3000 'unsafe-inline' https://cdnjs.cloudflare.com", // CSS extern + inline
-        "connect-src 'self' http://localhost:3000", // API calls
+        'connect-src *',
         "font-src 'self' http://localhost:3000 https://cdnjs.cloudflare.com", // Fonts extern
         "frame-src 'self'", // Iframes
       ].join('; '),
