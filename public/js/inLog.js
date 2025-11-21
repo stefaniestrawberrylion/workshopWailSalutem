@@ -51,15 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email, password }),
         });
 
+        // ⛔ ALTIJD eerst JSON lezen — ook bij error!
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          const data = await response.json();
-          const message = data.message || "Login mislukt.";
+          const message =
+            data.message ||
+            data.error ||
+            "Er ging iets mis bij het inloggen.";
           alert(message);
           console.error("❌ Login failed:", data);
           return;
         }
 
-        const data = await response.json();
         const token = data.access_token;
 
         if (!token) {
@@ -68,11 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // ✅ Sla JWT altijd op onder dezelfde key
+        // 🔑 Token opslaan
         localStorage.setItem("jwt", token);
         console.log("✅ Token opgeslagen in localStorage");
 
-        // ✅ Decodeer token en check rol
+        // 🔍 Rol uitlezen
         const payload = JSON.parse(atob(token.split('.')[1]));
         const roles = payload.roles
           ? (Array.isArray(payload.roles) ? payload.roles : [payload.roles])
@@ -81,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("👤 Ingelogde rollen:", rolesNormalized);
 
-        // ✅ Redirect op basis van rol
+        // 🔀 Redirect
         if (rolesNormalized.includes('ADMIN')) {
           alert('Welkom admin!');
           window.location.href = '/dashboard';
@@ -97,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Fout bij inloggen. Controleer netwerk of backend.");
       }
     });
-  }
+    }
 
   // ================== REGISTRATIE ==================
   const sendEmailBtn = document.getElementById('sendEmail');
