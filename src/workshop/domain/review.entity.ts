@@ -4,11 +4,13 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Workshop } from './workshop.entity';
 import { User } from '../../security/domain/user.entity';
 
 @Entity()
+@Unique(['userId', 'workshopId']) // <-- zorgt dat 1 user maar 1 review per workshop kan geven
 export class Review {
   @PrimaryGeneratedColumn()
   id: number;
