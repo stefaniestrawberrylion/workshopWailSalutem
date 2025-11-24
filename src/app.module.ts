@@ -30,20 +30,17 @@ import { ReviewModule } from './workshop/presentation/module/review.module';
         username: config.get<string>('DB_USER'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
-        entities: [join(__dirname, '**', '*.entity.{js,ts}')],
-        synchronize: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: false,
         logging: true,
         logger: 'advanced-console',
       }),
     }),
 
-    // ✅ Statische serve van uploadmap
     ServeStaticModule.forRoot({
-      rootPath: join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
+      rootPath: join(process.cwd(), 'workshop-uploads'),
       serveRoot: '/uploads',
     }),
-
-    // ✅ Jouw andere modules
     WorkshopModule,
     SecurityModule,
     RegistrationModule,

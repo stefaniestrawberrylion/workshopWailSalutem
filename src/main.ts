@@ -15,8 +15,11 @@ async function bootstrap() {
     },
   });
 
-  const expressApp = app.getHttpAdapter().getInstance(); // <-- pak de Express instance
-
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use(
+    '/uploads',
+    express.static(join(process.cwd(), 'uploads'))
+  );
   // ================== Static assets ==================
   app.useStaticAssets(join(__dirname, '..', 'public'));
   expressApp.use('/uploads', express.static(join(__dirname, '..', 'uploads')));

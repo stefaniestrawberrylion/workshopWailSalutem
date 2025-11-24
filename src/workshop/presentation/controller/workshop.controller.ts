@@ -25,6 +25,8 @@ import { Role } from '../../../security/domain/enums/role.enum';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 import { WorkshopRepository } from '../../data/workshop.repository';
 import { ReviewService } from '../../application/review.service';
+import { config } from 'dotenv';
+config();
 
 interface MulterFile {
   fieldname: string;
@@ -53,12 +55,13 @@ interface AuthenticatedRequest extends Request {
 // Multer configuratie
 // =====================
 const storage = diskStorage({
-  destination: join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
+  destination: process.env.UPLOAD_DIR || join(process.cwd(), 'uploads/workshops'),
   filename: (req, file, cb) => {
     const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
     cb(null, safeName);
   },
 });
+
 
 const multerOptions = {
   storage,
