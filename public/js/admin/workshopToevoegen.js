@@ -58,8 +58,7 @@
             ? "http://localhost:3000"
             : "https://workshoptest.wailsalutem-foundation.com";
   
-        console.log("Backend URL:", API_URL);
-  
+
         // =======================
         // Helper: Authorization header
         // =======================
@@ -436,7 +435,6 @@
             try {
               const token = localStorage.getItem("jwt");
               if (!token) {
-                console.error("❌ Geen token gevonden in localStorage!");
                 throw new Error("Geen JWT token beschikbaar");
               }
   
@@ -446,17 +444,14 @@
                 : `${API_URL}/api/workshops`;
               const method = currentWorkshopId ? 'PUT' : 'POST';
   
-              console.log(`📡 Verzenden ${method} request naar ${url}...`);
               const response = await fetch(url, {
                 method,
                 body: formData,
                 headers
               });
   
-              console.log("Response status:", response.status);
               const responseBody = await response.text();
-              console.log("Response body:", responseBody);
-  
+
               if (!response.ok) {
                 throw new Error('Fout bij opslaan van de workshop');
               }
@@ -466,7 +461,6 @@
               await loadWorkshops();
   
             } catch (e) {
-              console.error("💥 Error in saveBtn click handler:", e);
               showError(e.message);
             }
           });
@@ -785,7 +779,6 @@
             const user = await res.json();
             return { email: user.email || 'Onbekend' };
           } catch (e) {
-            console.error(e);
             return { email: 'Onbekend' };
           }
         }

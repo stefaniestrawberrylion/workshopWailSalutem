@@ -28,6 +28,7 @@ function getErrorMessage(error: unknown): string {
 
   return String(error);
 }
+
 @Controller('register')
 export class RegistrationController {
   constructor(
@@ -36,7 +37,6 @@ export class RegistrationController {
   ) {}
 
   // ================== REGISTRATIE ==================
-
   @Post()
   async registerUser(@Body() body: Record<string, string>) {
     try {
@@ -68,7 +68,7 @@ export class RegistrationController {
       return { message: 'Admin geregistreerd' };
     } catch (err: unknown) {
       throw new HttpException(
-        { message: err instanceof Error ? err.message : String(err) },
+        { message: getErrorMessage(err) },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -95,13 +95,11 @@ export class RegistrationController {
   }
 
   // ================== PENDING USERS ==================
-
   @Get('pending')
   async getPendingUsers() {
     try {
       return await this.userService.getPendingUsers();
-    } catch (err) {
-      console.error('Error fetching pending users:', err);
+    } catch {
       throw new HttpException(
         { message: 'Kon pending gebruikers niet ophalen' },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -136,25 +134,13 @@ export class RegistrationController {
   }
 
   // ================== LOGIN ==================
-
   @Post('login')
   async login(@Body() body: Record<string, string>) {
     const { email, password } = body;
 
     try {
-      // 1) veilig ophalen, vang interne errors van de service op
-      let user;
-      try {
-        user = await this.userService.findByEmail(email);
-      } catch (err) {
-        console.error('Error in userService.findByEmail:', err);
-        throw new HttpException(
-          { message: 'Interne serverfout bij gebruiker-lookup' },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      const user = await this.userService.findByEmail(email);
 
-      // 2) duidelijke checks: eerst null-check, daarna pas password-check
       if (!user) {
         throw new HttpException(
           { message: 'Ongeldige e-mail of wachtwoord' },
@@ -170,7 +156,6 @@ export class RegistrationController {
         );
       }
 
-      // 3) status checks
       if (user.status === Status.DENIED) {
         throw new HttpException(
           { message: 'Uw account is geweigerd door de administrator.' },
@@ -188,7 +173,6 @@ export class RegistrationController {
         );
       }
 
-      // 4) login & token
       const token = await this.userService.login(user);
       return {
         message: 'Login succesvol',
@@ -199,7 +183,6 @@ export class RegistrationController {
         throw err;
       }
 
-      console.error('Unexpected error in register/login:', err);
       throw new HttpException(
         { message: 'Interne serverfout' },
         HttpStatus.INTERNAL_SERVER_ERROR,

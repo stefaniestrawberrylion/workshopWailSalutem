@@ -139,7 +139,6 @@ export class WorkshopController {
     @Body() body: any,
     @UploadedFiles() files: Record<string, MulterFile[]>,
   ): Promise<WorkshopDto> {
-    // Parsing logica is verplaatst naar de service
     const workshop = await this.workshopService.createWorkshopWithParsedLabels(
       body,
       files,

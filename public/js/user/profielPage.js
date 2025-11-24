@@ -4,7 +4,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       ? 'http://localhost:3000'
       : 'https://workshoptest.wailsalutem-foundation.com';
 
-  console.log('Backend URL:', API_URL);
 
   // Haal token op uit localStorage
   const token = localStorage.getItem('jwt');
@@ -32,7 +31,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Backend fout:', data);
       throw new Error(data.message || 'Kon profiel niet ophalen');
     }
 
@@ -87,7 +85,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         profilePhoto.style.backgroundImage = `url(${result.avatarUrl})`;
         alert('Profielfoto is geüpdatet!');
       } catch (err) {
-        console.error(err);
         alert(`Fout bij uploaden: ${err.message}`);
       }
     });
@@ -128,13 +125,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         alert('Profielgegevens succesvol opgeslagen!');
 
       } catch (err) {
-        console.error(err);
         alert(`Fout bij het opslaan van gegevens: ${err.message}`);
       }
     });
 
   } catch (err) {
-    console.error(err);
     alert(`Er is een fout opgetreden bij het ophalen van uw gegevens: ${err.message}`);
   }
   // LOGOUT

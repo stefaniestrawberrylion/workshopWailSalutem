@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RegistrationController } from './registration.controller';
+import { RegistrationController } from '../controller/registration.controller';
 import { AdminService } from '../../application/admin.service';
 import { UserService } from '../../application/user.service';
 import { Admin } from '../../domain/admin.entity';

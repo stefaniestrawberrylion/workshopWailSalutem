@@ -9,7 +9,7 @@ export class Review {
   workshopId: number;
 
   @Column()
-  userId: number; // 🔥 Nieuwe koppeling met ingelogde user
+  userId: number;
 
   @Column()
   stars: number;

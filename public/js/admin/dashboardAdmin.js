@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? "http://localhost:3000"
       : "https://workshoptest.wailsalutem-foundation.com";
 
-  console.log("Backend URL:", API_URL);
 
   // =======================
   // Token check
@@ -32,9 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    console.log("✅ Token gevonden voor:", payload.email);
   } catch (err) {
-    console.error("Fout bij token-decodering:", err);
     localStorage.removeItem("jwt");
     window.location.href = "/inlog";
     return;
@@ -53,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Fetch Pending Users
   // =======================
   async function fetchPendingUsers() {
-    console.log("📡 Ophalen van pending users...");
 
     try {
       const response = await fetch(`${API_URL}/register/pending`, {
@@ -61,19 +57,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (response.status === 401) {
-        console.warn("⚠️ Token ongeldig of verlopen. Redirect naar login.");
         localStorage.removeItem("jwt");
         window.location.href = "/inlog";
         return;
       }
 
       if (!response.ok) {
-        console.error("❌ Fout bij ophalen pending users:", response.status);
         return;
       }
 
       const users = await response.json();
-      console.log("✅ Pending users fetched:", users);
 
       const tbody = document.querySelector("#pendingUsersTable tbody");
       const notificationsDiv = document.getElementById("notifications");
@@ -102,7 +95,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
     } catch (err) {
-      console.error("🚨 Fout bij fetchPendingUsers:", err);
     }
   }
 
@@ -130,7 +122,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Fout bij goedkeuren gebruiker.");
       }
     } catch (err) {
-      console.error("❌ Fout bij approveUser:", err);
     }
   };
 
@@ -158,7 +149,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Fout bij afkeuren gebruiker.");
       }
     } catch (err) {
-      console.error("❌ Fout bij denyUser:", err);
     }
   };
 

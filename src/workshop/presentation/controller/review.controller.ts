@@ -42,7 +42,7 @@ export class ReviewController {
 
     return review;
   }
-  // Nieuw endpoint: Haal de review van de HUIDIGE GEBRUIKER voor een specifieke workshop op
+
   @Get(':workshopId/user')
   @UseGuards(JwtAuthGuard) // Vereist authenticatie om de userId te krijgen
   async getUserReviewForWorkshop(
@@ -55,15 +55,13 @@ export class ReviewController {
 
     const userId = req.user.id;
 
-    // U moet een nieuwe methode in ReviewService implementeren: findByUserAndWorkshop
+
     const review = await this.reviewService.findByUserAndWorkshop(
       userId,
       workshopId,
     );
 
     if (!review) {
-      // Dit zorgt ervoor dat de frontend een 404 krijgt, wat de loadReviews
-      // functie correct afhandelt door de review-popup leeg te maken.
       throw new NotFoundException(
         'Review not found for this user and workshop.',
       );

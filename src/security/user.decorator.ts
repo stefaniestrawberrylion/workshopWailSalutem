@@ -5,7 +5,7 @@ export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): UserProfile => {
     const request = context.switchToHttp().getRequest();
 
-    // ✅ Type veilig casten (ESLint blij, TypeScript blij)
+    // Type veilig casten (ESLint blij, TypeScript blij)
     const user = request.user as UserProfile | undefined;
 
     if (!user) {

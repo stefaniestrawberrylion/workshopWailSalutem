@@ -7,20 +7,17 @@ import { join } from 'path';
 import { WorkshopModule } from './workshop/presentation/module/workshop.module';
 import { SecurityModule } from './security/security.module';
 import { PageController } from './security/presentation/controller/page.controller';
-import { RegistrationModule } from './security/presentation/controller/registration.module';
-import { UserModule } from './security/presentation/controller/user.module';
+import { RegistrationModule } from './security/presentation/module/registration.module';
+import { UserModule } from './security/presentation/module/user.module';
 import { MailModule } from './mail/mail.modules';
 import { ReviewModule } from './workshop/presentation/module/review.module';
 
 @Module({
   imports: [
-    // ✅ .env laden
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-
-    // ✅ Database (MySQL) connectie
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

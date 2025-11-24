@@ -7,7 +7,6 @@ import {
   HttpStatus,
   UseGuards,
   Req,
-  Logger,
   UploadedFile,
   Post,
   UseInterceptors,
@@ -23,7 +22,7 @@ interface AuthenticatedRequest extends Request {
   user: { id: number; [key: string]: any };
 }
 
-// ✅ Type-safe helper om foutboodschappen veilig te extraheren (geen any)
+// ✅ Type-safe helper om foutboodschappen veilig te extraheren
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -54,16 +53,12 @@ export class UserController {
       );
     }
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Req() req: any) {
-    const logger = new Logger('UserController');
-
     try {
       if (!req.user) {
-        logger.warn(
-          'Geen user object in request! Misschien AuthGuard niet correct?',
-        );
         throw new HttpException(
           'Niet geauthenticeerd',
           HttpStatus.UNAUTHORIZED,
@@ -71,38 +66,30 @@ export class UserController {
       }
 
       const userId = req.user.id;
-      logger.log(`Ophalen van gebruiker met ID: ${userId}`);
-
       const user = await this.userService.getUserById(userId);
 
       if (!user) {
-        logger.warn(`Gebruiker met ID ${userId} niet gevonden in database`);
         throw new HttpException(
           'Gebruiker niet gevonden',
           HttpStatus.NOT_FOUND,
         );
       }
 
-      logger.log(`Gebruiker succesvol opgehaald: ${user.email}`);
       return user;
     } catch (err: unknown) {
-      logger.error(
-        `Fout bij ophalen van profiel: ${getErrorMessage(err)}`,
-        err instanceof Error ? err.stack : '',
-      );
       throw new HttpException(
         { message: getErrorMessage(err) },
         HttpStatus.BAD_REQUEST,
       );
     }
   }
+
   @Get(':id')
   async getUserById(@Param('id') id: number) {
     const user = await this.userService.getUserById(id);
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     return { id: user.id, name: user.firstName, email: user.email };
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Post('me/avatar')

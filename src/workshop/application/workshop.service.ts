@@ -101,6 +101,7 @@ export class WorkshopService {
     }
     return paths;
   }
+
   private async parseLabels(
     files: Record<string, MulterFile[]>,
     body: any,
@@ -115,14 +116,12 @@ export class WorkshopService {
         parsed = JSON.parse(body.labels);
       }
 
-      // ✅ controleer of het echt een array is
       if (Array.isArray(parsed)) {
         return parsed as string[];
       }
 
       return [];
-    } catch (err) {
-      console.error('❌ Error parsing labels:', err);
+    } catch {
       return [];
     }
   }

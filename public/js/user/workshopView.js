@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ? "http://localhost:3000" // lokale backend
       : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
 
-  console.log("Backend URL:", API_URL);
 
   function showError(message) {
     const popupVisible = popup?.style.display === 'block';
@@ -568,7 +567,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert("Review opgeslagen!");
       closeReviewPopup();
     } catch (err) {
-      console.error(err);
       alert("Er ging iets mis bij opslaan. Details: " + err.message);
     }
   }
@@ -609,7 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
       displayUserReviewInDetailPopup(review);
 
     } catch (err) {
-      console.error("Fout bij review laden:", err);
       clearReview();
       displayUserReviewInDetailPopup(null);
     }

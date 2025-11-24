@@ -21,7 +21,7 @@ export class MailService {
     this.fromEmail = from;
     this.adminEmail = admin;
 
-    sgMail.setApiKey(this.config.get<string>('SENDGRID_API_KEY')!); // ✅ Works now
+    sgMail.setApiKey(this.config.get<string>('SENDGRID_API_KEY')!);
   }
 
   async sendAdminNotification(userEmail: string, username: string) {
@@ -30,16 +30,15 @@ export class MailService {
       from: this.fromEmail,
       subject: 'Nieuw registratieverzoek',
       html: `
-    <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-      <h2 style="color: #0070f3;">Nieuw registratieverzoek</h2>
-      <p>Gebruiker <b>${username}</b> wil zich registreren met e-mail: <a href="mailto:${userEmail}">${userEmail}</a></p>
-      <p style="margin-top: 20px;">Bezoek <a href="https://workshoptest.wailsalutem-foundation.com/dashboard">admin dashboard</a> om dit verzoek te bekijken.</p>
-    </div>
-  `,
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <h2 style="color: #0070f3;">Nieuw registratieverzoek</h2>
+          <p>Gebruiker <b>${username}</b> wil zich registreren met e-mail: <a href="mailto:${userEmail}">${userEmail}</a></p>
+          <p style="margin-top: 20px;">Bezoek <a href="https://workshoptest.wailsalutem-foundation.com/dashboard">admin dashboard</a> om dit verzoek te bekijken.</p>
+        </div>
+      `,
     };
     try {
-      const response = await sgMail.send(msg);
-      console.log('[MailService] Admin notification sent:', response);
+      await sgMail.send(msg);
     } catch (err: any) {
       console.error(
         '[MailService] Fout bij verzenden admin e-mail:',
@@ -62,8 +61,7 @@ export class MailService {
     };
 
     try {
-      const response = await sgMail.send(msg);
-      console.log('[MailService] User status email sent:', response);
+      await sgMail.send(msg);
     } catch (err: any) {
       console.error(
         '[MailService] Fout bij verzenden e-mail status:',

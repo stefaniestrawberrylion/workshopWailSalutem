@@ -87,29 +87,21 @@ export class UserService {
   async updateStatus(userId: number, status: Status): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      console.error(`[UserService] Gebruiker niet gevonden: ${userId}`);
       throw new NotFoundException(`Gebruiker niet gevonden met id: ${userId}`);
     }
 
-    console.log(`[UserService] Update status van ${user.email} naar ${status}`);
-
     if (status === Status.DENIED) {
-      // Verwijder gebruiker uit de database
       await this.userRepository.delete(userId);
-      console.log(
-        `[UserService] Gebruiker ${user.email} verwijderd wegens DENIED status`,
-      );
 
       try {
         await this.mailService.sendUserStatus(user.email, 'afgewezen');
       } catch (err) {
-        console.error('[UserService] Fout bij verzenden e-mail status:', err);
+        // Fout bij verzenden e-mail wordt niet gelogd
       }
 
-      return; // Stop hier, gebruiker is verwijderd
+      return;
     }
 
-    // Voor alle andere status updates (bijv. APPROVED)
     user.status = status;
     await this.userRepository.save(user);
 
@@ -117,7 +109,7 @@ export class UserService {
       try {
         await this.mailService.sendUserStatus(user.email, 'goedgekeurd');
       } catch (err) {
-        console.error('[UserService] Fout bij verzenden e-mail status:', err);
+        // Fout bij verzenden e-mail wordt niet gelogd
       }
     }
   }
@@ -151,9 +143,9 @@ export class UserService {
   }
 
   async checkPassword(user: User, rawPassword: string): Promise<boolean> {
-    const isMatch: boolean = await bcrypt.compare(rawPassword, user.password);
-    return isMatch;
+    return bcrypt.compare(rawPassword, user.password);
   }
+
   async updateUser(id: number, updateData: Partial<User>) {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) throw new Error('Gebruiker niet gevonden');
@@ -162,9 +154,6 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  /**
-   * Genereer JWT token voor goedgekeurde gebruiker
-   */
   async login(user: User): Promise<{ access_token: string }> {
     const payload: Record<string, any> = {
       sub: user.id,
@@ -176,10 +165,9 @@ export class UserService {
 
     const token = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET') as string,
-      expiresIn: (this.configService.get<string>('JWT_EXPIRATION') ??
-        '1h') as any,
+      expiresIn: (this.configService.get<string>('JWT_EXPIRATION') ?? '1h') as any,
     });
-    // ✅ Vergeet dit niet!
+
     return { access_token: token };
   }
 
@@ -193,6 +181,7 @@ export class UserService {
   async getUserById(id: number) {
     return this.userRepository.findOne({ where: { id } });
   }
+
   async updateUserAvatar(userId: number, avatarUrl: string): Promise<User> {
     const user = await this.getUserById(userId);
     if (!user) throw new Error('Gebruiker niet gevonden');
