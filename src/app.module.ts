@@ -31,7 +31,8 @@ import { ReviewModule } from './workshop/presentation/module/review.module';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         entities: [join(__dirname, '**', '*.entity.{js,ts}')],
-        synchronize: false,
+        synchronize: true,
+        logging: true,
       }),
     }),
 
