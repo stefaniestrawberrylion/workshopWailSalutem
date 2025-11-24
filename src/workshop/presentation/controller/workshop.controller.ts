@@ -25,8 +25,6 @@ import { Role } from '../../../security/domain/enums/role.enum';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 import { WorkshopRepository } from '../../data/workshop.repository';
 import { ReviewService } from '../../application/review.service';
-import { config } from 'dotenv';
-config();
 
 interface MulterFile {
   fieldname: string;
@@ -55,8 +53,7 @@ interface AuthenticatedRequest extends Request {
 // Multer configuratie
 // =====================
 const storage = diskStorage({
-  destination:
-    process.env.UPLOAD_DIR || join(process.cwd(), 'uploads/workshops'),
+  destination: join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
   filename: (req, file, cb) => {
     const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
     cb(null, safeName);
@@ -93,23 +90,19 @@ export class WorkshopController {
   // =======================
   @Get()
   async getAllWorkshops(): Promise<WorkshopDto[]> {
-    try {
-      const workshops = await this.workshopService.getAllWorkshops();
+    const workshops = await this.workshopService.getAllWorkshops();
 
-      return Promise.all(
-        workshops.map(async (w) => {
-          const average = await this.reviewService.getAverageForWorkshop(w.id);
-          const count = await this.reviewService.getCountForWorkshop(w.id);
-          const reviews = await this.reviewService.findByWorkshop(w.id);
+    return Promise.all(
+      workshops.map(async (w) => {
+        const average = await this.reviewService.getAverageForWorkshop(w.id);
+        const count = await this.reviewService.getCountForWorkshop(w.id);
+        const reviews = await this.reviewService.findByWorkshop(w.id);
 
-          return this.toDto(w, average, count, reviews);
-        }),
-      );
-    } catch (err) {
-      console.error('❌ Error in getAllWorkshops:', err);
-      throw err; // laat NestJS de 500 error nog steeds teruggeven
-    }
+        return this.toDto(w, average, count, reviews);
+      }),
+    );
   }
+
   @Get(':id')
   async getWorkshop(
     @Param('id', ParseIntPipe) id: number,

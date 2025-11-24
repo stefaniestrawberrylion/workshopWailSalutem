@@ -18,8 +18,11 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.use(
     '/uploads',
-    express.static(join(process.cwd(), 'uploads'))
+    express.static(
+      join(process.env.HOME || '', 'wailSalutem.workshop-uploads'),
+    ),
   );
+
   // ================== Static assets ==================
   app.useStaticAssets(join(__dirname, '..', 'public'));
   expressApp.use('/uploads', express.static(join(__dirname, '..', 'uploads')));

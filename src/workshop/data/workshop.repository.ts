@@ -10,35 +10,22 @@ export class WorkshopRepository {
     this.repo = this.dataSource.getRepository(Workshop);
   }
 
-  // =========================================
-  // Alle workshops ophalen (incl. reviews)
-  // =========================================
+  // Alle workshops ophalen
   async findAll(): Promise<Workshop[]> {
-    return this.repo.find({
-      relations: ['reviews', 'reviews.user'], // <-- belangrijk!
-    });
+    return this.repo.find();
   }
 
-  // =========================================
   // Workshop ophalen op basis van ID
-  // =========================================
   async findById(id: number): Promise<Workshop | null> {
-    return this.repo.findOne({
-      where: { id },
-      relations: ['reviews', 'reviews.user'], // <-- idem
-    });
+    return this.repo.findOne({ where: { id } });
   }
 
-  // =========================================
   // Workshop opslaan (nieuw of update)
-  // =========================================
   async save(workshop: Workshop): Promise<Workshop> {
     return this.repo.save(workshop);
   }
 
-  // =========================================
   // Workshop verwijderen
-  // =========================================
   async delete(workshop: Workshop): Promise<void> {
     await this.repo.remove(workshop);
   }
