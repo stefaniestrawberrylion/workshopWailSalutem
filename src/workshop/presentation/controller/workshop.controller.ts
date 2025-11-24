@@ -90,19 +90,23 @@ export class WorkshopController {
   // =======================
   @Get()
   async getAllWorkshops(): Promise<WorkshopDto[]> {
-    const workshops = await this.workshopService.getAllWorkshops();
+    try {
+      const workshops = await this.workshopService.getAllWorkshops();
 
-    return Promise.all(
-      workshops.map(async (w) => {
-        const average = await this.reviewService.getAverageForWorkshop(w.id);
-        const count = await this.reviewService.getCountForWorkshop(w.id);
-        const reviews = await this.reviewService.findByWorkshop(w.id);
+      return Promise.all(
+        workshops.map(async (w) => {
+          const average = await this.reviewService.getAverageForWorkshop(w.id);
+          const count = await this.reviewService.getCountForWorkshop(w.id);
+          const reviews = await this.reviewService.findByWorkshop(w.id);
 
-        return this.toDto(w, average, count, reviews);
-      }),
-    );
+          return this.toDto(w, average, count, reviews);
+        }),
+      );
+    } catch (err) {
+      console.error('❌ Error in getAllWorkshops:', err);
+      throw err; // laat NestJS de 500 error nog steeds teruggeven
+    }
   }
-
   @Get(':id')
   async getWorkshop(
     @Param('id', ParseIntPipe) id: number,

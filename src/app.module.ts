@@ -33,6 +33,7 @@ import { ReviewModule } from './workshop/presentation/module/review.module';
         entities: [join(__dirname, '**', '*.entity.{js,ts}')],
         synchronize: true,
         logging: true,
+        logger: 'advanced-console',
       }),
     }),
 
