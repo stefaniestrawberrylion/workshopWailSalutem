@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Review } from './review.entity';
 
 @Entity()
 export class Workshop {
@@ -17,18 +18,19 @@ export class Workshop {
   @Column({ nullable: true })
   imagePath: string;
 
-  // Media opslaan als array van URLs
   @Column({ type: 'json', nullable: true })
   files: string[];
 
-  // Labels opslaan als JSON
   @Column({ type: 'json', nullable: true })
   labelsJson: any;
 
-  // Documenten opslaan als JSON
   @Column({ type: 'json', nullable: true })
   documentsJson: any;
 
   @Column({ default: false })
   parentalConsent: boolean;
+
+  // Relatie met Review
+  @OneToMany(() => Review, (review) => review.workshop)
+  reviews: Review[];
 }
