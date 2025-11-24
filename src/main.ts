@@ -10,7 +10,7 @@ import * as fs from 'fs';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
-      origin: ['https://workshoptest.wailsalutem-foundation.com/'],
+      origin: ['https://workshoptest.wailsalutem-foundation.com'],
       credentials: true,
     },
   });
