@@ -55,13 +55,12 @@ interface AuthenticatedRequest extends Request {
 // Multer configuratie
 // =====================
 const storage = diskStorage({
-  destination: process.env.UPLOAD_DIR || join(process.cwd(), 'uploads/workshops'),
+  destination: process.env.UPLOAD_DIR || join(process.cwd(), '/uploads'),
   filename: (req, file, cb) => {
     const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
     cb(null, safeName);
   },
 });
-
 
 const multerOptions = {
   storage,
@@ -98,18 +97,25 @@ export class WorkshopController {
 
       return Promise.all(
         workshops.map(async (w) => {
-          const average = await this.reviewService.getAverageForWorkshop(w.id);
-          const count = await this.reviewService.getCountForWorkshop(w.id);
-          const reviews = await this.reviewService.findByWorkshop(w.id);
-
-          return this.toDto(w, average, count, reviews);
+          try {
+            const average = await this.reviewService.getAverageForWorkshop(
+              w.id,
+            );
+            const count = await this.reviewService.getCountForWorkshop(w.id);
+            const reviews = await this.reviewService.findByWorkshop(w.id);
+            return this.toDto(w, average, count, reviews);
+          } catch (err) {
+            console.error(`Error fetching reviews for workshop ${w.id}:`, err);
+            return this.toDto(w); // fallback zonder reviews
+          }
         }),
       );
     } catch (err) {
-      console.error('❌ Error in getAllWorkshops:', err);
-      throw err; // laat NestJS de 500 error nog steeds teruggeven
+      console.error('❌ Error in getAllWorkshops endpoint:', err);
+      throw new NotFoundException('Could not fetch workshops');
     }
   }
+
   @Get(':id')
   async getWorkshop(
     @Param('id', ParseIntPipe) id: number,
