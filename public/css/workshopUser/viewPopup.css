@@ -1,18 +1,40 @@
-/* Algemene stijlen */
+/* ------------------------------------------------ */
+/* 1. VARIABELEN                   */
+/* ------------------------------------------------ */
+:root{
+    --accent: #698ac1;
+    --muted:#6b7280;
+    --card-bg:#fff;
+    --page-bg:#f3f4f6;
+    --header-height: 60px;
+    /* 🛠️ NIEUW: Hoogte voor de actiebalk onder de header */
+    --action-bar-height: 50px;
+    /* ✂️ VERKLEIND: In de ingeklapte modus */
+    --sidebar-width-collapsed: 60px;
+    /* ✂️ VERKLEIND: In de uitgeklapte modus */
+    --sidebar-width-expanded: 180px;
+    --sidebar-transition: 0.3s ease;
+}
+
+/* ------------------------------------------------ */
+/* 2. ALGEMENE STIJLEN               */
+/* ------------------------------------------------ */
+html {
+    /* Zorg dat 100vh correct is */
+    height: 100%;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #e6e6e6;
-    overflow-y: hidden;
-    /* 🛠️ NIEUW: Zorg dat 100vh correct is */
-    height: 100%;
-}
-/* 🛠️ NIEUW: Zorg dat 100vh correct is */
-html {
+    /* overflow-y: hidden; <- VERWIJDERD om scrollen van de gehele pagina toe te staan */
     height: 100%;
 }
 
-
+/* ------------------------------------------------ */
+/* 3. HEADER STIJLEN               */
+/* ------------------------------------------------ */
 header {
     display: flex;
     justify-content: space-between;
@@ -21,10 +43,13 @@ header {
     color: white;
     padding: 0 20px;
     height: var(--header-height);
+    /* ✅ VASTGEZET bovenaan */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 header .logo{height:40px;margin-right:auto;}
-
 
 header .logo img {
     height: 40px;
@@ -50,48 +75,89 @@ header .icons {
     gap: 30px;
     font-size: 30px;
 }
-:root{
-    --accent: #698ac1;
-    --muted:#6b7280;
-    --card-bg:#fff;
-    --page-bg:#f3f4f6;
-    --header-height: 60px;
-    /* ✂️ VERKLEIND: In de ingeklapte modus */
-    --sidebar-width-collapsed: 60px;
-    /* ✂️ VERKLEIND: In de uitgeklapte modus */
-    --sidebar-width-expanded: 180px;
-    --sidebar-transition: 0.3s ease;
+
+/* ------------------------------------------------ */
+/* 4. HEADER ACTIES BALK              */
+/* ------------------------------------------------ */
+/* ------------------------------------------------ */
+/* 4. HEADER ACTIES BALK (Verbeterd)             */
+/* ------------------------------------------------ */
+.header-actions {
+    display: flex;
+    gap: 15px; /* Iets meer ruimte tussen de knoppen */
+    position: sticky;
+    top: var(--header-height);
+    z-index: 999;
+    background-color: var(--page-bg); /* Gebruik de paginakleur */
+    padding: 12px 20px; /* Iets meer verticale padding */
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #d1d5db; /* Cleaner rand */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtiele schaduw */
+    justify-content: flex-end;
 }
 
+.header-actions button {
+    /* Algemene Button Styling */
+    background: var(--card-bg); /* Wit voor contrast */
+    border: 1px solid #c7d2fe; /* Zachte blauwe rand */
+    border-radius: 20px; /* Meer afgeronde pil-vorm */
+    padding: 8px 15px; /* Iets meer padding */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Meer ruimte tussen icoon en tekst */
+    font-weight: 600;
+    color: #374151; /* Donkergrijze tekst */
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtiele schaduw */
+}
+
+/* Hover State */
+.header-actions button:hover {
+    background-color: #eef2ff; /* Heel licht blauwe achtergrond bij hover */
+    border-color: var(--accent); /* Duidelijkere blauwe rand bij hover */
+    color: var(--accent); /* Accentkleur voor tekst/icoon bij hover */
+    transform: translateY(-1px); /* Subtiel lift-effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Actieve State (indien toegepast via JS) */
+.header-actions button.active {
+    background-color: var(--accent);
+    color: white;
+    border-color: #5481B7;
+}
+
+/* Iconen Styling */
+.header-actions button i {
+    font-size: 16px;
+}
+
+/* Specifieke styling voor het hartje in de normale staat */
+#favoritesBtn i.fa-regular {
+    color: #ef4444; /* Rode kleur voor het hartje (standaard leeg) */
+    transition: color 0.25s ease;
+}
+
+/* Stijl voor het gevulde hartje (indien het een favoriet is - via JS) */
+#favoritesBtn.active i.fa-solid {
+    color: white; /* Wit in actieve (gevulde) staat */
+}
+
+/* ------------------------------------------------ */
+/* 5. PAGE WRAPPER                  */
+/* ------------------------------------------------ */
 .page-wrapper {
     display: flex;
-    min-height: calc(100vh - var(--header-height));
     width: 100%;
+    /* 🛠️ BELANGRIJK: Vul de rest van de viewport in na Header en Action Bar */
+    height: calc(100vh - var(--header-height) - var(--action-bar-height));
 }
 
-
-
-.sidebar a:hover {
-    background: #9cc1ff;
-}
-
-.sidebar a.active{
-    background:var(--accent);
-    color:white;
-}
-
-.sidebar a.active {
-    background: #5481B7 !important;
-    color: white !important;
-}
-
-.sidebar:hover a.active {
-    background: #5481B7 !important;
-    color: white !important;
-}
-
-
-
+/* ------------------------------------------------ */
+/* 6. SIDEBAR                     */
+/* ------------------------------------------------ */
 .sidebar {
     width: var(--sidebar-width-collapsed);
     background: #cbe0ff;
@@ -107,14 +173,15 @@ header .icons {
     overflow-x: hidden;
     z-index: 1000;
 
-    /* ✅ BLIJFT STICKY */
+    /* ✅ BLIJFT STICKY BINNEN DE PAGE-WRAPPER */
     position: sticky;
-    top: var(--header-height);
+    top: 0; /* Sticky binnen de .page-wrapper, die nu de scrollende container is */
 
-    /* ✅ Berekent de hoogte op basis van de viewport */
-    height: calc(100vh - var(--header-height));
+    /* ✅ Neemt de hoogte van de .page-wrapper over */
+    height: 100%;
 }
-/* Ensure each link stays its natural height and doesn't stretch */
+
+/* Sidebar Links */
 .sidebar a {
     display: flex;
     align-items: center;
@@ -136,12 +203,16 @@ header .icons {
 .sidebar a.active{
     background:var(--accent);
     color:white;
-    /* ✂️ AANGEPAST: Minder horizontale padding */
-    padding-left: 15px;
+}
+
+.sidebar a.active {
+    background: #5481B7 !important;
+    color: white !important;
 }
 
 .sidebar a.active:hover {
-    background: var(--accent);
+    background: #5481B7 !important;
+    color: white !important;
 }
 
 /* Text in de sidebar (standaard verborgen op collapsed desktop) */
@@ -156,23 +227,9 @@ header .icons {
     margin-bottom: 30px;
 }
 
-
-/* Voeg toe aan je CSS */
-.workshop-info .filled-star {
-    color: gold; /* Of een andere opvallende kleur */
-}
-.workshop-info .fa-star {
-    font-size: 14px; /* Of passend bij je ontwerp */
-    margin-right: 2px;
-}
-.workshop-info p {
-    /* Zorg dat de sterren op één lijn staan */
-    display: flex;
-    align-items: center;
-}
-
-
-/* SIDEBAR EXPANDS ON HOVER (Desktop) */
+/* ------------------------------------------------ */
+/* 7. SIDEBAR EXPANDS ON HOVER (Desktop)     */
+/* ------------------------------------------------ */
 @media (min-width: 721px) {
     .sidebar:hover {
         width: var(--sidebar-width-expanded);
@@ -184,15 +241,17 @@ header .icons {
     }
 }
 
-/* CONTENT AREA */
+/* ------------------------------------------------ */
+/* 8. CONTENT AREA                  */
+/* ------------------------------------------------ */
 .content {
     margin-left: 10px;
     padding: 20px;
     transition: margin-left var(--sidebar-transition);
     flex: 1;
+    /* ✅ BELANGRIJK: Zorgt dat de content scrollt binnen de page-wrapper */
     overflow-y: auto;
-    /* Hoogte is 100% van de resterende min-height van de page-wrapper */
-    height: calc(100vh - var(--header-height));
+    height: 100%;
 }
 @media (min-width: 721px) {
     .sidebar:hover ~ .content {
@@ -200,12 +259,14 @@ header .icons {
     }
 }
 
-
-/* MOBILE */
+/* ------------------------------------------------ */
+/* 9. MOBILE                      */
+/* ------------------------------------------------ */
 @media (max-width: 720px) {
 
     .sidebar {
         position: fixed;
+        /* Start direct onder de header */
         top: var(--header-height);
         height: calc(100vh - var(--header-height));
         left: -100%;
@@ -232,7 +293,9 @@ header .icons {
     }
 }
 
-/* wailSalutem.Main en Workshop overzicht */
+/* ------------------------------------------------ */
+/* 10. WORKSHOP GRID                */
+/* ------------------------------------------------ */
 main {
     padding: 20px;
 }
@@ -277,24 +340,48 @@ main {
     transform: translateY(-8px) scale(1.03);
 }
 
+.card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(3px); /* subtiele blur */
+    transform: scale(1.1);
+    z-index: 0;
+    border-radius: 30px;
+}
+
+.workshop-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    pointer-events: none;
+    border-radius: 30px;
+}
 
 .workshop-top {
     position: absolute;
     top: 15px;
-    left: 0;
-    right: 0;
+    left: 15px;
+    right: 15px;
     display: flex;
-    justify-content: space-between;
-    padding: 0 15px;
+    justify-content: space-between; /* time links, like rechts */
+    z-index: 2;
 }
 
 .workshop-badge {
-    background: white;
+    background: rgba(255,255,255,0.9);
     border-radius: 20px;
     padding: 5px 12px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .workshop-image {
@@ -323,168 +410,6 @@ main {
 }
 
 .workshop-info {
-    text-align: left;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.workshop-info h3 {
-    margin: 5px 0 3px 0;
-    font-size: 16px;
-}
-
-.workshop-info p {
-    margin: 0;
-    font-size: 13px;
-    color: #333;
-}
-
-.workshop-btn {
-    width: 100%;
-    background: white;
-    border: none;
-    padding: 10px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 15px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.workshop-btn:hover {
-    background: #f0f0f0;
-}
-
-/* Search */
-.search-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-#searchIcon {
-    cursor: pointer;
-    display: inline-block;
-    transition: transform 0.4s ease;
-    font-size: 24px;
-}
-
-#searchInput {
-    width: 0;
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    border-radius: 25px;
-    opacity: 0;
-    transition: width 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
-    font-size: 14px;
-}
-
-#searchInput:focus {
-    outline: none;
-    border-color: #5481B7;
-    box-shadow: 0 0 5px rgba(84,129,183,0.3);
-}
-
-.search-container:hover #searchIcon {
-    transform: rotate(-360deg) translateX(-10px);
-}
-
-.search-container:hover #searchInput {
-    width: 200px;
-    padding: 5px 15px;
-    opacity: 1;
-}
-
-/* Language switcher */
-.language-switcher {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-}
-
-.language-switcher .flag {
-    width: 32px;
-    height: 22px;
-    cursor: pointer;
-    border-radius: 4px;
-    object-fit: cover;
-    transition: transform 0.2s;
-}
-
-.language-switcher .flag:hover {
-    transform: scale(1.1);
-}
-/* Workshop info hover vergroting */
-.workshop-info p {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 220px;
-    cursor: pointer;
-}
-
-.workshop-info p:hover {
-    white-space: normal;
-    background: #fff;
-    position: absolute;
-    padding: 5px 10px;
-    border-radius: 5px;
-    z-index: 100;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
-.card-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(3px); /* subtiele blur */
-    transform: scale(1.1);
-    z-index: 0;
-}
-
-.workshop-card::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    background-color: rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    pointer-events: none;
-}
-
-.workshop-top {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    display: flex;
-    justify-content: space-between; /* time links, like rechts */
-    z-index: 2;
-}
-
-.workshop-badge {
-    background: rgba(255,255,255,0.9);
-    border-radius: 20px;
-    padding: 5px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.workshop-info {
     position: relative;
     z-index: 2;
     padding: 10px 20px;
@@ -493,23 +418,39 @@ main {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    text-align: center;
+    text-align: left;
+    width: 100%;
+    margin-top: 10px;
 }
 
 
-.workshop-info h3,
+.workshop-info h3 {
+    color: white;
+    margin: 5px 0 3px 0;
+    font-size: 16px;
+}
+
 .workshop-info p {
     color: white;
     margin: 0;
-}
-
-.workshop-info p {
+    font-size: 13px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 220px;
     cursor: pointer;
+    /* Zorg dat de sterren op één lijn staan */
+    display: flex;
+    align-items: center;
 }
+.workshop-info .filled-star {
+    color: gold;
+}
+.workshop-info .fa-star {
+    font-size: 14px;
+    margin-right: 2px;
+}
+
 
 .workshop-info p:hover {
     overflow: visible;
@@ -551,3 +492,130 @@ main {
     font-size: 1.1rem;
 }
 
+/* ------------------------------------------------ */
+/* 11. SEARCH                      */
+/* ------------------------------------------------ */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#searchIcon {
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.4s ease;
+    font-size: 24px;
+}
+
+#searchInput {
+    width: 0;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    opacity: 0;
+    transition: width 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+    font-size: 14px;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: #5481B7;
+    box-shadow: 0 0 5px rgba(84,129,183,0.3);
+}
+
+.search-container:hover #searchIcon {
+    transform: rotate(-360deg) translateX(-10px);
+}
+
+.search-container:hover #searchInput {
+    width: 200px;
+    padding: 5px 15px;
+    opacity: 1;
+}
+
+/* ------------------------------------------------ */
+/* 12. FAVORIETEN POPUP                 */
+/* ------------------------------------------------ */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.popup-overlay .popup-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.popup-overlay .close-popup {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#favorites-popup .popup-content {
+    width: 90%;
+    max-width: 1200px;
+    padding: 30px;
+}
+
+#favorites-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center; /* Centreer de kaarten in de popup */
+    padding-top: 15px;
+    max-height: 70vh; /* Zorgt ervoor dat de inhoud scrollt in de popup */
+    overflow-y: auto;
+}
+
+/* Zorg ervoor dat de cards in de popup de bestaande styling gebruiken */
+#favorites-container .workshop-card {
+    width: 260px;
+    margin: 0; /* Haal de margin weg die de grid verstoort */
+}
+
+/* ------------------------------------------------ */
+/* 13. LANGUAGE SWITCHER                */
+/* ------------------------------------------------ */
+.language-switcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+.language-switcher .flag {
+    width: 32px;
+    height: 22px;
+    cursor: pointer;
+    border-radius: 4px;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+.language-switcher .flag:hover {
+    transform: scale(1.1);
+}

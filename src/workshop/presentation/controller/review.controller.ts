@@ -55,7 +55,6 @@ export class ReviewController {
 
     const userId = req.user.id;
 
-
     const review = await this.reviewService.findByUserAndWorkshop(
       userId,
       workshopId,

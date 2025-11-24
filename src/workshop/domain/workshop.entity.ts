@@ -1,4 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Favorite } from './favorites.entity';
+import { OneToMany } from 'typeorm';
 
 @Entity()
 export class Workshop {
@@ -25,4 +27,7 @@ export class Workshop {
 
   @Column({ default: false })
   parentalConsent: boolean;
+
+  @OneToMany(() => Favorite, (favorite) => favorite.workshop)
+  favorites: Favorite[];
 }

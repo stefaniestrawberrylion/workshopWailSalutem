@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Favorite } from '../../workshop/domain/favorites.entity';
 import { Role } from './enums/role.enum';
 import { Status } from './enums/state.enum';
+import { OneToMany } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -57,8 +59,6 @@ export class User {
   isCredentialsNonExpired(): boolean {
     return true;
   }
-
-  isEnabled(): boolean {
-    return true;
-  }
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorites: Favorite[];
 }

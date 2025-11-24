@@ -1,30 +1,16 @@
+// workshop-display.js
 document.addEventListener('DOMContentLoaded', () => {
-
   // =======================
   // Elementen ophalen
   // =======================
-  // ... (Alle elementen ophalen hier) ...
-  const popup = document.getElementById('workshopPopup');
-  const closeBtn = document.getElementById('closePopupBtn');
   const grid = document.getElementById('workshopGrid');
   const detailsPopup = document.getElementById('workshopDetailsPopup');
   const closeDetailsBtn = document.getElementById('closeDetailsPopupBtn');
-  const closeDetailsBtnCancel = document.getElementById('closePopupBtnCancel');
-
-  const mainImageInput = document.getElementById('workshopMainImage');
-  const workshopImagesInput = document.getElementById('workshopImages');
-  const workshopVideoInput = document.getElementById('workshopVideo');
-  const workshopFilesInput = document.getElementById('workshopFiles');
-
-  const labelPreview = document.getElementById('labelPreview');
-  const detailLabelPreview = document.getElementById('detailLabelPreview');
-
   const searchInput = document.getElementById('searchInput');
+
+  const detailLabelPreview = document.getElementById('detailLabelPreview');
   const prevBtn = document.getElementById('prevDetailMedia');
   const nextBtn = document.getElementById('nextDetailMedia');
-
-  const workshopPreview = document.getElementById('workshopPreview');
-  const workshopFilePreview = document.getElementById('workshopFilePreview');
 
   const detailInstructionsList = document.getElementById('detail_instructionsList');
   const detailManualsList = document.getElementById('detail_manualsList');
@@ -36,139 +22,124 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxVideo = document.getElementById('lightboxVideo');
   const closeLightbox = document.querySelector('.close-lightbox');
 
-  // =======================
-  // Gedeelde Variabelen
-  // =======================
-  let currentWorkshopId = null; // ✅ Deze variabele is nu centraal
-  let selectedStars = 0; // ✅ Gedeeld met de review module
-
-  let labels = [];
-  let mainImage = null;
-  let selectedMedia = [];
-  let selectedFiles = [];
+  const favoritesBtn = document.getElementById('favoritesBtn');
+  const noResultsMsg = document.getElementById('no-results');
 
   // =======================
-  // Helper functies
+  // Globale variabelen
   // =======================
-  function getAuthHeaders() {
-    const token = localStorage.getItem("jwt");
-    return { "Authorization": token?.startsWith("Bearer ") ? token : "Bearer " + token };
-  }
-
-  // =======================
-  // API Base URL
-  // =======================
-  const API_URL =
-    window.location.hostname === "localhost"
-      ? "http://localhost:3000" // lokale backend
-      : "https://workshoptest.wailsalutem-foundation.com"; // productie backend
-
-
-  function showError(message) {
-    const popupVisible = popup?.style.display === 'block';
-    const container = document.getElementById(popupVisible ? 'popupErrorContainer' : 'errorContainer');
-    const messageBox = document.getElementById(popupVisible ? 'popupErrorMessage' : 'errorMessage');
-    const closeBtn = document.getElementById(popupVisible ? 'closePopupErrorBtn' : 'closeErrorBtn');
-
-    if (!container || !messageBox) return;
-
-    messageBox.textContent = message;
-    container.style.display = 'flex';
-
-    closeBtn.onclick = () => container.style.display = 'none';
-
-    clearTimeout(window.errorTimeout);
-    window.errorTimeout = setTimeout(() => { container.style.display = 'none'; }, 5000);
-  }
-
-  function getFileIconClass(fileName) {
-    if(!fileName) return 'fa-file';
-    const ext = fileName.split('.').pop().toLowerCase();
-    switch(ext){
-      case 'pdf': return 'fa-file-pdf';
-      case 'doc': case 'docx': return 'fa-file-word';
-      case 'xls': case 'xlsx': return 'fa-file-excel';
-      case 'ppt': case 'pptx': return 'fa-file-powerpoint';
-      case 'zip': return 'fa-file-archive';
-      case 'txt': return 'fa-file-lines';
-      default: return 'fa-file';
-    }
-  }
-
-  function formatDuration(duration) {
-    if (!duration) return "00:00";
-    if (typeof duration === 'string' && duration.includes(':')) {
-      const [h, m] = duration.split(':');
-      return `${h.padStart(2,'0')}:${m.padStart(2,'0')}`;
-    }
-    const num = parseFloat(duration);
-    if (isNaN(num)) return "00:00";
-    const hours = Math.floor(num);
-    const minutes = Math.round((num - hours) * 60);
-    return `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
-  }
-
-  function getContrastYIQ(hexcolor){
-    hexcolor = hexcolor.replace('#','');
-    const r = parseInt(hexcolor.substr(0,2),16);
-    const g = parseInt(hexcolor.substr(2,2),16);
-    const b = parseInt(hexcolor.substr(4,2),16);
-    const yiq = ((r*299)+(g*587)+(b*114))/1000;
-    return yiq >= 128 ? 'black' : 'white';
-  }
-
-
-  function clearDetailsPopup(){
-    currentWorkshopId = null;
-    ['detailName','detailDesc','detailDuration'].forEach(id => document.getElementById(id).value='');
-    detailLabelPreview.innerHTML = '';
-    [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => { if(list) list.innerHTML=''; });
-    const mediaContainer = document.getElementById('detailMediaContainer');
-    if(mediaContainer) mediaContainer.innerHTML='';
-  }
-
-
-  function openFilePreview(f) {
-    const fileUrl = f.url;
-    const fileName = f.name || 'bestand';
-
-    // Voor afbeeldingen
-    if(fileName.match(/\.(jpeg|jpg|gif|png)$/i)) {
-      const imgWindow = window.open('');
-      imgWindow.document.write(`<img src="${fileUrl}" style="max-width:100%; height:auto;">`);
-    }
-    // Voor PDF
-    else if(fileName.match(/\.pdf$/i)) {
-      const pdfWindow = window.open(fileUrl, '_blank');
-    }
-    // Voor andere bestanden (fallback: download)
-    else {
-      alert('Preview niet beschikbaar, download het bestand om te bekijken.');
-      window.open(fileUrl, '_blank');
-    }
-  }
+  let isShowingFavorites = false; // Status voor weergave (Alle vs. Favorieten)
+  let userFavorites = []; // Opslag voor gelikede workshop ID's
 
   // =======================
   // Load workshops
   // =======================
   async function loadWorkshops() {
     try {
-      const res = await fetch(`${API_URL}/api/workshops`, {
-        headers: getAuthHeaders()
+      // Haal eerst de favorieten van de gebruiker op
+      await loadUserFavorites();
+
+      const res = await fetch(`${window.API_URL}/api/workshops`, {
+        headers: window.getAuthHeaders()
       });
       if (!res.ok) throw new Error('Fout bij ophalen workshops');
       const workshops = await res.json();
-      renderWorkshops(workshops);
+
+      // Roep de filter/render functie aan om alle workshops te tonen
+      filterAndRenderWorkshops(workshops);
+
     } catch (e) {
       alert(e.message);
     }
   }
 
-  // ---------------------------------
-  // RENDER WORKSHOPS (AANGEPAST VOOR STERREN)
-  // ---------------------------------
+  // NIEUW: Favoriete workshops laden
+  async function loadUserFavorites() {
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+      userFavorites = [];
+      console.warn('Gebruiker niet ingelogd. Kan geen favorieten laden.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${window.API_URL}/favorites`, {
+        headers: window.getAuthHeaders()
+      });
+
+      // VERBETERDE FOUTAFHANDELING
+      if (!res.ok) {
+        const errorBody = await res.text().catch(() => 'Geen body beschikbaar');
+        console.error('API Fout bij ophalen favorieten:', res.status, res.statusText, errorBody);
+        throw new Error(`Fout bij ophalen favorieten (Status: ${res.status})`);
+      }
+
+      const favorites = await res.json();
+
+      // Sla alleen de workshop ID's op voor snelle controle
+      userFavorites = favorites.map(fav => fav.workshop.id);
+
+    } catch (e) {
+      console.error('Kon favorieten van gebruiker niet laden:', e.message);
+      userFavorites = [];
+    }
+  }
+
+  // NIEUW: Favoriete workshops ophalen en tonen
+  async function loadFavoriteWorkshops() {
+    try {
+      await loadUserFavorites(); // Zorgt ervoor dat userFavorites up-to-date is
+
+      const res = await fetch(`${window.API_URL}/api/workshops`, {
+        headers: window.getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Fout bij ophalen workshops');
+      const allWorkshops = await res.json();
+
+      // Filter de workshops op basis van de gelikede ID's
+      const favoriteWorkshops = allWorkshops.filter(w => userFavorites.includes(w.id));
+
+      filterAndRenderWorkshops(favoriteWorkshops);
+
+    } catch (e) {
+      alert('Kon favorieten niet laden: ' + e.message);
+    }
+  }
+
+  // NIEUW: Functie om de weergave te bepalen (Alle of Favorieten)
+  function filterAndRenderWorkshops(workshops) {
+    // Pas de zoekfunctionaliteit toe op de huidige set workshops
+    const query = searchInput.value.trim().toLowerCase();
+    const filteredWorkshops = workshops.filter(w => {
+      const name = w.name ? w.name.toLowerCase() : '';
+      const desc = w.description ? w.description.toLowerCase() : '';
+
+      return name.includes(query) || (w.description && w.description.toLowerCase().includes(query));
+    });
+
+    renderWorkshops(filteredWorkshops);
+
+    // Toon de "geen resultaten" melding
+    noResultsMsg.style.display = (filteredWorkshops.length === 0 && query !== '') ? 'block' : 'none';
+  }
+
+
+  // =======================
+  // Render workshops grid
+  // =======================
   function renderWorkshops(workshops) {
     grid.innerHTML = '';
+
+    // Beheer "geen resultaten" boodschap
+    if(workshops.length > 0 || searchInput.value.trim() !== '') {
+      noResultsMsg.style.display = 'none';
+    } else if (isShowingFavorites) {
+      noResultsMsg.textContent = 'Je hebt nog geen favoriete workshops.';
+      noResultsMsg.style.display = 'block';
+    } else {
+      noResultsMsg.textContent = 'Kan uw zoekopdracht niet vinden';
+      noResultsMsg.style.display = 'none'; // Standaard verbergen als we nog niet zoeken
+    }
 
     workshops.forEach(w => {
       const card = document.createElement('div');
@@ -182,11 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawUrl = firstImage.url || firstImage.name;
         if (rawUrl) {
           const fileName = rawUrl.split(/[/\\]/).pop();
-          imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+          imageUrl = `${window.API_URL}/uploads/${encodeURIComponent(fileName)}`;
         }
       } else if (w.imagePath) {
         const fileName = w.imagePath.split(/[/\\]/).pop();
-        imageUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+        imageUrl = `${window.API_URL}/uploads/${encodeURIComponent(fileName)}`;
       }
 
       // Zet de achtergrond op de card zelf
@@ -194,9 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
       card.style.backgroundSize = 'cover';
       card.style.backgroundPosition = 'center';
 
-      const durationStr = formatDuration(w.duration) + " uur";
+      const durationStr = window.formatDuration(w.duration) + " uur";
 
-      // --- REVIEW GEMIDDELDE VAN DE WORKSHOP ---
+      // Review gemiddelde
       let reviewCount = (w.reviews && Array.isArray(w.reviews)) ? w.reviews.length : 0;
       let averageStars = 0;
       let reviewContent = 'Nog geen review';
@@ -209,26 +180,65 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewContent = `<div class="stars-summary">${filledStars}${emptyStars} (${reviewCount})</div>`;
       }
 
-
-      // --- EINDE: REVIEW CONTENT AANPASSING ---
-
+      // Bepaal de 'like' status op basis van userFavorites
+      const isLiked = userFavorites.includes(w.id);
 
       card.innerHTML = `
-      <div class="workshop-top">
-        <div class="workshop-badge time">${durationStr}</div>
-        <div class="like">♡</div>
-      </div>
-      <div class="workshop-info">
-        <h3>${w.name}</h3>
-        <p>${reviewContent}</p> </div>
-      <button class="workshop-btn">Bekijk workshop</button>
-    `;
+        <div class="workshop-top">
+          <div class="workshop-badge time">${durationStr}</div>
+          <div class="like">${isLiked ? '❤️' : '♡'}</div> </div>
+        <div class="workshop-info">
+          <h3>${w.name}</h3>
+          <p>${reviewContent}</p>
+        </div>
+        <button class="workshop-btn">Bekijk workshop</button>
+      `;
 
-      // Like knop
       const likeBadge = card.querySelector('.like');
-      likeBadge.addEventListener('click', () => {
-        likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
+      likeBadge.addEventListener('click', async () => {
+        const liked = likeBadge.textContent === '♡';
+
+        const token = localStorage.getItem('jwt');
+        if (!token) return;
+
+        try {
+          const res = await fetch(`${window.API_URL}/favorites`, {
+            method: liked ? 'POST' : 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ workshopId: w.id })
+          });
+
+          // VERBETERDE FOUTAFHANDELING
+          if(!res.ok) {
+            const errorBody = await res.text().catch(() => 'Geen body beschikbaar');
+            console.error('API Fout bij opslaan favoriet:', res.status, res.statusText, errorBody);
+            throw new Error(`Kon favoriete status niet wijzigen (Status: ${res.status})`);
+          }
+
+          // Update de badge en de globale lijst van favorieten na succes
+          likeBadge.textContent = liked ? '❤️' : '♡';
+          if (liked) {
+            userFavorites.push(w.id);
+          } else {
+            userFavorites = userFavorites.filter(id => id !== w.id);
+          }
+
+          // Als we in de "Favorieten" weergave zitten, herlaad dan om de verwijderde kaart te laten verdwijnen
+          if (isShowingFavorites && !liked) {
+            loadFavoriteWorkshops();
+          }
+
+        } catch (err) {
+          console.error('Kon favoriete status niet opslaan:', err.message);
+          alert('Fout bij het opslaan van de favoriete status.');
+          // Terugdraaien van de UI als de API faalt
+          likeBadge.textContent = liked ? '♡' : '❤️';
+        }
       });
+
 
       // Open details popup
       const btn = card.querySelector('.workshop-btn');
@@ -238,27 +248,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // =======================
   // View workshop details
   // =======================
   async function viewWorkshopDetails(id) {
     try {
-      currentWorkshopId = id;
+      window.currentWorkshopId = id;
 
       // Haal workshop op
-      const resWorkshop = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
+      const resWorkshop = await fetch(`${window.API_URL}/api/workshops/${id}`, {
+        headers: window.getAuthHeaders()
+      });
       if (!resWorkshop.ok) throw new Error('Workshop niet gevonden');
       const workshop = await resWorkshop.json();
 
       const detailMyReviewStars = document.getElementById('detailMyReviewStars');
-      detailMyReviewStars.style.cursor = 'pointer'; // Optioneel: visuele hint
-      detailMyReviewStars.onclick = () => openReviewPopup(currentWorkshopId);
+      detailMyReviewStars.style.cursor = 'pointer';
+      detailMyReviewStars.onclick = () => openReviewPopup(window.currentWorkshopId);
 
       // Vul workshopgegevens
       document.getElementById('detailName').value = workshop.name;
       document.getElementById('detailDesc').value = workshop.description;
-      document.getElementById('detailDuration').value = formatDuration(workshop.duration);
+      document.getElementById('detailDuration').value = window.formatDuration(workshop.duration);
 
       // Labels
       const labelsArray = workshop.labels ? (typeof workshop.labels === 'string' ? JSON.parse(workshop.labels) : workshop.labels) : [];
@@ -268,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         span.textContent = label.name;
         span.style.backgroundColor = label.color;
         span.style.borderColor = label.color;
-        span.style.color = getContrastYIQ(label.color);
+        span.style.color = window.getContrastYIQ(label.color);
         detailLabelPreview.appendChild(span);
       });
 
@@ -276,11 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Media & documenten
       renderMediaSlideshow(workshop.files || []);
+      // Maak de documentenlijsten leeg voordat je ze vult
+      [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => list.innerHTML = '');
       if (workshop.documents && Array.isArray(workshop.documents)) {
         workshop.documents.forEach(f => addDocumentToDetail(f));
       }
 
-      // Haal review op (om de review-popup te vullen)
+      // Haal review op
       await loadReviews(id);
 
       detailsPopup.style.display = 'flex';
@@ -288,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(e.message);
     }
   }
-
 
   function addDocumentToDetail(f){
     const li = document.createElement('li');
@@ -301,17 +313,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const left = document.createElement('div');
     Object.assign(left.style, { display:'flex', alignItems:'center', gap:'8px' });
     const icon = document.createElement('i');
-    icon.classList.add('fa', getFileIconClass(f.name));
+    icon.classList.add('fa', window.getFileIconClass(f.name));
     icon.style.color = '#5481B7';
     left.appendChild(icon);
     const nameSpan = document.createElement('span');
     nameSpan.textContent = f.name || '?';
-    Object.assign(nameSpan.style, { overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'160px' });
+    Object.assign(nameSpan.style, {
+      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'160px'
+    });
     left.appendChild(nameSpan);
     li.appendChild(left);
 
     const right = document.createElement('div');
     Object.assign(right.style, { display:'flex', alignItems:'center', gap:'8px' });
+
     if(f.size){
       const size = document.createElement('span');
       size.textContent = `${(f.size/1024).toFixed(1)} KB`;
@@ -319,26 +334,31 @@ document.addEventListener('DOMContentLoaded', () => {
       size.style.color='#777';
       right.appendChild(size);
     }
+
     const downloadLink = document.createElement('a');
     downloadLink.textContent = 'Download';
     downloadLink.href = f.url || '#';
     downloadLink.setAttribute('download', f.name || 'bestand');
-    Object.assign(downloadLink.style, { background:'#007bff', color:'white', border:'none', padding:'4px 10px', borderRadius:'4px', cursor:'pointer', textDecoration:'none' });
+    Object.assign(downloadLink.style, {
+      background:'#007bff', color:'white', border:'none', padding:'4px 10px',
+      borderRadius:'4px', cursor:'pointer', textDecoration:'none'
+    });
     downloadLink.addEventListener('click', e => e.stopPropagation());
     right.appendChild(downloadLink);
 
-    li.appendChild(right);
-
     const viewLink = document.createElement('button');
     viewLink.textContent = 'Bekijk';
-    Object.assign(viewLink.style, { background:'#28a745', color:'white', border:'none', padding:'4px 10px', borderRadius:'4px', cursor:'pointer' });
+    Object.assign(viewLink.style, {
+      background:'#28a745', color:'white', border:'none', padding:'4px 10px',
+      borderRadius:'4px', cursor:'pointer'
+    });
     viewLink.addEventListener('click', e => {
       e.stopPropagation();
-      openFilePreview(f);
+      window.openFilePreview(f);
     });
     right.appendChild(viewLink);
 
-
+    li.appendChild(right);
 
     const cat = (f.category || f.type || 'worksheets').toLowerCase();
     if(cat==='instructions') detailInstructionsList.appendChild(li);
@@ -368,17 +388,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if(!fileUrl) return;
       if(!fileUrl.startsWith('http')) {
         const fileName = fileUrl.split(/[/\\]/).pop();
-        fileUrl = `${API_URL}/uploads/${encodeURIComponent(fileName)}`;
+        fileUrl = `${window.API_URL}/uploads/${encodeURIComponent(fileName)}`;
       }
       el.src = fileUrl;
 
       // Kleiner maken
       el.style.display = i===0 ? 'block' : 'none';
-      el.style.width = '300px';          // vaste breedte
-      el.style.height = '200px';         // vaste hoogte
-      el.style.objectFit = 'cover';      // zodat het mooi past
+      el.style.width = '300px';
+      el.style.height = '200px';
+      el.style.objectFit = 'cover';
       el.style.borderRadius = '8px';
-      el.style.margin = '10px auto';     // centeren
+      el.style.margin = '10px auto';
 
       container.appendChild(el);
     });
@@ -397,25 +417,62 @@ document.addEventListener('DOMContentLoaded', () => {
       container.children[currentIndex].style.display='block';
     };
   }
-  // LOGOUT
-  const logoutBtn = document.getElementById('logoutBtn'); // Zorg dat deze bestaat in je HTML
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      localStorage.removeItem('jwt');
-      alert("Je bent uitgelogd!");
-      window.location.href = "/";
-    });
-  }
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('sidebar');
 
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      // Gebruik 'sidebar-open' om de sidebar van links naar binnen te schuiven
-      sidebar.classList.toggle('sidebar-open');
+  // =======================
+  // Clear details popup
+  // =======================
+  function clearDetailsPopup(){
+    window.currentWorkshopId = null;
+    ['detailName','detailDesc','detailDuration'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value='';
+    });
+    if(detailLabelPreview) detailLabelPreview.innerHTML = '';
+    [detailInstructionsList, detailManualsList, detailDemoList, detailWorksheetsList].forEach(list => {
+      if(list) list.innerHTML='';
+    });
+    const mediaContainer = document.getElementById('detailMediaContainer');
+    if(mediaContainer) mediaContainer.innerHTML='';
+  }
+
+  // =======================
+  // Search functionaliteit
+  // =======================
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      // Huidige weergave bepalen (alle workshops of alleen favorieten)
+      if (isShowingFavorites) {
+        loadFavoriteWorkshops();
+      } else {
+        loadWorkshops(); // loadWorkshops roept filterAndRenderWorkshops aan met alle workshops
+      }
     });
   }
+
+  // =======================
+  // Favorieten knop functionaliteit
+  // =======================
+  if (favoritesBtn) {
+    favoritesBtn.addEventListener('click', () => {
+      isShowingFavorites = !isShowingFavorites; // Toggle de status
+
+      // Pas de knoptekst en icoon aan
+      if (isShowingFavorites) {
+        favoritesBtn.innerHTML = '<i class="fa-solid fa-heart"></i> Alle workshops';
+        favoritesBtn.classList.add('active');
+        loadFavoriteWorkshops(); // Laad alleen de favorieten
+      } else {
+        favoritesBtn.innerHTML = '<i class="fa-regular fa-heart"></i> Favorieten';
+        favoritesBtn.classList.remove('active');
+        loadWorkshops(); // Laad alle workshops
+      }
+
+      // Reset de zoekbalk bij het wisselen van weergave
+      searchInput.value = '';
+    });
+  }
+
+
   // =======================
   // File category toggle
   // =======================
@@ -423,7 +480,9 @@ document.addEventListener('DOMContentLoaded', () => {
     header.addEventListener('click', () => {
       const allContents = document.querySelectorAll('.file-category-content');
       const currentContent = header.nextElementSibling;
-      allContents.forEach(content => { if(content!==currentContent) content.style.display='none'; });
+      allContents.forEach(content => {
+        if(content!==currentContent) content.style.display='none';
+      });
       currentContent.style.display = currentContent.style.display==='flex' ? 'none' : 'flex';
     });
   });
@@ -455,7 +514,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Sluit de details popup bij klikken buiten de popup-content
+  // =======================
+  // Popup management
+  // =======================
   detailsPopup.addEventListener('click', (e) => {
     if (e.target === detailsPopup) {
       detailsPopup.style.display = 'none';
@@ -463,62 +524,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Bestaande close-knop blijft ook werken
   closeDetailsBtn.addEventListener('click', () => {
     detailsPopup.style.display = 'none';
     clearDetailsPopup();
   });
-  //search
-  if (searchInput) {
-    const noResultsMsg = document.getElementById('no-results');
 
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.trim().toLowerCase();
-      const cards = document.querySelectorAll('.workshop-card');
-      let visibleCount = 0;
+  // =======================
+  // REVIEW MODULE
+  // =======================
 
-      cards.forEach(card => {
-        const nameElem = card.querySelector('.workshop-info h3');
-        const descElem = card.querySelector('.workshop-info p');
-
-        const name = nameElem ? nameElem.textContent.toLowerCase() : '';
-        const desc = descElem ? descElem.textContent.toLowerCase() : '';
-
-        const isMatch = name.includes(query) || desc.includes(query);
-        card.style.display = isMatch ? 'flex' : 'none';
-        if (isMatch) visibleCount++;
-      });
-
-      noResultsMsg.style.display = (visibleCount === 0 && query !== '') ? 'block' : 'none';
-    });
-  }
-
-  // ===================================
-  //   REVIEW MODULE
-  // ===================================
-
-  // -------------------------------
-  //   STERREN AANKLIKKEN
-  // -------------------------------
+  // Sterren aanklikken
   document.querySelectorAll(".stars i").forEach((star) => {
     star.addEventListener("click", () => {
-      selectedStars = parseInt(star.dataset.value);
-
+      window.selectedStars = parseInt(star.dataset.value);
       document.querySelectorAll(".stars i").forEach((s) => {
-        s.classList.toggle("selected", s.dataset.value <= selectedStars);
+        s.classList.toggle("selected", s.dataset.value <= window.selectedStars);
       });
     });
   });
 
-  // -------------------------------
-  //   POPUP OPENEN
-  // -------------------------------
-  function openReviewPopup(workshopId) {
-    currentWorkshopId = workshopId;
+  // Review popup openen
+  window.openReviewPopup = function(workshopId) {
+    window.currentWorkshopId = workshopId;
     const popupOverlay = document.getElementById("reviewPopup");
-    popupOverlay.style.display = "flex"; // flex = overlay + gecentreerde popup
-    loadReviews(currentWorkshopId);
-  }
+    popupOverlay.style.display = "flex";
+    loadReviews(window.currentWorkshopId);
+  };
 
   function closeReviewPopup() {
     const popupOverlay = document.getElementById("reviewPopup");
@@ -526,34 +557,36 @@ document.addEventListener('DOMContentLoaded', () => {
     clearReview();
   }
 
-
   function clearReview() {
-    selectedStars = 0;
+    window.selectedStars = 0;
     document.querySelectorAll(".stars i").forEach((s) =>
       s.classList.remove("selected")
     );
     document.getElementById("reviewText").value = "";
   }
 
-  // -------------------------------
-  //   REVIEW OPSLAAN
-  // -------------------------------
+  // Review opslaan
   async function submitReview() {
-    if (!currentWorkshopId) return alert("Geen workshop geselecteerd.");
+    if (!window.currentWorkshopId) return alert("Geen workshop geselecteerd.");
 
     const text = document.getElementById("reviewText").value.trim();
-    if (selectedStars === 0) return alert("Selecteer een aantal sterren.");
-    // Woordenlimiet is 800 karakters in de HTML, dus deze check is optioneel
-    // if (text.length > 800) return alert("Maximaal 800 karakters.");
+    if (window.selectedStars === 0) return alert("Selecteer een aantal sterren.");
 
     const token = localStorage.getItem("jwt");
     if (!token) return alert("Je moet ingelogd zijn.");
 
     try {
-      const res = await fetch(`${API_URL}/reviews`, {
-        method: "POST", // Gebruikt POST voor maken/updaten
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ workshopId: currentWorkshopId, stars: selectedStars, text })
+      const res = await fetch(`${window.API_URL}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+          workshopId: window.currentWorkshopId,
+          stars: window.selectedStars,
+          text
+        })
       });
 
       if (!res.ok) {
@@ -561,9 +594,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(`Kon review niet opslaan: ${errorData.message || res.statusText}`);
       }
 
-      // Na opslaan meteen herladen om updates zichtbaar te maken
-      await loadWorkshops(); // Herlaad alle workshops om de review in de kaart te updaten
-      await loadReviews(currentWorkshopId); // Herlaad de review (niet strikt nodig, maar veilig)
+      // Herlaad de workshops om de bijgewerkte review score te tonen op de card
+      if (isShowingFavorites) {
+        await loadFavoriteWorkshops();
+      } else {
+        await loadWorkshops();
+      }
+
+      await loadReviews(window.currentWorkshopId);
       alert("Review opgeslagen!");
       closeReviewPopup();
     } catch (err) {
@@ -571,39 +609,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // -------------------------------
-  //   BESTAANDE REVIEW LADEN (VOOR DE HUIDIGE GEBRUIKER)
-  // -------------------------------
+  // Reviews laden
   async function loadReviews(workshopId) {
     const token = localStorage.getItem("jwt");
     if (!token) {
       clearReview();
-      displayUserReviewInDetailPopup(null); // Toon 'Nog geen review' in detail popup
+      displayUserReviewInDetailPopup(null);
       return;
     }
 
     try {
-      // Dit endpoint moet de review van de huidige *ingelogde* gebruiker voor deze workshop ID teruggeven
-      const res = await fetch(`${API_URL}/reviews/${workshopId}/user`, {
+      const res = await fetch(`${window.API_URL}/reviews/${workshopId}/user`, {
         headers: { Authorization: "Bearer " + token },
       });
 
       if (res.status === 404 || !res.ok) {
         clearReview();
-        displayUserReviewInDetailPopup(null); // Geen review gevonden voor deze gebruiker/workshop
+        displayUserReviewInDetailPopup(null);
         return;
       }
 
-      const review = await res.json(); // Verwacht één review object
-
-      // 1. Vul de Review Popup (om aan te passen)
-      selectedStars = review.stars;
+      const review = await res.json();
+      window.selectedStars = review.stars;
       document.getElementById("reviewText").value = review.text || '';
       document.querySelectorAll(".stars i").forEach((star) => {
         star.classList.toggle("selected", star.dataset.value <= review.stars);
       });
 
-      // 2. Toon de Review in de Detail Popup (om te bekijken)
       displayUserReviewInDetailPopup(review);
 
     } catch (err) {
@@ -611,9 +643,12 @@ document.addEventListener('DOMContentLoaded', () => {
       displayUserReviewInDetailPopup(null);
     }
   }
-// Nieuwe functie om de geladen review in de detail popup te tonen
+
+  // Review in detail popup tonen
   function displayUserReviewInDetailPopup(review) {
     const starsContainer = document.getElementById('detailMyReviewStars');
+    if (!starsContainer) return;
+
     starsContainer.innerHTML = '';
 
     if (!review || review.stars === undefined) {
@@ -625,14 +660,11 @@ document.addEventListener('DOMContentLoaded', () => {
       starsContainer.innerHTML = `<div class="stars-summary">${filledStars}${emptyStars}</div>`;
     }
 
-    // **Event listener opnieuw toevoegen**
     starsContainer.style.cursor = 'pointer';
-    starsContainer.onclick = () => openReviewPopup(currentWorkshopId);
+    starsContainer.onclick = () => window.openReviewPopup(window.currentWorkshopId);
   }
-  // -------------------------------
-  //   KOPPEL KNOPPEN (Statische elementen)
-  // -------------------------------
 
+  // Event listeners voor review knoppen
   document.getElementById("closeReviewPopup")?.addEventListener("click", () => {
     closeReviewPopup();
   });
@@ -644,16 +676,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById("clearReviewBtn")?.addEventListener("click", () => {
     clearReview();
   });
-  document.querySelectorAll(".sidebar a").forEach(link => {
-    link.addEventListener("click", function () {
 
-      // Verwijder active van alle links
-      document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
 
-      // Voeg active toe aan de geklikte link
-      this.classList.add("active");
-    });
-  });
+
+
+
+
 
   // =======================
   // Init

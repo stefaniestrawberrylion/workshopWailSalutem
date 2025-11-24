@@ -11,6 +11,7 @@ import { RegistrationModule } from './security/presentation/module/registration.
 import { UserModule } from './security/presentation/module/user.module';
 import { MailModule } from './mail/mail.modules';
 import { ReviewModule } from './workshop/presentation/module/review.module';
+import { FavoriteModule } from './workshop/presentation/module/favorite.module';
 
 @Module({
   imports: [
@@ -29,8 +30,6 @@ import { ReviewModule } from './workshop/presentation/module/review.module';
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
-        logging: true,
-        logger: 'advanced-console',
       }),
     }),
 
@@ -44,6 +43,7 @@ import { ReviewModule } from './workshop/presentation/module/review.module';
     UserModule,
     MailModule,
     ReviewModule,
+    FavoriteModule,
   ],
   controllers: [PageController],
 })
