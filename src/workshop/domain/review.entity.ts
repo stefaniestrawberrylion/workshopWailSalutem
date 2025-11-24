@@ -10,7 +10,7 @@ import { Workshop } from './workshop.entity';
 import { User } from '../../security/domain/user.entity';
 
 @Entity()
-@Unique(['userId', 'workshopId']) // <-- zorgt dat 1 user maar 1 review per workshop kan geven
+@Unique(['userId', 'workshopId'])
 export class Review {
   @PrimaryGeneratedColumn()
   id: number;
