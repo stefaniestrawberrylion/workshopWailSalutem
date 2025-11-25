@@ -595,3 +595,45 @@
     font-size: 14px;
     margin-bottom: 0;
 }
+/* Container voor oudertoestemming in de detail popup */
+#parentalConsentContainer {
+    /* Gebruik flexbox om de elementen naast elkaar te plaatsen */
+    display: flex;
+    /* Elementen centreren in verticale richting */
+    align-items: center;
+    /* Extra ruimte tussen elementen, indien nodig */
+    gap: 8px;
+    /* Zorg dat de container zelf goed gepositioneerd is (bijv. onder de reviews) */
+    margin-top: 15px;
+    margin-bottom: 10px; /* Ruimte onder de container */
+    font-size: 14px; /* Basis lettergrootte */
+}
+
+/* Pas de styling van de Oudertoestemming tekst aan */
+#parentalConsentContainer label span {
+    font-weight: 500;
+    color: #333; /* Standaard tekstkleur */
+}
+
+/* Stijl de link-span zodat deze eruitziet als een klikbaar element/bijpassende stijl */
+#consentContactLink {
+    /* Maak de link iets opvallender */
+    color: #5481B7; /* Blauw, passend bij de accentkleur */
+    font-weight: 600; /* Iets dikker lettertype */
+    text-decoration: underline; /* Onderstreping om aan te geven dat het een link is */
+    cursor: pointer; /* Zorg voor de aanwijs-cursor */
+
+    /* Optioneel: Voeg een lichte hover toe voor interactiviteit */
+    transition: color 0.2s ease;
+}
+
+#consentContactLink:hover {
+    color: #3d6394; /* Donkerdere kleur bij hover */
+}
+
+/* Zorg dat de checkbox netjes naast de tekst staat */
+#parentalConsentContainer input#detailParentalConsent {
+    width: 18px;
+    height: 18px;
+    margin-top: 0; /* Verwijder eventuele ongewenste marge van eerdere regels */
+}

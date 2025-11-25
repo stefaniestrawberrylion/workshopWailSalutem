@@ -283,8 +283,26 @@ document.addEventListener('DOMContentLoaded', () => {
         detailLabelPreview.appendChild(span);
       });
 
-      document.getElementById('detailParentalConsent').checked = workshop.parentalConsent || false;
+// Haal de elementen op
+      const parentalConsentCheckbox = document.getElementById('detailParentalConsent');
+      const consentContactLinkSpan = document.getElementById('consentContactLink');
 
+// 1. Stel de checkbox status in
+// We tonen de checkbox nu als 'aangevinkt' als toestemming VEREIST is.
+      parentalConsentCheckbox.checked = workshop.parentalConsent || false;
+
+// 2. Toon de contactinformatie indien toestemming vereist is
+      if (workshop.parentalConsent) {
+        // Toon de tekst en de link
+        consentContactLinkSpan.innerHTML = `
+<span style="color: #698ac1; font-weight: bold;"><a href="/documenten/2.1. Toestemmingsformulier.pdf" target="_blank" style="color: #698ac1;">Toestemmingsformulier</a>)</span>    `;
+        // Maak de checkbox duidelijk dat het vereist is
+        parentalConsentCheckbox.nextElementSibling.textContent = 'Oudertoestemming vereist:';
+      } else {
+        // Verberg/wis de link als er geen toestemming nodig is
+        consentContactLinkSpan.innerHTML = '';
+        parentalConsentCheckbox.nextElementSibling.textContent = 'Oudertoestemming niet vereist';
+      }
       // Media & documenten
       renderMediaSlideshow(workshop.files || []);
       // Maak de documentenlijsten leeg voordat je ze vult

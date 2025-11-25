@@ -113,11 +113,17 @@
                         <label>Labels</label><div id="detailLabelPreview"></div>
 
                         <!-- Wrapper die beide items naast elkaar zet -->
-                        <div class="consent-review-row">
-                            <div class="consent-box">
-                                <label for="detailParentalConsent">Oudertoestemming</label>
-                                <input id="detailParentalConsent" type="checkbox" readonly />
+                        <div class="consent-and-reviews">
+                            <div id="parentalConsentContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                <label for="detailParentalConsent" style="display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" id="detailParentalConsent" disabled>
+                                    <span>Oudertoestemming vereist:</span>
+                                </label>
+                                <span id="consentContactLink"></span>
                             </div>
+
+                            <div id="detailReviewBox"></div>
+                        </div>
 
                             <div class="my-review-display">
                                 <h4>Mijn Review:</h4>
