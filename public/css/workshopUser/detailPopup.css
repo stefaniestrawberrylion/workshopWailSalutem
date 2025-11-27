@@ -535,3 +535,230 @@
     }
 }
 
+
+
+
+/* Globale Pop-up Overrides - Zorg voor een duidelijke container */
+.popup-content {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); /* Zachte maar aanwezige schaduw */
+    padding: 30px; /* Meer ademruimte */
+}
+
+/* Filter Popup Styling (Specifiek) */
+.filter-form {
+    width: 500px;
+    max-width: 95vw; /* Iets meer ruimte op mobiel */
+}
+
+/* Header/Logo Styling */
+.popup-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.popup-logo {
+    max-width: 150px; /* Pas dit aan indien nodig */
+    height: auto;
+}
+
+/* Algemene Filter Secties */
+.popup-body h3 {
+    font-size: 24px;
+    color: #2c3e50; /* Donkerder, leesbaarder */
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #5481B7; /* Accentlijn */
+}
+
+.filter-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0; /* Lichtere scheiding */
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.filter-section label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700; /* Meer nadruk */
+    font-size: 16px;
+    color: #34495e;
+}
+
+/* --- Rating Filter --- */
+.rating-filter {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stars-filter {
+    display: flex;
+    gap: 3px; /* Dichter bij elkaar */
+}
+
+.stars-filter i {
+    font-size: 28px; /* Iets groter */
+    color: #bdc3c7; /* Zachte grijze kleur */
+    cursor: pointer;
+    transition: color 0.25s ease-in-out, transform 0.1s;
+}
+
+.stars-filter i:hover {
+    transform: scale(1.1);
+}
+
+.stars-filter i.active {
+    color: #f39c12; /* Levendiger geel/oranje */
+}
+
+#selectedRatingText {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* --- Duur Filter (Select) --- */
+#durationFilter {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    appearance: none; /* Standaard browserstijl verwijderen */
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+#durationFilter:focus {
+    border-color: #5481B7;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(84, 129, 183, 0.2);
+}
+
+/* --- Labels Filter (Checkboxes) --- */
+/* --- Labels Filter (Checkboxes) --- */
+.labels-filter {
+    /* **BELANGRIJK**: Verwijder de grid-template-columns en de grid-display als deze er nog staan! */
+    display: flex !important;              /* Zorg ervoor dat het flex is */
+    flex-direction: column !important;     /* Dwing verticale stapeling af */
+
+    /* Zorg dat er geen concurrerende kolom-layout is */
+    grid-template-columns: none !important;
+
+    /* Regels voor scrollen */
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 15px;
+    gap: 0;
+}
+
+/* Zorg ervoor dat de individuele opties de volledige breedte innemen */
+.label-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    width: 100%; /* Zorgt ervoor dat de optie de volledige breedte inneemt */
+    border-bottom: 1px dashed #eee;
+}
+.label-option:last-child {
+    border-bottom: none;
+}
+
+.label-option input[type="checkbox"] {
+    /* Standaard checkbox stijl */
+    width: 20px;
+    height: 20px;
+    accent-color: #5481B7;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.label-option label {
+    margin: 0;
+    font-weight: 500;
+    color: #444;
+    flex-grow: 1; /* Zorgt ervoor dat label de rest van de ruimte inneemt */
+}
+
+/* --- Filter Acties (Buttons) --- */
+.filter-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.filter-actions button {
+    padding: 12px 25px; /* Grotere klikgebieden */
+    border: 2px solid transparent; /* Voor consistente grootte bij hover/focus */
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 15px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+#applyFiltersBtn {
+    background-color: #5481B7;
+    color: white;
+}
+
+#applyFiltersBtn:hover {
+    background-color: #466a9c;
+    box-shadow: 0 4px 10px rgba(84, 129, 183, 0.4);
+}
+
+#clearFiltersBtn {
+    background-color: #ecf0f1;
+    color: #34495e;
+    border-color: #bdc3c7;
+}
+
+#clearFiltersBtn:hover {
+    background-color: #dce0e1;
+    border-color: #aeb5b7;
+}
+
+/* --- Responsiviteit --- */
+@media (max-width: 600px) {
+    .popup-content {
+        padding: 20px; /* Minder padding op kleine schermen */
+    }
+
+    .rating-filter {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .labels-filter {
+        grid-template-columns: 1fr;
+        /* Stapel labels op elkaar */
+    }
+
+    .filter-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-actions button {
+        width: 100%; /* Knoppen nemen de volledige breedte in beslag */
+    }
+
+    #clearFiltersBtn {
+        order: 1; /* "Wissen" knop onderaan */
+    }
+
+    #applyFiltersBtn {
+        order: 0; /* "Toepassen" knop bovenaan */
+    }
+}

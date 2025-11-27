@@ -637,3 +637,13 @@
     height: 18px;
     margin-top: 0; /* Verwijder eventuele ongewenste marge van eerdere regels */
 }
+.close-reviews {
+    color: #000000;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 15px;
+}

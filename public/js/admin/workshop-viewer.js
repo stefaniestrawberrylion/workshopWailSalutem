@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =======================
   async function loadWorkshops() {
     try {
-      const res = await fetch(`${API_URL}/api/workshops`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/workshops`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Fout bij ophalen workshops');
 
       const workshops = await res.json();
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       currentWorkshopId = id;
 
-      const res = await fetch(`${API_URL}/api/workshops/${id}`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/workshops/${id}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
       window.currentWorkshopData = w;
@@ -586,6 +586,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  var reviewsPopup = document.getElementById("reviewsPopup");
+  var closeButton = document.getElementById("closeReviewsPopup");
+
+  closeButton.onclick = function() {
+    reviewsPopup.style.display = "none";
+  }
+  window.onclick = function(event) {
+    if (event.target == reviewsPopup) {
+      reviewsPopup.style.display = "none";
+    }
+  }
   // =======================
   // Luister naar workshop updates
   // =======================

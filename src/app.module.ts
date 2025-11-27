@@ -5,7 +5,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import { WorkshopModule } from './workshop/presentation/module/workshop.module';
-import { SecurityModule } from './security/security.module';
+import { SecurityModule } from './security/presentation/module/security.module';
 import { PageController } from './security/presentation/controller/page.controller';
 import { RegistrationModule } from './security/presentation/module/registration.module';
 import { UserModule } from './security/presentation/module/user.module';

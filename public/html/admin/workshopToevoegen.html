@@ -106,11 +106,21 @@
 
                 <label>Labels</label>
                 <div style="display:flex;gap:5px">
-                    <input type="text" id="workshopLabelInput" placeholder="Label naam">
+                    <input type="text" id="workshopLabelInput" placeholder="Label naam" list="labelSuggestions">
+                    <datalist id="labelSuggestions">
+                        <option value="AI">
+                        <option value="Computer Vision">
+                        <option value="Workshop">
+                        <option value="Techniek">
+                        <option value="Robotica">
+                        <option value="Privacy">
+                    </datalist>
                     <input type="color" id="workshopLabelColor" value="#5481B7">
                     <button id="addLabelBtn">➕</button>
                 </div>
                 <div id="labelPreview"></div>
+
+
                 <label style="margin-top:10px; display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="parentalConsent">
                     <span>Oudertoestemming verleend (onder 16 jaar)</span>

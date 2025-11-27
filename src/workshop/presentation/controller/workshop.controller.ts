@@ -67,7 +67,7 @@ const multerOptions = {
   },
 };
 
-@Controller('api/workshops')
+@Controller('/workshops')
 export class WorkshopController {
   constructor(
     private readonly workshopService: WorkshopService,

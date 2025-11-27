@@ -137,10 +137,8 @@ export class RegistrationController {
   @Post('login')
   async login(@Body() body: Record<string, string>) {
     const { email, password } = body;
-
     try {
       const user = await this.userService.findByEmail(email);
-
       if (!user) {
         throw new HttpException(
           { message: 'Ongeldige e-mail of wachtwoord' },
@@ -148,21 +146,13 @@ export class RegistrationController {
         );
       }
 
-      const passwordOk = await this.userService.checkPassword(user, password);
-      if (!passwordOk) {
-        throw new HttpException(
-          { message: 'Ongeldige e-mail of wachtwoord' },
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
-
+      // Check account status eerst
       if (user.status === Status.DENIED) {
         throw new HttpException(
           { message: 'Uw account is geweigerd door de administrator.' },
           HttpStatus.FORBIDDEN,
         );
       }
-
       if (user.status === Status.PENDING) {
         throw new HttpException(
           {
@@ -170,6 +160,15 @@ export class RegistrationController {
               'Uw account is nog niet goedgekeurd door de administrator.',
           },
           HttpStatus.FORBIDDEN,
+        );
+      }
+
+      // Dan pas het wachtwoord controleren
+      const passwordOk = await this.userService.checkPassword(user, password);
+      if (!passwordOk) {
+        throw new HttpException(
+          { message: 'Ongeldige e-mail of wachtwoord' },
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
@@ -182,7 +181,6 @@ export class RegistrationController {
       if (err instanceof HttpException) {
         throw err;
       }
-
       throw new HttpException(
         { message: 'Interne serverfout' },
         HttpStatus.INTERNAL_SERVER_ERROR,

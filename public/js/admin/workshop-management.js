@@ -417,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const headers = { "Authorization": `Bearer ${token}` };
         const url = currentWorkshopId
-          ? `${API_URL}/api/workshops/${currentWorkshopId}`
-          : `${API_URL}/api/workshops`;
+          ? `${API_URL}/workshops/${currentWorkshopId}`
+          : `${API_URL}/workshops`;
         const method = currentWorkshopId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {

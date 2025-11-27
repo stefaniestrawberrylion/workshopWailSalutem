@@ -1,182 +1,257 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <title>Workshop Keuze</title>
-    <link rel="stylesheet" href="/css/workshopUser/popup.css">
-    <link rel="stylesheet" href="/css/workshopUser/viewPopup.css">
-    <link rel="stylesheet" href="/css/workshopUser/detailPopup.css">
-    <link rel="stylesheet" href="/css/workshopUser/reviewPopup.css">
+    <!DOCTYPE html>
+    <html lang="nl">
+    <head>
+        <meta charset="UTF-8">
+        <title>Workshop Keuze</title>
+        <link rel="stylesheet" href="/css/workshopUser/popup.css">
+        <link rel="stylesheet" href="/css/workshopUser/viewPopup.css">
+        <link rel="stylesheet" href="/css/workshopUser/detailPopup.css">
+        <link rel="stylesheet" href="/css/workshopUser/reviewPopup.css">
+        <link rel="stylesheet" href="/css/workshopUser/popupFilter.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
 
-<header>
-    <div class="logo"><img src="../../image/logo.png" alt="Logo"></div>
-    <div class="search-container">
-        <span class="icon" id="searchIcon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Zoek workshops...">
-    </div>
-</header>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+    <body>
 
-<div class="header-actions">
-    <button id="filterBtn"><i class="fa-solid fa-filter"></i> Filter</button>
-    <button id="favoritesBtn"><i class="fa-regular fa-heart"></i> Favorieten</button>
-</div>
-
-<div class="page-wrapper">
-
-    <aside class="sidebar" id="sidebar">
-        <a href="/dashboarduser">
-            <i class="fas fa-home"></i>
-            <span class="sidebar-text">Dashboard</span>
-        </a>
-
-        <a href="/workshopuser">
-            <i class="fas fa-chalkboard"></i>
-            <span class="sidebar-text">Workshops</span>
-        </a>
-
-        <a href="/profiel">
-            <i class="fas fa-user"></i>
-            <span class="sidebar-text">Profiel</span>
-        </a>
-
-        <a href="#" id="logoutBtn" class="logout-btn">
-            <i class="fas fa-right-from-bracket"></i>
-            <span class="sidebar-text">Uitloggen</span>
-        </a>
-    </aside>
-
-    <div class="content">
-
-        <div id="errorContainer" class="error-container" style="display:none;">
-            <span id="errorMessage"></span>
-            <button id="closeErrorBtn">&times;</button>
+    <header>
+        <div class="logo"><img src="../../image/logo.png" alt="Logo"></div>
+        <div class="search-container">
+            <span class="icon" id="searchIcon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Zoek workshops...">
         </div>
+    </header>
 
-        <main>
-            <div class="workshop-grid" id="workshopGrid"></div>
-            <p id="no-results">
-                Kan uw zoekopdracht niet vinden
-            </p>
-        </main>
 
-        <div class="popup" id="workshopDetailsPopup">
-            <div class="popup-content workshop-form">
-                <span class="close" id="closeDetailsPopupBtn">&times;</span>
-                <div class="popup-header"><img src="../../image/logo.png" class="popup-logo"></div>
 
-                <div class="popup-body">
-                    <div class="popup-left">
-                        <div class="media-upload">
-                            <div id="detailMediaContainer"></div>
-                            <button id="prevDetailMedia">◀</button>
-                            <button id="nextDetailMedia">▶</button>
+    <div class="page-wrapper">
+
+        <aside class="sidebar" id="sidebar">
+            <a href="/dashboarduser">
+                <i class="fas fa-home"></i>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+
+            <a href="/workshopuser">
+                <i class="fas fa-chalkboard"></i>
+                <span class="sidebar-text">Workshops</span>
+            </a>
+
+            <a href="/profiel">
+                <i class="fas fa-user"></i>
+                <span class="sidebar-text">Profiel</span>
+            </a>
+
+            <a href="#" id="logoutBtn" class="logout-btn">
+                <i class="fas fa-right-from-bracket"></i>
+                <span class="sidebar-text">Uitloggen</span>
+            </a>
+        </aside>
+
+        <div class="content">
+            <div class="header-actions">
+
+                <button id="filterBtn"><i class="fa-solid fa-filter"></i> Filter</button>
+                <button id="favoritesBtn"><i class="fa-regular fa-heart"></i> Favorieten</button>
+            </div>
+
+            <div id="errorContainer" class="error-container" style="display:none;">
+                <span id="errorMessage"></span>
+                <button id="closeErrorBtn">&times;</button>
+            </div>
+
+            <main>
+                <div class="workshop-grid" id="workshopGrid"></div>
+                <p id="no-results">
+                    Kan uw zoekopdracht niet vinden
+                </p>
+            </main>
+
+            <div class="popup" id="workshopDetailsPopup">
+                <div class="popup-content workshop-form">
+                    <span class="close" id="closeDetailsPopupBtn">&times;</span>
+                    <div class="popup-header"><img src="../../image/logo.png" class="popup-logo"></div>
+
+                    <div class="popup-body">
+                        <div class="popup-left">
+                            <div class="media-upload">
+                                <div id="detailMediaContainer"></div>
+                                <button id="prevDetailMedia">◀</button>
+                                <button id="nextDetailMedia">▶</button>
+                            </div>
+                            <div id="detailFilesContainer">
+                                <div class="file-category" data-category="instructions">
+                                    <div class="file-category-header">Instructies <i class="fa fa-chevron-down"></i></div>
+                                    <div class="file-category-content">
+                                        <ul class="category-file-list" id="detail_instructionsList"></ul>
+                                    </div>
+                                </div>
+
+                                <div class="file-category" data-category="manuals">
+                                    <div class="file-category-header">Handleiding <i class="fa fa-chevron-down"></i></div>
+                                    <div class="file-category-content">
+                                        <ul class="category-file-list" id="detail_manualsList"></ul>
+                                    </div>
+                                </div>
+
+                                <div class="file-category" data-category="demo">
+                                    <div class="file-category-header">Demo code <i class="fa fa-chevron-down"></i></div>
+                                    <div class="file-category-content">
+                                        <ul class="category-file-list" id="detail_demoList"></ul>
+                                    </div>
+                                </div>
+
+                                <div class="file-category" data-category="worksheets">
+                                    <div class="file-category-header">Werkbladeren <i class="fa fa-chevron-down"></i></div>
+                                    <div class="file-category-content">
+                                        <ul class="category-file-list" id="detail_worksheetsList"></ul>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
-                        <div id="detailFilesContainer">
-                            <div class="file-category" data-category="instructions">
-                                <div class="file-category-header">Instructies <i class="fa fa-chevron-down"></i></div>
-                                <div class="file-category-content">
-                                    <ul class="category-file-list" id="detail_instructionsList"></ul>
+                        <div class="popup-right">
+                            <label>Naam</label><input type="text" id="detailName" readonly>
+                            <label>Omschrijving</label><textarea id="detailDesc" readonly></textarea>
+                            <label>Duur</label><input type="time" id="detailDuration" readonly>
+                            <label>Labels</label><div id="detailLabelPreview"></div>
+
+                            <!-- Wrapper die beide items naast elkaar zet -->
+                            <div class="consent-and-reviews">
+                                <div id="parentalConsentContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                    <label for="detailParentalConsent" style="display: flex; align-items: center; gap: 4px;">
+                                        <input type="checkbox" id="detailParentalConsent" disabled>
+                                        <span>Oudertoestemming vereist:</span>
+                                    </label>
+                                    <span id="consentContactLink"></span>
+                                </div>
+
+                                <div id="detailReviewBox"></div>
+                            </div>
+
+                                <div class="my-review-display">
+                                    <h4>Mijn Review:</h4>
+                                    <div id="detailMyReviewStars" class="stars-summary">
+                                        <!-- sterren worden hier dynamisch geplaatst door je JS -->
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="file-category" data-category="manuals">
-                                <div class="file-category-header">Handleiding <i class="fa fa-chevron-down"></i></div>
-                                <div class="file-category-content">
-                                    <ul class="category-file-list" id="detail_manualsList"></ul>
-                                </div>
-                            </div>
 
-                            <div class="file-category" data-category="demo">
-                                <div class="file-category-header">Demo code <i class="fa fa-chevron-down"></i></div>
-                                <div class="file-category-content">
-                                    <ul class="category-file-list" id="detail_demoList"></ul>
-                                </div>
-                            </div>
 
-                            <div class="file-category" data-category="worksheets">
-                                <div class="file-category-header">Werkbladeren <i class="fa fa-chevron-down"></i></div>
-                                <div class="file-category-content">
-                                    <ul class="category-file-list" id="detail_worksheetsList"></ul>
-                                </div>
-                            </div>
                         </div>
-
                     </div>
-                    <div class="popup-right">
-                        <label>Naam</label><input type="text" id="detailName" readonly>
-                        <label>Omschrijving</label><textarea id="detailDesc" readonly></textarea>
-                        <label>Duur</label><input type="time" id="detailDuration" readonly>
-                        <label>Labels</label><div id="detailLabelPreview"></div>
+                    <div id="mediaLightbox" class="lightbox">
+                        <span class="close-lightbox">&times;</span>
+                        <img id="lightboxImage" src="" alt="Vergrote weergave">
+                        <video id="lightboxVideo" controls></video>
+                    </div>
 
-                        <!-- Wrapper die beide items naast elkaar zet -->
-                        <div class="consent-and-reviews">
-                            <div id="parentalConsentContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <label for="detailParentalConsent" style="display: flex; align-items: center; gap: 4px;">
-                                    <input type="checkbox" id="detailParentalConsent" disabled>
-                                    <span>Oudertoestemming vereist:</span>
-                                </label>
-                                <span id="consentContactLink"></span>
-                            </div>
+                </div>
+            </div>
+            <div id="reviewPopup" class="popupReview-overlay">
+                <div class="popupReview">
+                    <h2>Review Workshop</h2>
 
-                            <div id="detailReviewBox"></div>
+                    <div class="stars">
+                        <i class="fa-solid fa-star" data-value="1"></i>
+                        <i class="fa-solid fa-star" data-value="2"></i>
+                        <i class="fa-solid fa-star" data-value="3"></i>
+                        <i class="fa-solid fa-star" data-value="4"></i>
+                        <i class="fa-solid fa-star" data-value="5"></i>
+                    </div>
+
+                    <textarea id="reviewText" maxlength="800" placeholder="Schrijf hier je review..."></textarea>
+
+                    <div class="popupReview-actions">
+                        <button id="submitReviewBtn">Versturen</button>
+                        <button id="clearReviewBtn">Wissen</button>
+                    </div>
+
+                    <button id="closeReviewPopup" style="position: absolute; top: 10px; right: 10px;">&times;</button>
+
+                </div>
+            </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content filter-form">
+            <span class="close" id="closeFilterModalBtn">&times;</span>
+            <div class="modal-header"><img src="../../image/logo.png" class="modal-logo"></div>
+
+            <div class="modal-body">
+                <h3>Filter Workshops</h3>
+
+                <!-- Rating Filter -->
+                <div class="filter-section">
+                    <label>Minimale Beoordeling</label>
+                    <div class="rating-filter">
+                        <div class="stars-filter">
+                            <i class="fa-solid fa-star" data-value="1"></i>
+                            <i class="fa-solid fa-star" data-value="2"></i>
+                            <i class="fa-solid fa-star" data-value="3"></i>
+                            <i class="fa-solid fa-star" data-value="4"></i>
+                            <i class="fa-solid fa-star" data-value="5"></i>
                         </div>
-
-                            <div class="my-review-display">
-                                <h4>Mijn Review:</h4>
-                                <div id="detailMyReviewStars" class="stars-summary">
-                                    <!-- sterren worden hier dynamisch geplaatst door je JS -->
-                                </div>
-                            </div>
-                        </div>
-
-
-
+                        <span id="selectedRatingText">Geen minimum</span>
                     </div>
                 </div>
-                <div id="mediaLightbox" class="lightbox">
-                    <span class="close-lightbox">&times;</span>
-                    <img id="lightboxImage" src="" alt="Vergrote weergave">
-                    <video id="lightboxVideo" controls></video>
+
+                <!-- Duur Filter -->
+                <div class="filter-section">
+                    <label>Maximale Duur</label>
+                    <select id="durationFilter">
+                        <option value="">Geen maximum</option>
+                        <option value="60">1 uur of minder</option>
+                        <option value="90">1,5 uur of minder</option>
+                        <option value="120">2 uur of minder</option>
+                    </select>
                 </div>
 
+                <!-- Labels Filter -->
+                <div class="filter-section">
+                    <label>Labels</label>
+                    <div class="labels-filter">
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelAI" value="AI">
+                            <label for="filterLabelAI">AI</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelComputerVision" value="Computer Vision">
+                            <label for="filterLabelComputerVision">Computer Vision</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelWorkshop" value="Workshop">
+                            <label for="filterLabelWorkshop">Workshop</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelTechniek" value="Techniek">
+                            <label for="filterLabelTechniek">Techniek</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelRobotica" value="Robotica">
+                            <label for="filterLabelRobotica">Robotica</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelPrivacy" value="Privacy">
+                            <label for="filterLabelPrivacy">Privacy</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Acties -->
+                <div class="filter-actions">
+                    <button id="applyFiltersBtn">Filters Toepassen</button>
+                    <button id="clearFiltersBtn">Filters Wissen</button>
+                </div>
             </div>
         </div>
-        <div id="reviewPopup" class="popupReview-overlay">
-            <div class="popupReview">
-                <h2>Review Workshop</h2>
-
-                <div class="stars">
-                    <i class="fa-solid fa-star" data-value="1"></i>
-                    <i class="fa-solid fa-star" data-value="2"></i>
-                    <i class="fa-solid fa-star" data-value="3"></i>
-                    <i class="fa-solid fa-star" data-value="4"></i>
-                    <i class="fa-solid fa-star" data-value="5"></i>
-                </div>
-
-                <textarea id="reviewText" maxlength="800" placeholder="Schrijf hier je review..."></textarea>
-
-                <div class="popupReview-actions">
-                    <button id="submitReviewBtn">Versturen</button>
-                    <button id="clearReviewBtn">Wissen</button>
-                </div>
-
-                <button id="closeReviewPopup" style="position: absolute; top: 10px; right: 10px;">&times;</button>
-
-            </div>
-        </div>
-
-        <script src="/js/user/workshop.js"></script>
-        <script src="/js/user/workshopDisplay.js"></script>
-
-
     </div>
-</div>
 
+    <script src="/js/user/workshop.js"></script>
+            <script src="/js/user/workshopDisplay.js"></script>
+        <script src="/js/user/filter.js"></script>
 
-
-</body>
-</html>
+    </body>
+    </html>

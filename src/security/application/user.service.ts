@@ -63,7 +63,6 @@ export class UserService {
     if (existing) {
       throw new BadRequestException(`Email bestaat al: ${email}`);
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepository.create({
       email,
@@ -77,7 +76,6 @@ export class UserService {
     });
 
     await this.userRepository.save(user);
-
     await this.mailService.sendAdminNotification(
       email,
       `${firstName} ${lastName}`,
@@ -95,7 +93,7 @@ export class UserService {
 
       try {
         await this.mailService.sendUserStatus(user.email, 'afgewezen');
-      } catch (err) {
+      } catch {
         // Fout bij verzenden e-mail wordt niet gelogd
       }
 
@@ -108,7 +106,7 @@ export class UserService {
     if (status === Status.APPROVED) {
       try {
         await this.mailService.sendUserStatus(user.email, 'goedgekeurd');
-      } catch (err) {
+      } catch {
         // Fout bij verzenden e-mail wordt niet gelogd
       }
     }
@@ -129,31 +127,9 @@ export class UserService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { email } });
   }
-
-  async loadUserByUsername(email: string): Promise<User | Admin> {
-    const admin = await this.adminRepository.findOne({ where: { email } });
-    if (admin) return admin;
-
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new NotFoundException(`Gebruiker niet gevonden: ${email}`);
-    }
-
-    return user;
-  }
-
   async checkPassword(user: User, rawPassword: string): Promise<boolean> {
     return bcrypt.compare(rawPassword, user.password);
   }
-
-  async updateUser(id: number, updateData: Partial<User>) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user) throw new Error('Gebruiker niet gevonden');
-
-    Object.assign(user, updateData);
-    return this.userRepository.save(user);
-  }
-
   async login(user: User): Promise<{ access_token: string }> {
     const payload: Record<string, any> = {
       sub: user.id,
@@ -165,7 +141,8 @@ export class UserService {
 
     const token = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET') as string,
-      expiresIn: (this.configService.get<string>('JWT_EXPIRATION') ?? '1h') as any,
+      expiresIn: (this.configService.get<string>('JWT_EXPIRATION') ??
+        '1h') as any,
     });
 
     return { access_token: token };
