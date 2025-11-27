@@ -318,11 +318,10 @@
         const parentalConsentCheckbox = document.getElementById('detailParentalConsent');
         const consentContactLinkSpan = document.getElementById('consentContactLink');
   
-  // 1. Stel de checkbox status in
-  // We tonen de checkbox nu als 'aangevinkt' als toestemming VEREIST is.
+
+
         parentalConsentCheckbox.checked = workshop.parentalConsent || false;
-  
-  // 2. Toon de contactinformatie indien toestemming vereist is
+
         if (workshop.parentalConsent) {
           // Toon de tekst en de link
           consentContactLinkSpan.innerHTML = `
