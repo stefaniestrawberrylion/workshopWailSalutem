@@ -1,5 +1,6 @@
 // Filter Functionaliteit
 document.addEventListener('DOMContentLoaded', () => {
+
   // Elementen ophalen
   const filterBtn = document.getElementById('filterBtn');
   const filterModal = document.getElementById('filterModal');
@@ -7,24 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-  // Rating filter elementen
+  // Rating filter
   const ratingStars = document.querySelectorAll('.stars-filter i');
   const selectedRatingText = document.getElementById('selectedRatingText');
 
-  // Duur filter element
+  // Duur filter
   const durationFilter = document.getElementById('durationFilter');
 
-  // Label filter elementen
+  // Label filters
   const labelCheckboxes = document.querySelectorAll('.labels-filter input[type="checkbox"]');
 
-  // Huidige filters
+  // Bewaarde filters
   let currentFilters = {
-    minRating: 0,
-    maxDuration: null,
-    selectedLabels: []
+    exactRating: null,          // ⭐ Exact aantal sterren
+    durationRange: null,        // ⏱ Range in minuten "60-75"
+    selectedLabels: []          // 🏷️ Labels
   };
 
-  // Open filter modal
+  // Open modal
   if (filterBtn) {
     filterBtn.addEventListener('click', () => {
       filterModal.style.display = 'flex';
@@ -32,54 +33,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Sluit filter modal
+  // Sluit modal
   if (closeFilterModalBtn) {
     closeFilterModalBtn.addEventListener('click', () => {
       filterModal.style.display = 'none';
     });
   }
 
-  // Sluit modal bij klik buiten
+  // Sluiten buiten modal
   window.addEventListener('click', (e) => {
-    if (e.target === filterModal) {
-      filterModal.style.display = 'none';
-    }
+    if (e.target === filterModal) filterModal.style.display = 'none';
   });
 
-  // Rating sterren interactie
+  // ⭐ Exact rating selectie
   ratingStars.forEach(star => {
     star.addEventListener('click', () => {
+
       const ratingValue = parseInt(star.getAttribute('data-value'));
-      ratingStars.forEach((s, index) => {
-        index < ratingValue ? s.classList.add('active') : s.classList.remove('active');
+
+      // visueel updaten
+      ratingStars.forEach((s, idx) => {
+        idx < ratingValue ? s.classList.add('active') : s.classList.remove('active');
       });
-      if (ratingValue > 0) {
-        selectedRatingText.textContent = `${ratingValue} ster${ratingValue > 1 ? 'ren' : ''} of meer`;
-        currentFilters.minRating = ratingValue;
-      } else {
-        selectedRatingText.textContent = 'Geen minimum';
-        currentFilters.minRating = 0;
-      }
+
+      // tekst en filter opslaan
+      selectedRatingText.textContent = `${ratingValue} ster${ratingValue > 1 ? 'ren' : ''}`;
+      currentFilters.exactRating = ratingValue;
     });
   });
 
-  // Duur filter wijziging
+  // ⏱ Duur range wijziging
   if (durationFilter) {
     durationFilter.addEventListener('change', (e) => {
-      currentFilters.maxDuration = e.target.value ? parseInt(e.target.value) : null;
+      currentFilters.durationRange = e.target.value || null;
     });
   }
 
-  // Label checkboxes wijziging
-  labelCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
+  // 🏷️ Label wijziging
+  labelCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
       currentFilters.selectedLabels = Array.from(labelCheckboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
+        .filter(x => x.checked)
+        .map(x => x.value);
     });
   });
 
-  // Filters toepassen
+  // ✔ Filters toepassen
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', () => {
       applyFilters();
@@ -88,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Filters wissen
+  // ❌ Filters wissen
   if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener('click', () => {
       clearFilters();
@@ -98,49 +97,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Update filter UI op basis van huidige filters
+  // UI bijwerken op basis van huidige filters
   function updateFilterUI() {
+    // rating
     ratingStars.forEach((star, index) => {
-      index < currentFilters.minRating ? star.classList.add('active') : star.classList.remove('active');
+      star.classList.toggle("active", currentFilters.exactRating && index < currentFilters.exactRating);
     });
-    selectedRatingText.textContent = currentFilters.minRating > 0
-      ? `${currentFilters.minRating} ster${currentFilters.minRating > 1 ? 'ren' : ''} of meer`
-      : 'Geen minimum';
-    if (durationFilter) durationFilter.value = currentFilters.maxDuration || '';
-    labelCheckboxes.forEach(checkbox => {
-      checkbox.checked = currentFilters.selectedLabels.includes(checkbox.value);
+
+    selectedRatingText.textContent = currentFilters.exactRating
+      ? `${currentFilters.exactRating} ster${currentFilters.exactRating > 1 ? 'ren' : ''}`
+      : "Geen selectie";
+
+    // duration
+    if (durationFilter) durationFilter.value = currentFilters.durationRange || "";
+
+    // labels
+    labelCheckboxes.forEach(cb => {
+      cb.checked = currentFilters.selectedLabels.includes(cb.value);
     });
   }
 
-  // Filters toepassen op workshops
+  // ⭐ ⏱ 🏷️ FILTER LOGICA
   function applyFilters() {
     const workshopCards = document.querySelectorAll('.workshop-card');
     let visibleCount = 0;
 
     workshopCards.forEach(card => {
       const duration = parseInt(card.getAttribute('data-duration')) || 0;
-      const rating = parseFloat(card.getAttribute('data-rating')) || 0;
+      const rating = Math.round(parseFloat(card.getAttribute('data-rating'))) || 0;
+
       const labelsJson = card.getAttribute('data-labels');
       const workshopLabels = labelsJson ? JSON.parse(labelsJson) : [];
-      let shouldShow = true;
 
-      if (currentFilters.minRating > 0 && rating < currentFilters.minRating) shouldShow = false;
-      if (currentFilters.maxDuration && duration > currentFilters.maxDuration) shouldShow = false;
-      if (currentFilters.selectedLabels.length > 0) {
-        const hasMatchingLabel = currentFilters.selectedLabels.some(selectedLabel =>
-          workshopLabels.includes(selectedLabel)
-        );
-        if (!hasMatchingLabel) shouldShow = false;
+      let show = true;
+
+      // ⭐ Exact stars
+      if (currentFilters.exactRating !== null && rating !== currentFilters.exactRating) {
+        show = false;
       }
 
-      card.style.display = shouldShow ? 'block' : 'none';
-      if (shouldShow) visibleCount++;
+      // ⏱ Duration
+      if (currentFilters.durationRange) {
+        const [min, max] = currentFilters.durationRange.split('-').map(Number);
+        if (duration < min || duration > max) show = false;
+      }
+
+      // 🏷 Labels
+      if (currentFilters.selectedLabels.length > 0) {
+        const hasLabel = currentFilters.selectedLabels.some(l => workshopLabels.includes(l));
+        if (!hasLabel) show = false;
+      }
+
+      card.style.display = show ? 'block' : 'none';
+      if (show) visibleCount++;
     });
 
     const noResults = document.getElementById('no-results');
     if (noResults) {
       noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-      noResults.textContent = visibleCount === 0 ? 'Geen workshops gevonden met de geselecteerde filters.' : '';
+      noResults.textContent = visibleCount === 0 ? 'Geen workshops gevonden.' : '';
     }
 
     localStorage.setItem('workshopFilters', JSON.stringify(currentFilters));
@@ -148,60 +163,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearFilters() {
     currentFilters = {
-      minRating: 0,
-      maxDuration: null,
+      exactRating: null,
+      durationRange: null,
       selectedLabels: []
     };
   }
 
   function updateFilterButtonState() {
-    const hasActiveFilters = currentFilters.minRating > 0 ||
-      currentFilters.maxDuration !== null ||
+    const hasActive =
+      currentFilters.exactRating !== null ||
+      currentFilters.durationRange !== null ||
       currentFilters.selectedLabels.length > 0;
 
     if (filterBtn) {
-      if (hasActiveFilters) {
-        filterBtn.classList.add('active');
-        filterBtn.innerHTML = '<i class="fa-solid fa-filter" style="color: #ff6b6b;"></i> Filter (actief)';
+      if (hasActive) {
+        filterBtn.classList.add("active");
+        filterBtn.innerHTML = '<i class="fa-solid fa-filter" style="color:#ff6b6b"></i> Filter (actief)';
       } else {
-        filterBtn.classList.remove('active');
+        filterBtn.classList.remove("active");
         filterBtn.innerHTML = '<i class="fa-solid fa-filter"></i> Filter';
       }
     }
   }
 
   function loadSavedFilters() {
-    const savedFilters = localStorage.getItem('workshopFilters');
-    if (savedFilters) {
-      currentFilters = JSON.parse(savedFilters);
+    const saved = localStorage.getItem('workshopFilters');
+    if (saved) {
+      currentFilters = JSON.parse(saved);
       updateFilterUI();
       setTimeout(() => {
         applyFilters();
         updateFilterButtonState();
-      }, 500);
+      }, 300);
     }
   }
 
-  // Initialiseer filters
   loadSavedFilters();
 
-  // Maak functies globaal beschikbaar voor andere scripts
   window.applyWorkshopFilters = applyFilters;
   window.clearWorkshopFilters = clearFilters;
 });
 
-// Functie om labels, rating en duration aan workshop cards toe te voegen
+
+// Functie om labels, rating en duration op card te zetten
 function addLabelsToWorkshopCard(card, workshop) {
+
+  // labels
   if (workshop.labels && Array.isArray(workshop.labels)) {
-    const labelNames = workshop.labels.map(label => typeof label === 'string' ? label : label.name);
-    card.setAttribute('data-labels', JSON.stringify(labelNames));
+    const labelNames = workshop.labels.map(l => typeof l === "string" ? l : l.name);
+    card.setAttribute("data-labels", JSON.stringify(labelNames));
   }
+
+  // rating
   if (workshop.reviews && Array.isArray(workshop.reviews)) {
     const reviewCount = workshop.reviews.length;
-    const averageRating = reviewCount > 0
+    const avg = reviewCount > 0
       ? workshop.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviewCount
       : 0;
-    card.setAttribute('data-rating', averageRating.toFixed(1));
+    card.setAttribute("data-rating", avg.toFixed(1));
   }
-  card.setAttribute('data-duration', workshop.duration || 0);
+
+  // duration (zet altijd om naar minuten)
+  // Zorg dat workshop.duration als nummer wordt geïnterpreteerd (uren bijvoorbeeld 1.25)
+  const hours = Number(workshop.duration) || 0;
+  const durationMinutes = Math.round(hours * 60);
+  card.setAttribute("data-duration", durationMinutes);
 }
+

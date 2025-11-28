@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!confirmDelete) return;
 
       try {
-        const res = await fetch(`${API_URL}/api/workshops/${currentWorkshopId}`, {
+        const res = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
           method: 'DELETE',
           headers: getAuthHeaders()
         });

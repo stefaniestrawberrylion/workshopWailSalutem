@@ -124,10 +124,7 @@
     }
   
   
-    // =======================
-    // Render workshops grid
-    // =======================
-    // =======================
+
 // Render workshops grid
 // =======================
     function renderWorkshops(workshops) {
@@ -148,7 +145,20 @@
         const card = document.createElement('div');
         card.classList.add('workshop-card');
         card.setAttribute('data-workshop-id', w.id);
-        card.setAttribute('data-duration', w.duration || 0);
+
+        let durationMinutes = 0;
+
+        if (typeof w.duration === "string" && w.duration.includes(":")) {
+          const [h, m] = w.duration.split(":").map(Number);
+          durationMinutes = h * 60 + m;
+        } else {
+          const hours = Number(w.duration) || 0;
+          durationMinutes = Math.round(hours * 60);
+        }
+
+        card.setAttribute("data-duration", durationMinutes);
+
+
 
         // VOEG DIT TOE: Sla labels op voor filtering
         if (w.labels) {
