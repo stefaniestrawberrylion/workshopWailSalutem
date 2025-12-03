@@ -21,6 +21,71 @@ Content-Type: application/json
   "firstName": "Admin",
   "lastName": "User"
 }
+### 3. Login Admin Gebruiker (Token ophalen)
+# Dit endpoint authenticiseert de Admin gebruiker.
+# Zorg ervoor dat de Admin al is aangemaakt via de vorige POST /register/admin request.
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@workshop.com",
+  "password": "H3nf0#iHF@39"
+}
+
 
 ###
 DELETE http://localhost:3000/register/annelene1309%40gmail.com
+
+
+
+
+### 1. Registratie Aanvraag (Test AC 1 & AC 2)
+# Registreer een nieuwe gebruiker. Dit moet automatisch de status PENDING krijgen.
+# Dit bewijst ook de POST methode (RESTful API Design) en de hashing van het wachtwoord (DoD).
+POST  http://localhost:3000/register/request
+Content-Type: application/json
+
+{
+  "email": "testgebruiker_pending@example.com",
+  "password": "SterkWachtwoord123!",
+  "firstName": "Kees",
+  "lastName": "Test",
+  "school": "HAN",
+  "phone": "0612345678"
+}
+
+### 2. Beheerder Goedkeuring (Test AC 3)
+# Keur de registratie goed (PATCH-methode voor statuswijziging).
+PATCH http://localhost:3000/register/approve/23
+
+# --- LET OP DE LEGEREGELS ---
+
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkB3b3Jrc2hvcC5jb20iLCJlbWFpbCI6ImFkbWluQHdvcmtzaG9wLmNvbSIsInJvbGVzIjpbIkFETUlOIl0sImlzcyI6IndhaWxzYWx1dGVtLXdvcmtzaG9wcyIsImF1ZCI6IndhaWxzYWx1dGVtIiwiaWF0IjoxNzY0MTAxNDE5LCJleHAiOjE3NjQxMDUwMTl9.0HzNAE-Rxdm1VmKjVlG3_4-IYmbMOb4QEjDgJZT3KyH
+
+### 3. Login Test - Succes (Test AC 4)
+# Probeer in te loggen met de zojuist goedgekeurde gebruiker.
+# Dit zou moeten resulteren in een 200 OK en een JWT token.
+POST  http://localhost:3000/register/login
+Content-Type: application/json
+
+{
+  "email": "testgebruiker_pending@example.com",
+  "password": "SterkWachtwoord123!"
+}
+
+### 4. Login Test - Status PENDING (Test AC 4 & OWASP A1)
+# Test de Access Control: login met een gebruiker die nog op PENDING staat.
+# Dit moet resulteren in een 403 Forbidden.
+POST http://localhost:3000/register/login
+Content-Type: application/json
+
+{
+  "email": "testgebruiker_pending@example.com",
+  "password": "SterkWachtwoord123!"
+}
+
+
+
+
+

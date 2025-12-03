@@ -69,4 +69,27 @@ export class MailService {
       );
     }
   }
+  async sendGenericEmail(
+    toEmail: string,
+    subject: string,
+    htmlContent: string,
+  ): Promise<void> {
+    const msg = {
+      to: toEmail,
+      from: this.fromEmail,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (err: any) {
+      console.error(
+        '[MailService] Fout bij verzenden algemene e-mail:',
+        err.response?.body || err,
+      );
+      // Fout opzettelijk niet her-gooien als u wilt dat de UserService doorgaat met verwijderen
+      // throw new Error('Fout bij verzenden e-mail.');
+    }
+  }
 }

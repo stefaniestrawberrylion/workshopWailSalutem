@@ -94,8 +94,12 @@ header .icons {
     background-color: #2E4F75;
     color: white;
 }
-
-.btn.child:hover {
+.btn.childprivacy {
+    background-color: #0e4a81;
+    color: white;
+}
+.btn.child:hover,
+.btn.childprivacy:hover {
     background-color: #1e3550;
     transform: translateY(-2px);
 }

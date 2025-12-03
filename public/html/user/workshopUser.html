@@ -50,10 +50,22 @@
 
         <div class="content">
             <div class="header-actions">
+                <button id="filterBtn">
+                    <i class="fa-solid fa-filter"></i>
+                    <span data-i18n="filter">Filter</span>
+                </button>
 
-                <button id="filterBtn"><i class="fa-solid fa-filter"></i> Filter</button>
-                <button id="favoritesBtn"><i class="fa-regular fa-heart"></i> Favorieten</button>
+                <button id="favoritesBtn">
+                    <i class="fa-regular fa-heart"></i>
+                    <span data-i18n="favorites">Favorieten</span>
+                </button>
+
+                <button id="langToggle">
+                    <img src="/image/Schermafbeelding%202025-09-19%20143613.png" alt="NL" id="flagIcon" width="24">
+                </button>
             </div>
+
+            <span class="sidebar-text" data-i18n="dashboard">Dashboard</span>
 
             <div id="errorContainer" class="error-container" style="display:none;">
                 <span id="errorMessage"></span>
@@ -238,6 +250,51 @@
                             <input type="checkbox" id="filterLabelPrivacy" value="Privacy">
                             <label for="filterLabelPrivacy">Privacy</label>
                         </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelBeginner" value="Beginner">
+                            <label for="filterLabelBeginner">Beginner</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelGemiddeld" value="Gemiddeld">
+                            <label for="filterLabelGemiddeld">Gemiddeld</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelBevorderd" value="Bevorderd">
+                            <label for="filterLabelBevorderd">Bevorderd</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelKinderen" value="Kinderen">
+                            <label for="filterLabelKinderen">Kinderen</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelJongeren" value="Jongeren">
+                            <label for="filterLabelJongeren">Jongeren</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelTeams" value="Teams">
+                            <label for="filterLabelTeams">Teams</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelDesign" value="Design">
+                            <label for="filterLabelDesign">Design</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelWebdevelopment" value="Webdevelopment">
+                            <label for="filterLabelWebdevelopment">Webdevelopment</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelData" value="Data">
+                            <label for="filterLabelData">Data</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelPraktijk" value="Praktijk">
+                            <label for="filterLabelPraktijk">Praktijk</label>
+                        </div>
+                        <div class="label-option">
+                            <input type="checkbox" id="filterLabelTheorie" value="Theorie">
+                            <label for="filterLabelTheorie">Theorie</label>
+                        </div>
+
                     </div>
                 </div>
 
@@ -253,6 +310,8 @@
     <script src="/js/user/workshop.js"></script>
             <script src="/js/user/workshopDisplay.js"></script>
         <script src="/js/user/filter.js"></script>
+    <script src="/js/user/language.js"></script>
+
 
     </body>
     </html>
