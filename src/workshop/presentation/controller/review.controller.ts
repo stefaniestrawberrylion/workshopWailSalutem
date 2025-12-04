@@ -16,6 +16,7 @@ import { ParseIntPipe } from '@nestjs/common';
 import { RespondToReviewDto } from '../dto/RespondToReviewDTO';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
+import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 
 // Request type met user erin
 interface AuthRequest extends Request {
@@ -82,16 +83,16 @@ export class ReviewController {
     return reviews;
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Post(':id/respond')
-  // @HttpCode(200)
+  @HttpCode(200)
   async respondToReview(
-    @Param('id') reviewId: string,
+    @Param('id', ParseIntPipe) reviewId: number,
     @Body() dto: RespondToReviewDto,
   ) {
     return this.reviewService.respondToReview(
-      parseInt(reviewId),
+      reviewId,
       dto.userEmail,
       dto.workshopTitle,
       dto.adminResponse,
