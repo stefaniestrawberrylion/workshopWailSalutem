@@ -1,0 +1,75 @@
+/* Stijlen voor de Respond Pop-up */
+
+/* 1. Container voor de overlay en positionering */
+.respond-popup {
+    display: none; /* Standaard verborgen, wordt door JS op 'flex' gezet */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Donkere, duidelijke overlay */
+    justify-content: center;
+    align-items: center;
+    /* Z-index hoog genoeg om BOVEN alle andere pop-ups (zoals reviewsPopup, workshopDetailsPopup) te staan */
+    z-index: 10000;
+}
+
+/* 2. De witte inhoudsbalk */
+.respond-popup-content {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 450px;
+    max-width: 90%;
+    /* Eventueel een lichte animatie toevoegen */
+    transform: scale(1);
+    transition: transform 0.3s ease-out;
+}
+
+/* 3. Input velden en labels */
+.respond-popup-content h3 {
+    color: #333;
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.respond-popup-content p {
+    margin-bottom: 20px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.respond-popup-content label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.respond-popup-content input[type="text"],
+.respond-popup-content textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* Zorgt dat padding binnen de breedte blijft */
+    font-size: 1em;
+    resize: vertical;
+}
+
+.respond-popup-content input[readonly] {
+    background-color: #f5f5f5; /* Grijze achtergrond voor readonly velden */
+    color: #777;
+}
+
+/* Knoppen (gebruik de bestaande btn-primary/btn-secondary classes) */
+.popup-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

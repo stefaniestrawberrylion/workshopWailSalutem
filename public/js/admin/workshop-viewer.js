@@ -380,11 +380,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const reviewsPopup = document.getElementById('reviewsPopup');
     const reviewsList = document.getElementById('reviewsList');
 
+    // Haal de nieuwe elementen op
+    const respondPopup = document.getElementById('respondPopup');
+    const respondForm = document.getElementById('respondForm');
+
     reviewBox.innerHTML = '';
     reviewsList.innerHTML = '';
 
-    // Klik om popup te openen
+    // Klik om de algemene reviews popup te openen
     reviewBox.onclick = () => { reviewsPopup.style.display = 'flex'; };
+
+    // --- Functie om de reageer-popup te openen ---
+    function openRespondPopup(reviewId, userEmail, workshopTitle) {
+      if (!respondPopup || !respondForm) {
+        console.error("Respond popup of formulier niet gevonden in DOM.");
+        return;
+      }
+
+      // Vul de verborgen velden en de workshop titel
+      document.getElementById('reviewId').value = reviewId;
+      document.getElementById('reviewUserEmail').value = userEmail;
+      document.getElementById('reviewWorkshopTitle').value = workshopTitle;
+
+      // Vul het standaard template in de textarea
+      document.getElementById('adminResponse').value = `Beste gebruiker,
+
+Bedankt voor uw review! We waarderen uw feedback enorm.
+Zou u ons misschien wat meer details kunnen geven over uw ervaring, zodat we onze service verder kunnen verbeteren? Alle toelichting is welkom.
+
+Met vriendelijke groet,
+Het team
+`;
+
+      respondPopup.style.display = 'flex';
+    }
+    // Maak de functie globaal bereikbaar, zodat deze in de inline onclick gebruikt kan worden
+    window.openRespondPopup = openRespondPopup;
+    // ---------------------------------------------
+
+
+    // --- Event Listener voor het versturen van het reactieformulier ---
+    if (respondForm) {
+      respondForm.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(respondForm);
+        const data = Object.fromEntries(formData.entries());
+
+        const reviewId = data.reviewId;
+        const userEmail = data.userEmail;
+        const workshopTitle = data.workshopTitle;
+        const adminResponse = data.adminResponse;
+
+        // Controleer of de benodigde data aanwezig is
+        if (!reviewId || !userEmail || !workshopTitle || !adminResponse) {
+          alert('Fout: Niet alle vereiste gegevens zijn aanwezig om te versturen.');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/reviews/${reviewId}/respond`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Voeg hier eventuele authenticatie headers toe (zoals een Bearer token)
+            },
+            body: JSON.stringify({ userEmail, workshopTitle, adminResponse })
+          });
+
+          if (response.ok) {
+            alert('Reactie succesvol verstuurd naar de gebruiker!');
+            respondPopup.style.display = 'none';
+            respondForm.reset(); // Reset het formulier na succes
+          } else {
+            const error = await response.json();
+            alert(`Fout bij versturen: ${error.message || response.statusText}`);
+          }
+        } catch (error) {
+          console.error('Verzendfout:', error);
+          alert('Er is een netwerkfout opgetreden.');
+        }
+      };
+    }
+    // ----------------------------------------------------
+
 
     if (w.reviews && w.reviews.length > 0) {
       // Gemiddelde sterren
@@ -396,15 +475,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Review summary
       reviewBox.innerHTML = `
-                <div class="review-summary">
-                    ${stars} <span>(${w.reviews.length}) reviews</span>
-                </div>
-            `;
+              <div class="review-summary">
+                  ${stars} <span>(${w.reviews.length}) reviews</span>
+              </div>
+          `;
 
       // Reviews in popup
       w.reviews.forEach(async r => {
+        // ⚠️ BELANGRIJKE AANNAMES:
+        // 1. De review heeft een unieke ID: r.id
+        // 2. De workshop heeft een titel: w.title
+        const reviewId = r.id;
+
         const user = r.userId ? await getUserMail(r.userId) : { email: 'unknown@example.com' };
         const displayName = user.email || 'Onbekend';
+        const userEmail = user.email || 'unknown@example.com'; // Gebruik 'unknown' als fallback
 
         const li = document.createElement('li');
         li.className = "review-item";
@@ -415,15 +500,23 @@ document.addEventListener('DOMContentLoaded', () => {
         li.style.background = '#f9f9f9';
 
         li.innerHTML = `
-                    <div class="review-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <strong>${displayName}</strong>
-                        <span class="review-stars">
-                            ${Array(r.stars).fill('<i class="fa-solid fa-star filled-star"></i>').join('')}
-                            ${Array(5 - r.stars).fill('<i class="fa-regular fa-star"></i>').join('')}
-                        </span>
-                    </div>
-                    <p class="review-text" style="margin:0;">${r.text}</p>
-                `;
+                  <div class="review-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                      <strong>${displayName}</strong>
+                      <span class="review-stars">
+                          ${Array(r.stars).fill('<i class="fa-solid fa-star filled-star"></i>').join('')}
+                          ${Array(5 - r.stars).fill('<i class="fa-regular fa-star"></i>').join('')}
+                      </span>
+                  </div>
+                  <p class="review-text" style="margin:0;">${r.text}</p>
+                  
+                  ${userEmail !== 'unknown@example.com' && reviewId ? `
+                      <a href="#" 
+                         onclick="event.preventDefault(); window.openRespondPopup(${reviewId}, '${userEmail}', '${w.name}');"
+                         class="respond-link">
+                         Vraag om toelichting
+                      </a>
+                  ` : `<span style="display:block; margin-top:10px; font-size:smaller; color:#6c757d;">Reageren niet mogelijk (e-mail onbekend)</span>`}
+              `;
 
         reviewsList.appendChild(li);
       });
@@ -431,7 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
       reviewBox.innerHTML = '<p>Nog geen reviews</p>';
     }
   }
-
   // Fetch user info (email)
   async function getUserMail(userId) {
     try {
@@ -597,6 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
       reviewsPopup.style.display = "none";
     }
   }
+
+
   // =======================
   // Luister naar workshop updates
   // =======================

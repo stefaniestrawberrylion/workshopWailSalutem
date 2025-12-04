@@ -88,8 +88,7 @@ export class MailService {
         '[MailService] Fout bij verzenden algemene e-mail:',
         err.response?.body || err,
       );
-      // Fout opzettelijk niet her-gooien als u wilt dat de UserService doorgaat met verwijderen
-      // throw new Error('Fout bij verzenden e-mail.');
+      throw new Error('Fout bij verzenden e-mail.');
     }
   }
 }

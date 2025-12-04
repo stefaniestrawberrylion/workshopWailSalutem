@@ -1,5 +1,3 @@
-// review/presentation/controllers/review.controller.ts
-
 import {
   Body,
   Controller,
@@ -9,11 +7,17 @@ import {
   UseGuards,
   Req,
   NotFoundException,
+  HttpCode,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { ReviewService } from '../../application/review.service';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 import { ParseIntPipe } from '@nestjs/common';
+import { RespondToReviewDto } from '../dto/RespondToReviewDTO';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../../../security/presentation/guards/role.guard';
+import { Roles } from '../../../security/presentation/auth/role.decorator';
+import { Role } from '../../../security/domain/enums/role.enum';
 
 // Request type met user erin
 interface AuthRequest extends Request {
@@ -78,5 +82,21 @@ export class ReviewController {
     console.log('Found reviews:', reviews);
 
     return reviews;
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post(':id/respond')
+  @HttpCode(200)
+  async respondToReview(
+    @Param('id') reviewId: string,
+    @Body() dto: RespondToReviewDto,
+  ) {
+    return this.reviewService.respondToReview(
+      parseInt(reviewId),
+      dto.userEmail,
+      dto.workshopTitle,
+      dto.adminResponse,
+    );
   }
 }

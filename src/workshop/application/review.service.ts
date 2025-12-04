@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from '../domain/review.entity';
+import { MailService } from '../../mail/application/mail.service';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectRepository(Review)
     private readonly repo: Repository<Review>,
+    private readonly mailService: MailService,
   ) {}
 
   async createOrUpdateReview(
@@ -59,5 +61,36 @@ export class ReviewService {
 
   async getCountForWorkshop(workshopId: number) {
     return this.repo.count({ where: { workshopId } });
+  }
+
+  /**
+   * Verzend een reactie op een review en logt de actie.
+   * @param reviewId Het ID van de review.
+   * @param userEmail Het e-mailadres van de reviewer.
+   * @param workshopTitle De titel van de workshop (voor de e-mail template).
+   * @param adminResponse De bewerkte tekst van de admin.
+   */
+  async respondToReview(
+    reviewId: number,
+    userEmail: string,
+    workshopTitle: string, // Optioneel, voor de e-mailinhoud
+    adminResponse: string,
+  ) {
+    // 1. E-mail verzenden
+    const subject = `Vraag over uw review voor ${workshopTitle}`;
+
+    // De response tekst is de volledige bewerkte e-mail body
+    await this.mailService.sendGenericEmail(userEmail, subject, adminResponse);
+
+    // 2. Log de actie in de database
+    const review = await this.repo.findOneBy({ id: reviewId });
+    if (review) {
+      review.adminRespondedAt = new Date();
+      review.adminResponseText = adminResponse;
+      await this.repo.save(review);
+      return review;
+    }
+
+    throw new Error('Review niet gevonden.');
   }
 }

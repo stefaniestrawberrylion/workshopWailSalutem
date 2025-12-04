@@ -16,4 +16,9 @@ export class Review {
 
   @Column({ type: 'text' })
   text: string;
+  @Column({ type: 'timestamp', nullable: true })
+  adminRespondedAt: Date | null; // Wanneer de admin gereageerd heeft
+
+  @Column({ type: 'text', nullable: true })
+  adminResponseText: string | null;
 }

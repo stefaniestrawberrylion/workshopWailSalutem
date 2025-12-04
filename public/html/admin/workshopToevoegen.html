@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="/css/workshopAdmin/AddWorkshop.css">
     <link rel="stylesheet" href="/css/workshopAdmin/DetailWorkshop.css">
     <link rel="stylesheet" href="/css/workshopAdmin/OverView.css">
+    <link rel="stylesheet" href="/css/workshopAdmin/reviewResponce.css">
+
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -244,7 +246,36 @@
 <script src="/js/admin/workshop-viewer.js"></script>
 
 
+<div id="respondPopup" class="respond-popup" style="display:none;">
+    <div class="respond-popup-content">
+        <h3>Vraag om toelichting</h3>
+        <p>U staat op het punt een e-mail te sturen naar de reviewer om meer uitleg te vragen over de beoordeling.</p>
 
+        <form id="respondForm">
+            <input type="hidden" id="reviewUserEmail" name="userEmail">
+            <input type="hidden" id="reviewId" name="reviewId">
+
+            <label for="reviewWorkshopTitle" class="input-label">Titel workshop:</label>
+            <input type="text" id="reviewWorkshopTitle" name="workshopTitle" readonly>
+
+            <label for="adminResponse" class="input-label">Bericht aan de gebruiker:</label>
+            <textarea id="adminResponse" name="adminResponse" rows="6">
+Beste gebruiker,
+
+Bedankt voor uw review! We waarderen uw feedback enorm.
+Zou u ons misschien wat meer details kunnen geven over uw ervaring, zodat we onze service verder kunnen verbeteren? Alle toelichting is welkom.
+
+Met vriendelijke groet,
+Het team
+            </textarea>
+
+            <div class="popup-buttons" style="margin-top: 20px;">
+                <button type="submit" class="btn-primary">Verstuur reactie</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('respondPopup').style.display='none';">Annuleren</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>
