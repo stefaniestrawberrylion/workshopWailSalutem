@@ -380,25 +380,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const reviewsPopup = document.getElementById('reviewsPopup');
     const reviewsList = document.getElementById('reviewsList');
 
+    // Haal de nieuwe elementen op
     const respondPopup = document.getElementById('respondPopup');
     const respondForm = document.getElementById('respondForm');
 
     reviewBox.innerHTML = '';
     reviewsList.innerHTML = '';
 
-    // Sluit de detail popup wanneer de reviews popup opent (optioneel, voor betere UX)
+    // Klik om de algemene reviews popup te openen
     reviewBox.onclick = () => { reviewsPopup.style.display = 'flex'; };
 
     // --- Functie om de reageer-popup te openen ---
     function openRespondPopup(reviewId, userEmail, workshopTitle) {
       if (!respondPopup || !respondForm) {
         console.error("Respond popup of formulier niet gevonden in DOM.");
-        return;
-      }
-
-      // ⚠️ Nieuwe controle: is er een token?
-      if (!localStorage.getItem('jwt_token')) {
-        alert('U moet eerst inloggen als beheerder om te kunnen reageren.');
         return;
       }
 
@@ -418,10 +413,8 @@ Het team
 `;
 
       respondPopup.style.display = 'flex';
-      // Optioneel: verberg de reviews popup om verwarring te voorkomen
-      // reviewsPopup.style.display = 'none';
     }
-    // Maak de functie globaal bereikbaar
+    // Maak de functie globaal bereikbaar, zodat deze in de inline onclick gebruikt kan worden
     window.openRespondPopup = openRespondPopup;
     // ---------------------------------------------
 
@@ -439,67 +432,50 @@ Het team
         const workshopTitle = data.workshopTitle;
         const adminResponse = data.adminResponse;
 
-        // Haal de JWT token op
-        const token = localStorage.getItem('jwt_token');
-
-        if (!token) {
-          alert('Fout: Geen authenticatietoken gevonden. Gelieve opnieuw in te loggen.');
-          return;
-        }
-
         // Controleer of de benodigde data aanwezig is
         if (!reviewId || !userEmail || !workshopTitle || !adminResponse) {
           alert('Fout: Niet alle vereiste gegevens zijn aanwezig om te versturen.');
           return;
         }
 
-        try {
-          const response = await fetch(`/reviews/${reviewId}/respond`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              // 🔑 KRITISCHE AANPASSING: Voeg de Bearer token toe
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ userEmail, workshopTitle, adminResponse })
-          });
+        const token = localStorage.getItem('jwt'); // of hoe jij hem opslaat
+      try{
+        const response = await fetch(`${API_URL}/reviews/${reviewId}/respond`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userEmail, workshopTitle, adminResponse })
+        });
 
-          if (response.ok) {
-            alert('Reactie succesvol verstuurd!');
+
+        if (response.ok) {
+            alert('Reactie succesvol verstuurd naar de gebruiker!');
             respondPopup.style.display = 'none';
-            respondForm.reset();
+            respondForm.reset(); // Reset het formulier na succes
           } else {
-            // Dit vangt de 401 Unauthorized en 403 Forbidden af
             const error = await response.json();
-            // Geef een specifieker bericht voor de 401/403
-            if (response.status === 401) {
-              alert('Fout bij versturen: U bent niet geautoriseerd. Controleer of u bent ingelogd.');
-            } else if (response.status === 403) {
-              alert('Fout bij versturen: U heeft niet de vereiste Admin-rol.');
-            } else {
-              alert(`Fout bij versturen: ${error.message || response.statusText}`);
-            }
+            alert(`Fout bij versturen: ${error.message || response.statusText}`);
           }
         } catch (error) {
           console.error('Verzendfout:', error);
-          alert('Er is een netwerkfout opgetreden. Controleer uw verbinding.');
+          alert('Er is een netwerkfout opgetreden.');
         }
       };
     }
     // ----------------------------------------------------
 
 
-    // --- Logica om de reviews te tonen (onveranderd) ---
     if (w.reviews && w.reviews.length > 0) {
-      // ... (code voor review summary) ...
-
-      // Review summary
+      // Gemiddelde sterren
       const avg = w.reviews.reduce((s, r) => s + r.stars, 0) / w.reviews.length;
       const rounded = Math.round(avg);
       const stars =
         Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('') +
         Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
 
+      // Review summary
       reviewBox.innerHTML = `
               <div class="review-summary">
                   ${stars} <span>(${w.reviews.length}) reviews</span>
@@ -508,12 +484,14 @@ Het team
 
       // Reviews in popup
       w.reviews.forEach(async r => {
+        // ⚠️ BELANGRIJKE AANNAMES:
+        // 1. De review heeft een unieke ID: r.id
+        // 2. De workshop heeft een titel: w.title
         const reviewId = r.id;
 
-        // VUL DE FUNCTIE getUserMail IN
         const user = r.userId ? await getUserMail(r.userId) : { email: 'unknown@example.com' };
         const displayName = user.email || 'Onbekend';
-        const userEmail = user.email || 'unknown@example.com';
+        const userEmail = user.email || 'unknown@example.com'; // Gebruik 'unknown' als fallback
 
         const li = document.createElement('li');
         li.className = "review-item";

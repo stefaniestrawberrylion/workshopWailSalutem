@@ -75,15 +75,7 @@ export class WorkshopController {
     private readonly reviewService: ReviewService,
   ) {}
 
-  // =======================
-  // Test Auth
-  // =======================
-  @Get('test-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  testAuth(@Req() req: AuthenticatedRequest) {
-    return { user: req.user };
-  }
+
 
   // =======================
   // Alle workshops ophalen
