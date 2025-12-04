@@ -14,8 +14,6 @@ import { ReviewService } from '../../application/review.service';
 import { JwtAuthGuard } from '../../../security/presentation/guards/jwt-auth.guard';
 import { ParseIntPipe } from '@nestjs/common';
 import { RespondToReviewDto } from '../dto/RespondToReviewDTO';
-import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../../../security/presentation/guards/role.guard';
 import { Roles } from '../../../security/presentation/auth/role.decorator';
 import { Role } from '../../../security/domain/enums/role.enum';
 
@@ -84,7 +82,7 @@ export class ReviewController {
     return reviews;
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN)
   @Post(':id/respond')
   @HttpCode(200)

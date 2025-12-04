@@ -17,7 +17,7 @@ interface AuthRequest extends Request {
   };
 }
 
-@Controller('favorites') // Dit maakt de base route /favorites
+@Controller('favorites')
 @UseGuards(JwtAuthGuard)
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
