@@ -144,9 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =======================
-  // View workshop details
-  // =======================
   async function viewWorkshopDetails(id) {
     try {
       currentWorkshopId = id;
@@ -154,7 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${API_URL}/workshops/${id}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
+
+      // ✅ Sla de volledige workshop op inclusief quiz
       window.currentWorkshopData = w;
+      window.currentWorkshopData.quiz = w.quiz || []; // belangrijk voor quiz popup
 
       // Basis info
       document.getElementById('detailName').value = w.name;
@@ -176,13 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
         detailLabelPreview.appendChild(span);
       });
 
-      // Clear categorie-lijsten
+      // Documenten
       detailInstructionsList.innerHTML = '';
       detailManualsList.innerHTML = '';
       detailDemoList.innerHTML = '';
       detailWorksheetsList.innerHTML = '';
-
-      // Documenten
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => {
           const li = createDocumentListItem(f);
@@ -194,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Slideshow media
+      // Media slideshow
       const container = document.getElementById('detailMediaContainer');
       container.innerHTML = '';
       const mediaFiles = w.files || [];
@@ -205,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(el);
       });
 
-      // Reviews verwerken
+      // Reviews
       setupReviews(w);
 
       // Slideshow knoppen
@@ -699,6 +697,10 @@ Het team
   window.addEventListener('workshopsUpdated', () => {
     loadWorkshops();
   });
+
+
+
+
 
   // =======================
   // Init

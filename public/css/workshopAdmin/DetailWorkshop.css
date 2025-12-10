@@ -647,3 +647,179 @@
     top: 0;
     right: 15px;
 }
+
+
+
+/* ------------------------------------------------------------------- */
+/* KINDVRIENDELIJKE QUIZ POPUP STYLING (THEMAKLEUR #5481B7) */
+/* ------------------------------------------------------------------- */
+
+/* Overlay achtergrond */
+/* Overlay achtergrond volledig wit */
+.popupq {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* Wordt via JS beheerd */
+    background-color: #ffffff; /* helemaal wit */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    display: flex;
+}
+
+
+/* Popup container */
+.popupq-content {
+    background: #f0f4fa; /* zacht lichtblauw voor vriendelijke uitstraling */
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    overflow-y: auto;
+    position: relative; /* voor absolute close button */
+    font-family: "Comic Sans MS", cursive, sans-serif; /* speels lettertype */
+}
+
+/* Header */
+.popupq-content h2 {
+    margin: 0 0 20px 0;
+    color: #5481B7; /* thema kleur */
+    font-size: 1.8em;
+    text-align: center;
+}
+
+/* Close button - vriendelijk en speels */
+.close-quiz-popup {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background-color: #5481B7; /* thema kleur */
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.close-quiz-popup:hover {
+    background-color: #416899; /* iets donkerder bij hover */
+    transform: scale(1.1);
+}
+
+/* Quiz container */
+#quizContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Quiz vraagblokken */
+.quiz-question-block {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    background-color: #e6eff8; /* zachte achtergrond */
+    border: 1px solid #5481B7; /* thema kleur border */
+}
+
+/* Vraag header */
+.quiz-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.quiz-question-header h4 {
+    margin: 0;
+    flex-grow: 1;
+    color: #5481B7;
+    font-size: 1.2em;
+}
+
+/* Vraag input */
+.question-text-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #a0c0e0; /* zachte blauwe border */
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.question-text-input:focus {
+    border-color: #5481B7;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(84,129,183,0.2);
+}
+
+/* Antwoordopties */
+.answer-option-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.answer-option-input {
+    flex-grow: 1;
+    padding: 10px 12px;
+    border: 1px solid #a0c0e0;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.answer-option-input:focus {
+    border-color: #5481B7;
+    outline: none;
+}
+
+.is-correct-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #5481B7;
+}
+
+/* Knoppen */
+#submitQuizBtn {
+    margin-top: 15px;
+    padding: 12px 18px;
+    background: #5481B7; /* thema kleur */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.2s, transform 0.2s;
+
+}
+
+#submitQuizBtn:hover {
+    background-color: #416899; /* donkerder bij hover */
+    transform: scale(1.05);
+}
+
+/* Resultaat */
+#quizResult {
+    margin-top: 12px;
+    font-weight: bold;
+    color: #5481B7;
+    text-align: center;
+    font-size: 16px;
+}

@@ -408,6 +408,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ...selectedDemo.map(f => ({ name: makeSafeFileName(f.name), category: 'demo' })),
         ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
       ]));
+      if (window.currentWorkshopData?.quiz) {
+        formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+      }
 
       try {
         const token = localStorage.getItem("jwt");

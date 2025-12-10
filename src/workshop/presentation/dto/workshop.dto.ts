@@ -14,6 +14,7 @@ export class WorkshopDto {
   parentalConsent: boolean;
   averageStars?: number;
   reviewCount?: number;
+  quiz?: any[] | null;
   constructor(partial?: Partial<WorkshopDto>) {
     this.id = partial?.id ?? 0;
     this.name = partial?.name ?? '';
@@ -25,5 +26,6 @@ export class WorkshopDto {
     this.reviews = partial?.reviews ?? [];
     this.documents = partial?.documents ?? [];
     this.parentalConsent = partial?.parentalConsent ?? false;
+    this.quiz = partial?.quiz ?? null;
   }
 }

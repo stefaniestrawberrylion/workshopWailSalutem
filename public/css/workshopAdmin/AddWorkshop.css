@@ -317,3 +317,292 @@
 .category-file-list li button {
     margin-left: auto; /* duwt knop helemaal naar rechts */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ------------------------------------------------------------------- */
+/* 1. OVERLAY EN MODAL CONTAINER */
+/* ------------------------------------------------------------------- */
+.quiz-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* display: none; Dit wordt door JavaScript beheerd om te openen/sluiten */
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000; /* Zorg ervoor dat deze boven alle andere elementen ligt */
+}
+
+.quiz-modal {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 700px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Zorgt ervoor dat het past op kleinere schermen */
+}
+
+/* Header sectie */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    /* Achtergrond en titel kleur voor de look van de afbeelding */
+    background-color: #f8f9fa;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.quiz-header h3 {
+    margin: 0;
+    color: #4361ee; /* Blauwe kleur zoals in de afbeelding */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5em;
+}
+
+.close-quiz {
+    font-size: 28px;
+    font-weight: 200;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-quiz:hover {
+    color: #555;
+}
+
+/* Body (vragen container) */
+.quiz-body {
+    padding: 20px;
+    overflow-y: auto; /* Scrollen als er veel vragen zijn */
+    flex-grow: 1;
+}
+
+/* Footer (Opslaan/Annuleren buttons) */
+.quiz-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ------------------------------------------------------------------- */
+/* 2. STIJL VOOR ÉÉN VRAAGBLOK (Dynamisch toe te voegen) */
+/* ------------------------------------------------------------------- */
+.quiz-question-block {
+    margin-bottom: 20px;
+    padding: 0; /* Padding is niet nodig als het binnen de body zit */
+    border-bottom: 1px solid #eee; /* Gebruik een separator tussen vragen */
+}
+
+/* Vraag nummer en verwijderknop */
+.quiz-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.quiz-question-header h4 {
+    margin: 0;
+    flex-grow: 1;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.delete-q-btn {
+    background: none;
+    border: none;
+    color: #aaa; /* Vuilbak icoon kleur */
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.delete-q-btn:hover {
+    color: #dc3545; /* Rood bij hover */
+}
+
+/* Vraag invoerveld */
+.question-input-group {
+    margin-bottom: 20px;
+}
+
+.question-input-group label {
+    /* Dit label is in de HTML overbodig als de placeholder de instructie geeft */
+    display: none;
+}
+
+.question-text-input {
+    width: 100%;
+    padding: 12px 15px; /* Grotere padding voor de look */
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.question-text-input:focus {
+    border-color: #4361ee;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+
+/* Antwoordopties */
+.answer-options-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.answer-option-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.is-correct-checkbox {
+    /* Style de radiobutton om op de afbeelding te lijken */
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #4361ee;
+}
+
+.answer-option-input {
+    flex-grow: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.answer-option-input:focus {
+    border-color: #a0a0a0;
+    outline: none;
+}
+
+.delete-option-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+    line-height: 1;
+}
+
+.delete-option-btn:hover {
+    color: #c82333;
+}
+
+.add-option-btn {
+    background-color: white;
+    color: #4361ee;
+    border: none;
+    padding: 8px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    width: auto;
+}
+
+.add-option-btn:hover {
+    text-decoration: underline;
+}
+
+/* Vraag toevoegen knop (onderaan de body) */
+.add-q-btn {
+    width: 100%;
+    background-color: white;
+    color: #4361ee;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: all 0.2s;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-q-btn:hover {
+    color: #3b50c0;
+}
+
+/* Separator tussen vragen */
+.question-separator {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 20px 0;
+}
+
+
+/* Stijl de Opslaan/Annuleren knoppen in de footer */
+.btn-primary {
+    background-color: #4361ee;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #3b50c0;
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}

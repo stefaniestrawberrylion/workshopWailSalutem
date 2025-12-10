@@ -15,6 +15,7 @@ export interface MulterFile {
   size: number;
   path?: string;
   filename?: string;
+  quizJson?: string;
 }
 
 @Injectable()
@@ -72,6 +73,12 @@ export class WorkshopService {
     workshop.duration = data.duration;
     workshop.labelsJson = JSON.stringify(data.labels ?? []);
     workshop.parentalConsent = String(data.parentalConsent) === 'true';
+
+    if (data.quiz) {
+      workshop.quizJson =
+        typeof data.quiz === 'string' ? data.quiz : JSON.stringify(data.quiz);
+    }
+
     return this.workshopRepository.save(workshop);
   }
 

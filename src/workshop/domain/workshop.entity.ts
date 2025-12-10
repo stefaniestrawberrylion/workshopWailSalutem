@@ -30,4 +30,6 @@ export class Workshop {
 
   @OneToMany(() => Favorite, (favorite) => favorite.workshop)
   favorites: Favorite[];
+  @Column({ type: 'json', nullable: true })
+  quizJson: any;
 }

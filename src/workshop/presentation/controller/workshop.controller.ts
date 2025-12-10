@@ -75,8 +75,6 @@ export class WorkshopController {
     private readonly reviewService: ReviewService,
   ) {}
 
-
-
   // =======================
   // Alle workshops ophalen
   // =======================
@@ -175,6 +173,12 @@ export class WorkshopController {
             return { name: f.split('/').pop() ?? '', url: f, type };
           })
         : [],
+      quiz: Array.isArray(w.quizJson)
+        ? w.quizJson
+        : typeof w.quizJson === 'string'
+          ? JSON.parse(w.quizJson)
+          : null,
+
       documents:
         typeof w.documentsJson === 'string'
           ? JSON.parse(w.documentsJson)

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/workshopAdmin/reviewResponce.css">
 
 
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -127,6 +128,24 @@
                         <option value="Data">
                         <option value="Praktijk">
                         <option value="Theorie">
+                        <option value="SDG 1 - Geen armoede">
+                        <option value="SDG 2 - Geen honger">
+                        <option value="SDG 3 - Goede gezondheid en welzijn">
+                        <option value="SDG 4 - Kwaliteitsonderwijs">
+                        <option value="SDG 5 - Gendergelijkheid">
+                        <option value="SDG 6 - Schoon water en sanitair">
+                        <option value="SDG 7 - Betaalbare en duurzame energie">
+                        <option value="SDG 8 - Waardig werk en economische groei">
+                        <option value="SDG 9 - Industrie, innovatie en infrastructuur">
+                        <option value="SDG 10 - Ongelijkheid verminderen">
+                        <option value="SDG 11 - Duurzame steden en gemeenschappen">
+                        <option value="SDG 12 - Verantwoorde consumptie en productie">
+                        <option value="SDG 13 - Klimaatactie">
+                        <option value="SDG 14 - Leven in het water">
+                        <option value="SDG 15 - Leven op het land">
+                        <option value="SDG 16 - Vrede, justitie en sterke publieke diensten">
+                        <option value="SDG 17 - Partnerschap om de doelstellingen te bereiken">
+
 
 
 
@@ -142,7 +161,15 @@
                     <input type="checkbox" id="parentalConsent">
                     <span>Oudertoestemming verleend (onder 16 jaar)</span>
                 </label>
-
+                <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <label>Interactie</label>
+                    <button type="button" id="btnOpenQuizCreator" class="workshop-button">
+                        + Quiz Toevoegen
+                    </button>
+                    <span id="quizStatusText" style="font-size: 12px; color: green; display: none; margin-top: 5px;">
+        ✓ Quiz met <span id="quizQCount">0</span> vragen opgeslagen
+    </span>
+                </div>
                 <div class="popup-buttons">
                     <button class="btn-secondary" id="closePopupBtnCancel">Annuleren</button>
                     <button class="btn-primary" id="saveWorkshopBtn">Opslaan</button>
@@ -212,6 +239,19 @@
 
                     <div id="detailReviewBox"></div>
                 </div>
+                <button id="btnStartQuiz" class="quiz-start-btn" style="
+  margin-top:15px;
+  padding:10px 16px;
+  background:#5481B7;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+">
+                    Maak de quiz
+                </button>
+
 
                 <div class="popup-buttons">
                     <button class="btn-primary" id="updateWorkshopBtn">Opslaan</button>
@@ -244,6 +284,8 @@
 <button id="backToDashboardBtn" class="dashboard-button">⬅ Terug naar Dashboard</button>
 <script src="/js/admin/workshop-management.js"></script>
 <script src="/js/admin/workshop-viewer.js"></script>
+<script src="/js/admin/quiz.js"></script>
+
 
 
 <div id="respondPopup" class="respond-popup" style="display:none;">
@@ -276,6 +318,52 @@ Het team
         </form>
     </div>
 </div>
+
+
+<div id="modal-quiz-creator" class="quiz-overlay" style="display:none;">
+    <div class="quiz-modal">
+        <div class="quiz-header">
+            <h3>Quiz Aanmaken</h3>
+            <span class="close-quiz" onclick="closeQuizModals()">&times;</span>
+        </div>
+        <div class="quiz-body">
+            <div id="creator-questions-container"></div>
+            <button class="add-q-btn" onclick="addQuestionBlock()">+ Vraag toevoegen</button>
+        </div>
+        <div class="quiz-footer">
+            <button class="btn-secondary" onclick="closeQuizModals()">Annuleren</button>
+            <button class="btn-primary" onclick="saveQuizToForm()">Opslaan bij Workshop</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="quizPopup" class="popupq" style="display:none;">
+    <div class="popupq-content" style="max-width:600px;">
+        <span class="close-quiz-popup" style="cursor:pointer; float:right; font-size:22px;">✖</span>
+        <h2>Quiz</h2>
+
+        <div id="quizContainer"></div>
+
+        <button id="submitQuizBtn" style="
+      margin-top:15px;
+      padding:10px 16px;
+      background:#486c8a;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;">
+            Controleer antwoorden
+        </button>
+
+        <div id="quizResult" style="margin-top:10px; font-weight:bold;"></div>
+    </div>
+</div>
+
+
+
+
+
 
 </body>
 </html>
