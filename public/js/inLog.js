@@ -1,12 +1,55 @@
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("🟢 Login script geladen");
+
+  // ================== CUSTOM POPUP FUNCTIE ==================
+  const popupContainer = document.getElementById('customPopupContainer');
+
+ function showCustomPopup(message, type = 'error', duration = 5000) {
+    if (!popupContainer) {
+      return;
+    }
+
+    // Bestaande pop-ups verbergen/verwijderen
+    while (popupContainer.firstChild) {
+      popupContainer.removeChild(popupContainer.firstChild);
+    }
+
+    const popup = document.createElement('div');
+    popup.className = `custom-popup ${type}`;
+    popup.innerHTML = `
+      <p>${message}</p>
+      <span class="close-btn">&times;</span>
+    `;
+
+    // Voeg toe aan DOM
+    popupContainer.appendChild(popup);
+
+    // Zorgt voor de 'fade in'
+    requestAnimationFrame(() => {
+      popup.classList.add('visible');
+    });
+
+    // Event listener voor handmatig sluiten
+    popup.querySelector('.close-btn').addEventListener('click', () => {
+      popup.classList.remove('visible');
+      popup.classList.add('fading-out'); // Voor de animatie
+      setTimeout(() => popup.remove(), 300); // Wacht op CSS animatie
+      clearTimeout(timeoutId); // Annuleer automatisch verdwijnen
+    });
+
+    // Automatisch laten verdwijnen na 'duration'
+    const timeoutId = setTimeout(() => {
+      popup.classList.remove('visible');
+      popup.classList.add('fading-out'); // Voor de animatie
+      setTimeout(() => popup.remove(), 300); // Wacht op CSS animatie
+    }, duration);
+  }
+  // =========================================================
 
   // ================== API BASE URL ==================
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://workshoptest.wailsalutem-foundation.com";
-  console.log("Backend URL:", API_URL);
 
   // ================== PANEL SWITCHING ==================
   const cardContainer = document.getElementById('cardContainer');
@@ -35,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = document.querySelector(".login input[type='password']").value;
 
       if (!email || !password) {
-        alert("Vul e-mail en wachtwoord in!");
+        showCustomPopup("Vul e-mail en wachtwoord in!", 'error');
         return;
       }
 
@@ -59,22 +102,19 @@ document.addEventListener('DOMContentLoaded', () => {
             data.message ||
             data.error ||
             "Er ging iets mis bij het inloggen.";
-          alert(message);
-          console.error("❌ Login failed:", data);
+          showCustomPopup(message, 'error');
           return;
         }
 
         const token = data.access_token;
 
         if (!token) {
-          alert("⚠️ Geen token ontvangen van server!");
-          console.error("⚠️ Response bevat geen access_token", data);
+          showCustomPopup("⚠️ Geen token ontvangen van server!", 'error');
           return;
         }
 
         // 🔑 Token opslaan
         localStorage.setItem("jwt", token);
-        console.log("✅ Token opgeslagen in localStorage");
 
         // 🔍 Rol uitlezen
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -83,25 +123,25 @@ document.addEventListener('DOMContentLoaded', () => {
           : (payload.role ? [payload.role] : []);
         const rolesNormalized = roles.map(r => r.toUpperCase());
 
-        console.log("👤 Ingelogde rollen:", rolesNormalized);
-
-        // 🔀 Redirect
         if (rolesNormalized.includes('ADMIN')) {
-          alert('Welkom admin!');
-          window.location.href = '/dashboard';
+          showCustomPopup('Welkom admin!', 'success', 1000);
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000); // Wacht 1 seconde voordat je redirect
         } else if (rolesNormalized.includes('USER')) {
-          alert('Welkom gebruiker!');
-          window.location.href = '/dashboarduser';
+          showCustomPopup('Welkom gebruiker!', 'success', 1000);
+          setTimeout(() => {
+            window.location.href = '/dashboarduser';
+          }, 1000); // Wacht 1 seconde voordat je redirect
         } else {
-          alert('Onbekende rol!');
+          showCustomPopup('Onbekende rol!', 'error');
         }
 
       } catch (err) {
-        console.error("💥 Fout bij inloggen:", err);
-        alert("Fout bij inloggen. Controleer netwerk of backend.");
+        showCustomPopup("Fout bij inloggen. Controleer netwerk of backend.", 'error');
       }
     });
-    }
+  }
 
   // ================== REGISTRATIE ==================
   const sendEmailBtn = document.getElementById('sendEmail');
@@ -115,24 +155,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const phone = document.getElementById('phone').value.trim();
 
       if (!email || !password || !firstName || !lastName || !school || !phone) {
-        alert("Vul alle velden in!");
+        showCustomPopup("Vul alle velden in!", 'error');
         return;
       }
 
       if (email.toLowerCase().includes('admin')) {
-        alert("Gebruik geen e-mailadres met 'admin' erin. Dit is alleen voor beheerders.");
+        showCustomPopup("Dit e-mailadres is niet toegestaan voor registratie. Gebruik een ander adres.", 'error');
         return;
       }
 
       const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*]).{12,}$/;
       if (!pwdRegex.test(password)) {
-        alert("Wachtwoord voldoet niet aan de eisen! Minimaal 12 tekens, hoofdletter, kleine letter en speciaal teken.");
+        showCustomPopup("Wachtwoord voldoet niet aan de eisen! Minimaal 12 tekens, hoofdletter, kleine letter en speciaal teken.", 'error');
         return;
       }
 
       const lowerPwd = password.toLowerCase();
       if (lowerPwd.includes(firstName.toLowerCase()) || lowerPwd.includes(lastName.toLowerCase())) {
-        alert("Wachtwoord mag geen naam bevatten!");
+        showCustomPopup("Wachtwoord mag geen naam bevatten!", 'error');
         return;
       }
 
@@ -145,13 +185,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await response.json();
         if (data.success) {
-          alert("Je aanvraag is verstuurd! De admin zal deze goedkeuren.");
+          showCustomPopup("Je aanvraag is verstuurd! De admin zal deze goedkeuren.", 'success');
+          // Optioneel: Formulier resetten
+          document.getElementById('registrationForm').reset();
+          // Terug naar login scherm
+          cardContainer.classList.remove('show-email');
+          cardContainer.classList.add('reset');
         } else {
-          alert("Er is iets misgegaan: " + data.message);
+          showCustomPopup("Er is iets misgegaan: " + data.message, 'error');
         }
       } catch (err) {
-        console.error("💥 Fout bij versturen van registratieaanvraag:", err);
-        alert("Fout bij versturen van aanvraag.");
+        showCustomPopup("Fout bij versturen van aanvraag. Controleer netwerk of backend.", 'error');
       }
     });
   }

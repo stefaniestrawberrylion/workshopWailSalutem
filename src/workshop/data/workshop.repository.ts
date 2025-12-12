@@ -14,6 +14,13 @@ export class WorkshopRepository {
   async findAll(): Promise<Workshop[]> {
     return this.repo.find();
   }
+  // Nieuwste workshops ophalen (sorteren op createdAt)
+  async findNewest(limit: number): Promise<Workshop[]> {
+    return this.repo.find({
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
 
   // Workshop ophalen op basis van ID
   async findById(id: number): Promise<Workshop | null> {

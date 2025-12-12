@@ -1,95 +1,86 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+        <!DOCTYPE html>
+        <html lang="nl">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Dashboard</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/workshopUser/dashboardUser.css">
-</head>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+            <link rel="stylesheet" href="/css/workshopUser/dashboardUser.css">
+        </head>
 
-<body>
+        <body>
 
-<header class="header">
-    <div class="header-left">
-        <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
-        <img src="/image/logo.png" alt="Logo" class="logo">
-    </div>
-</header>
-
-<div class="page-wrapper">
-
-    <aside class="sidebar" id="sidebar">
-
-        <a href="/dashboarduser">
-            <i class="fas fa-home"></i>
-            <span class="sidebar-text">Dashboard</span>
-        </a>
-
-        <a href="/workshopuser">
-            <i class="fas fa-chalkboard"></i>
-            <span class="sidebar-text">Workshops</span>
-        </a>
-
-        <a href="/profiel">
-            <i class="fas fa-user"></i>
-            <span class="sidebar-text">Profiel</span>
-        </a>
-
-        <a href="#" id="logoutBtn" class="logout-btn">
-            <i class="fas fa-right-from-bracket"></i> <span class="sidebar-text">Uitloggen</span>
-        </a>
-
-    </aside>
-
-    <main class="content">
-
-        <h1>Welkom terug! 👋</h1>
-
-        <section class="card">
-            <div class="section-header">
-                <h2 class="card-title">📘 Recent Bekeken</h2>
+        <header class="header">
+            <div class="header-left">
+                <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                <img src="/image/logo.png" alt="Logo" class="logo">
             </div>
+        </header>
 
-            <div class="cards">
-                <div class="card-item">
-                    <h3>React Fundamentals</h3>
-                    <p>Leer de basis van React development met praktijkvoorbeelden.</p>
-                    <a class="btn" href="#">Bekijk Workshop</a>
-                </div>
+        <div class="page-wrapper">
 
-                <div class="card-item">
-                    <h3>UX Design Principles</h3>
-                    <p>Ontdek de kernprincipes van gebruiksvriendelijk design.</p>
-                    <a class="btn" href="#">Bekijk Workshop</a>
-                </div>
-            </div>
-        </section>
+            <aside class="sidebar" id="sidebar">
 
-        <section class="card">
-            <div class="section-header">
-                <h2 class="card-title">🔥 Populaire Workshops</h2>
-            </div>
+                <a href="/dashboarduser">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
 
-            <div class="cards">
-                <div class="card-item">
-                    <h3>TypeScript Mastery</h3>
-                    <p>Beheers TypeScript van basis tot gevorderde concepten.</p>
-                    <a class="btn" href="#">Bekijk Workshop</a>
-                </div>
+                <a href="/workshopuser">
+                    <i class="fas fa-chalkboard"></i>
+                    <span class="sidebar-text">Workshops</span>
+                </a>
 
-                <div class="card-item">
-                    <h3>Agile Project Management</h3>
-                    <p>Leer effectief projecten te managen met Agile methodologieën.</p>
-                    <a class="btn" href="#">Bekijk Workshop</a>
-                </div>
-            </div>
-        </section>
+                <a href="/profiel">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-text">Profiel</span>
+                </a>
 
-    </main>
-</div>
+                <a href="#" id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-right-from-bracket"></i> <span class="sidebar-text">Uitloggen</span>
+                </a>
 
-<script src="/js/user/dashboardUser.js"></script>
-</body>
-</html>
+            </aside>
+
+            <main class="content">
+
+                <h1>Welkom terug! 👋</h1>
+
+                <section class="card">
+                    <div class="section-header">
+                        <h2 class="card-title">❤️ Jouw Favorieten</h2>
+                    </div>
+                    <div class="cards" id="favoriteWorkshopsContainer">
+                        <div class="loading-message">Laden van favorieten...</div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="section-header">
+                        <h2 class="card-title">⭐ Top Gewaardeerde Workshops</h2>
+                    </div>
+                    <div class="cards" id="popularWorkshopsContainer">
+                        <div class="loading-message">Laden van populaire workshops...</div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="section-header">
+                        <h2 class="card-title">✨ Nieuw Toegevoegd</h2>
+                    </div>
+                    <div class="cards" id="newWorkshopsContainer">
+                        <div class="loading-message">Laden van nieuwe workshops...</div>
+                    </div>
+                </section>
+
+            </main>
+
+
+
+        </div>
+
+
+        <script src="/js/user/dashboardUser.js"></script>
+        </body>
+        </html>

@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   NotFoundException,
   Req,
+  Query,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
@@ -76,13 +77,57 @@ export class WorkshopController {
   ) {}
 
   // =======================
-  // Alle workshops ophalen
+  // NIEUW: Top Gewaardeerde Workshops (voor dashboard)
+  // =======================
+  @Get('top-rated')
+  async getTopRatedWorkshops(
+    @Query('limit') limit?: string,
+  ): Promise<WorkshopDto[]> {
+    const workshops = await this.workshopService.getTopRatedWorkshops(
+      parseInt(limit ?? '10', 10),
+    );
+
+    return Promise.all(
+      workshops.map(async (w) => {
+        const reviews = await this.reviewService.findByWorkshop(w.id);
+        return this.toDto(w, w.average, reviews.length, reviews);
+      }),
+    );
+  }
+
+  // =======================
+  // NIEUW: Nieuwste Workshops (voor dashboard)
+  // =======================
+  @Get('newest')
+  async getNewestWorkshops(
+    @Query('limit') limit?: string,
+  ): Promise<WorkshopDto[]> {
+    // FIX TS2345: Gebruik parseInt(limit ?? '2', 10) om undefined te voorkomen
+    const workshops = await this.workshopService.getNewestWorkshops(
+      parseInt(limit ?? '10', 10),
+    );
+
+    // FIX ESLint: Expliciet casten van Promise.all resultaat naar WorkshopDto[]
+    return Promise.all<WorkshopDto>(
+      workshops.map(async (w) => {
+        const average = await this.reviewService.getAverageForWorkshop(w.id);
+        const count = await this.reviewService.getCountForWorkshop(w.id);
+        const reviews = await this.reviewService.findByWorkshop(w.id);
+
+        return this.toDto(w, average, count, reviews);
+      }),
+    );
+  }
+
+  // =======================
+  // Alle workshops ophalen (Ongewijzigd)
   // =======================
   @Get()
   async getAllWorkshops(): Promise<WorkshopDto[]> {
     const workshops = await this.workshopService.getAllWorkshops();
 
-    return Promise.all(
+    // FIX ESLint: Expliciet casten van Promise.all resultaat naar WorkshopDto[]
+    return Promise.all<WorkshopDto>(
       workshops.map(async (w) => {
         const average = await this.reviewService.getAverageForWorkshop(w.id);
         const count = await this.reviewService.getCountForWorkshop(w.id);
@@ -148,7 +193,7 @@ export class WorkshopController {
   }
 
   // =======================
-  // Helper: DTO converter
+  // Helper: DTO converter (Ongewijzigd)
   // =======================
   private toDto(
     w: Workshop,

@@ -5,6 +5,7 @@ import { Workshop } from '../domain/workshop.entity';
 import { DocumentInfo } from '../domain/document-info.entity';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import { ReviewService } from './review.service';
 
 export interface MulterFile {
   fieldname: string;
@@ -25,11 +26,44 @@ export class WorkshopService {
     'wailSalutem.workshop-uploads',
   );
 
-  constructor(private readonly workshopRepository: WorkshopRepository) {}
+  constructor(
+    private readonly workshopRepository: WorkshopRepository,
+    private readonly reviewService: ReviewService,
+  ) {}
 
   async getAllWorkshops(): Promise<Workshop[]> {
     return this.workshopRepository.findAll();
   }
+
+  // ========================================================
+  // NIEUW: Oplossing voor TS2339 in WorkshopController
+  // LET OP: U moet de logica in deze twee methoden nog implementeren
+  // om daadwerkelijk op rating en datum te sorteren in de database.
+  // ========================================================
+
+  // WorkshopService.ts
+  async getTopRatedWorkshops(limit: number) {
+    const workshops = await this.workshopRepository.findAll();
+
+    const rated = await Promise.all(
+      workshops.map(async (w) => {
+        const average = await this.reviewService.getAverageForWorkshop(w.id);
+        return { ...w, average };
+      }),
+    );
+
+    const filtered = rated.filter((w) => w.average >= 4);
+
+    // Sorteer van hoog naar laag
+    filtered.sort((a, b) => b.average - a.average);
+
+    return filtered.slice(0, limit);
+  }
+  async getNewestWorkshops(limit: number): Promise<Workshop[]> {
+    return this.workshopRepository.findNewest(limit);
+  }
+
+  // ========================================================
 
   async getWorkshop(id: number): Promise<Workshop> {
     const workshop = await this.workshopRepository.findById(id);

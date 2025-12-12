@@ -32,4 +32,8 @@ export class Workshop {
   favorites: Favorite[];
   @Column({ type: 'json', nullable: true })
   quizJson: any;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
 }
