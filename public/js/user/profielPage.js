@@ -201,7 +201,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // --- LOGOUT MODAL ---
+  // --- LOGOUT MODAL LOGICA ---
   const logoutBtn = document.getElementById("logoutBtn");
   const logoutModal = document.getElementById('logoutModal');
   const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
@@ -212,29 +212,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (logoutModal) logoutModal.style.display = 'none';
   }
 
-  function openModal(e) {
-    if (e) e.preventDefault();
-    if (logoutModal) logoutModal.style.display = 'flex';
-  }
-
-  if (logoutBtn) logoutBtn.addEventListener('click', openModal);
-  if (cancelLogoutBtn) cancelLogoutBtn.addEventListener('click', closeModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-
-  if (logoutModal) {
-    window.addEventListener('click', (event) => {
-      if (event.target === logoutModal) closeModal();
+  // Open modal
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (logoutModal) logoutModal.style.display = 'flex';
     });
   }
 
+  // Sluit modal
+  if (cancelLogoutBtn) cancelLogoutBtn.addEventListener('click', closeModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  window.addEventListener('click', (event) => {
+    if (event.target === logoutModal) closeModal();
+  });
+
+  // Bevestig logout
   if (confirmLogoutBtn) {
-    confirmLogoutBtn.addEventListener('click', async () => {
-      const confirm = await showConfirm('Weet je zeker dat je wilt uitloggen?');
-      if (confirm) {
-        localStorage.removeItem('jwt');
-        closeModal();
-        window.location.href = "/";
-      }
+    confirmLogoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('jwt');
+      closeModal();
+      window.location.href = "/";
     });
   }
 
