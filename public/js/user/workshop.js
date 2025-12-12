@@ -92,23 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Voor andere bestanden (fallback: download)
     else {
-      alert('Preview niet beschikbaar, download het bestand om te bekijken.');
+      window.showPopup("Preview niet beschikbaar, download het bestand om te bekijken.");
       window.open(fileUrl, '_blank');
     }
   };
-
-  // =======================
-  // Sidebar en navigatie
-  // =======================
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      localStorage.removeItem('jwt');
-      alert("Je bent uitgelogd!");
-      window.location.href = "/";
-    });
-  }
 
   const toggleBtn = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
@@ -134,4 +121,112 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = "/dashboard";
     });
   }
+
+  window.showPopup = function(message, type = 'info') {
+    // type kan 'info', 'success', 'error' zijn
+    let container = document.getElementById('customPopupContainer');
+    if (!container) {
+      // Maak het container element aan als het nog niet bestaat
+      container = document.createElement('div');
+      container.id = 'customPopupContainer';
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        padding: '12px 20px',
+        borderRadius: '6px',
+        zIndex: 9999,
+        color: '#fff',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        minWidth: '200px',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+      });
+      document.body.appendChild(container);
+    }
+
+    // Achtergrondkleur op basis van type
+    switch(type) {
+      case 'success': container.style.backgroundColor = '#28a745'; break;
+      case 'error': container.style.backgroundColor = '#dc3545'; break;
+      default: container.style.backgroundColor = '#007bff'; // info
+    }
+
+    container.textContent = message;
+    container.style.display = 'flex';
+
+    // Auto hide na 4 seconden
+    clearTimeout(window.popupTimeout);
+    window.popupTimeout = setTimeout(() => {
+      container.style.display = 'none';
+    }, 4000);
+
+    // Klik om te sluiten
+    container.onclick = () => container.style.display = 'none';
+  };
+
+
+
+
+  // NIEUWE LOGOUT MET CUSTOM MODAL
+  const logoutBtn = document.getElementById("logoutBtn");
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+  const closeBtn = logoutModal ? logoutModal.querySelector('.close-btn') : null;
+
+  // Functie om de modal te sluiten
+  function closeModal() {
+    if (logoutModal) {
+      logoutModal.style.display = 'none';
+    }
+  }
+
+  // Functie om de modal te openen
+  function openModal(e) {
+    if (e) e.preventDefault();
+    if (logoutModal) {
+      logoutModal.style.display = 'flex'; // Gebruik 'flex' voor centering
+    }
+  }
+
+  // Uitlogknop in de sidebar
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', openModal);
+  }
+
+  // Annuleren/Sluiten knoppen
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', closeModal);
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+
+  // Sluiten wanneer de gebruiker buiten de modal klikt
+  if (logoutModal) {
+    window.addEventListener('click', (event) => {
+      if (event.target === logoutModal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Bevestigen en uitloggen
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+      // 1. Verwijder de JWT
+      localStorage.removeItem('jwt');
+
+      // 2. Sluit de pop-up
+      closeModal();
+
+
+      // 4. Redirect naar de homepage
+      window.location.href = "/";
+    });
+  }
+
 });

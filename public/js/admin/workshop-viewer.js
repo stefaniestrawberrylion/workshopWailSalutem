@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const workshops = await res.json();
       renderWorkshops(workshops);
     } catch (e) {
-      console.error(e.message);
+      showAlert("Niet gevonden")
     }
   }
 
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       detailsPopup.style.display = 'flex';
     } catch (e) {
-      console.error(e.message);
+      showAlert("Niet gevonden");
     }
   }
 
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Functie om de reageer-popup te openen ---
     function openRespondPopup(reviewId, userEmail, workshopTitle) {
       if (!respondPopup || !respondForm) {
-        console.error("Respond popup of formulier niet gevonden in DOM.");
+        showAlert("Niet gevonden")
         return;
       }
 
@@ -430,11 +430,11 @@ Het team
         const workshopTitle = data.workshopTitle;
         const adminResponse = data.adminResponse;
 
-        // Controleer of de benodigde data aanwezig is
         if (!reviewId || !userEmail || !workshopTitle || !adminResponse) {
-          alert('Fout: Niet alle vereiste gegevens zijn aanwezig om te versturen.');
+          await showAlert('Fout: Niet alle vereiste gegevens zijn aanwezig om te versturen.');
           return;
         }
+
 
         const token = localStorage.getItem('jwt'); // of hoe jij hem opslaat
       try{
@@ -449,17 +449,18 @@ Het team
 
 
         if (response.ok) {
-            alert('Reactie succesvol verstuurd naar de gebruiker!');
-            respondPopup.style.display = 'none';
-            respondForm.reset(); // Reset het formulier na succes
-          } else {
-            const error = await response.json();
-            alert(`Fout bij versturen: ${error.message || response.statusText}`);
-          }
-        } catch (error) {
-          console.error('Verzendfout:', error);
-          alert('Er is een netwerkfout opgetreden.');
+          await showAlert('Reactie succesvol verstuurd naar de gebruiker!');
+          respondPopup.style.display = 'none';
+          respondForm.reset();
+        } else {
+          const error = await response.json();
+          await showAlert(`Fout bij versturen: ${error.message || response.statusText}`);
         }
+
+      } catch (error) {
+        await showAlert('Er is een netwerkfout opgetreden.');
+      }
+
       };
     }
     // ----------------------------------------------------
@@ -542,8 +543,9 @@ Het team
   if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
       if (!currentWorkshopId) return;
-      const confirmDelete = confirm('Weet je zeker dat je deze workshop wilt verwijderen?');
+      const confirmDelete = await showConfirm('Weet je zeker dat je deze workshop wilt verwijderen?');
       if (!confirmDelete) return;
+
 
       try {
         const res = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
@@ -556,9 +558,8 @@ Het team
         detailsPopup.style.display = 'none';
         clearDetailsPopup();
         await loadWorkshops();
-        alert('Workshop succesvol verwijderd!');
-      } catch (e) {
-        alert(e.message);
+     } catch (e) {
+        showAlert("fout")
       }
     });
   }
@@ -700,6 +701,42 @@ Het team
 
 
 
+  function showAlert(message) {
+    return new Promise(resolve => {
+      const alertModal = document.getElementById('customAlert');
+      const alertMsg = document.getElementById('customAlertMessage');
+      const okBtn = document.getElementById('customAlertOk');
+
+      alertMsg.textContent = message;
+      alertModal.style.display = 'flex';
+
+      okBtn.onclick = () => {
+        alertModal.style.display = 'none';
+        resolve();
+      };
+    });
+  }
+
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const confirmModal = document.getElementById('customConfirm');
+      const confirmMsg = document.getElementById('customConfirmMessage');
+      const yesBtn = document.getElementById('customConfirmYes');
+      const noBtn = document.getElementById('customConfirmNo');
+
+      confirmMsg.textContent = message;
+      confirmModal.style.display = 'flex';
+
+      yesBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(false);
+      };
+    });
+  }
 
 
   // =======================

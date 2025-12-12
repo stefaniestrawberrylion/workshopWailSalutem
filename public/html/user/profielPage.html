@@ -6,6 +6,8 @@
   <title>Profiel</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/workshopUser/profielPage.css">
+  <link rel="stylesheet" href="/css/workshopUser/logout.css">
+
 </head>
 <body>
 
@@ -86,6 +88,35 @@
     </div>
 
   </main>
+</div>
+
+<div id="logoutModal" class="custom-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="fas fa-bed"></i>
+      </div>
+      <span class="close-btn">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Weet je zeker dat je wilt uitloggen?</p>
+    </div>
+    <div class="modal-footer">
+      <button id="cancelLogoutBtn" class="modal-btn modal-btn-cancel">Annuleren</button>
+      <button id="confirmLogoutBtn" class="modal-btn modal-btn-confirm">Ja</button>
+    </div>
+  </div>
+</div>
+
+<div id="customModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <span class="custom-close">&times;</span>
+    <p id="customModalMessage"></p>
+    <div class="custom-modal-buttons">
+      <button id="customModalOk">OK</button>
+      <button id="customModalCancel" style="display:none;">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script src="/js/user/profielPage.js"></script>

@@ -162,23 +162,32 @@ h1 {
     box-sizing: border-box; /* zorgt dat border binnen de afmetingen valt */
     background-color: #ddd;
 }
+#backBtnContainer {
+    display: flex;
+    justify-content: flex-start; /* links uitlijnen */
+    padding: 20px; /* optioneel */
+}
 
 #backBtn {
     background-color: var(--theme-color);
     color: white;
     border: none;
-    border-radius: 25px;
+    border-radius: 20px;
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
+    display: inline-block;
+    margin: 20px 0 20px 20px;
+    left: 10px;
 }
 
 #backBtn:hover {
     background-color: #3f689b;
     transform: scale(1.05);
 }
+
 
 @keyframes fadeIn {
     from {opacity: 0;}
@@ -188,4 +197,54 @@ h1 {
 @keyframes slideIn {
     from {transform: translateY(-20px);}
     to {transform: translateY(0);}
+}
+
+
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ffffff;
+    color: #b62525;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: none;
+    z-index: 1000;
+}
+
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.modal-content { background: #fff; margin: 15% auto; padding: 20px; width: 300px; border-radius: 5px; text-align: center; }
+
+
+
+/* Confirm modal buttons */
+#confirmYes, #confirmNo {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+#confirmYes {
+    background-color: #4171aa; /* groen */
+    color: white;
+}
+
+#confirmYes:hover {
+    background-color: #4171aa;
+    transform: scale(1.05);
+}
+
+#confirmNo {
+    background-color: #f44336; /* rood */
+    color: white;
+}
+
+#confirmNo:hover {
+    background-color: #d32f2f;
+    transform: scale(1.05);
 }

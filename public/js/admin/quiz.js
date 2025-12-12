@@ -1,6 +1,3 @@
-// =======================
-// QUIZ MODULE (VIEWER + CREATOR)
-// =======================
 document.addEventListener("DOMContentLoaded", () => {
   // =======================
   // DOM ELEMENTS
@@ -10,15 +7,62 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitQuizBtn = document.getElementById("submitQuizBtn");
   const quizResult = document.getElementById("quizResult");
   const btnStartQuiz = document.getElementById("btnStartQuiz");
-  window.currentWorkshopData = window.currentWorkshopData || {};
+  let currentWorkshopData = window.currentWorkshopData || {};
+
+  // =======================
+  // CUSTOM ALERTS / CONFIRMS
+  // =======================
+  async function showMessage(message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("customAlert");
+      const msgEl = document.getElementById("customAlertMessage");
+      const okBtn = document.getElementById("customAlertOk");
+
+      msgEl.textContent = message;
+      modal.style.display = "flex";
+
+      okBtn.onclick = () => {
+        modal.style.display = "none";
+        resolve();
+      };
+    });
+  }
+
+  async function showConfirm(message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("customConfirm");
+      const msgEl = document.getElementById("customConfirmMessage");
+      const yesBtn = document.getElementById("customConfirmYes");
+      const noBtn = document.getElementById("customConfirmNo");
+
+      msgEl.textContent = message;
+      modal.style.display = "flex";
+
+      yesBtn.onclick = () => {
+        modal.style.display = "none";
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        modal.style.display = "none";
+        resolve(false);
+      };
+    });
+  }
+
   // =======================
   // QUIZ VIEWER
   // =======================
   if (btnStartQuiz) {
-    btnStartQuiz.addEventListener("click", () => {
-      const quiz = window.currentWorkshopData?.quiz || [];
+    btnStartQuiz.addEventListener("click", async () => {
+      const quiz = currentWorkshopData?.quiz || [];
+
       if (quiz.length === 0) {
-        alert("Deze workshop heeft nog geen quiz!");
+        const createQuiz = await showConfirm(
+          "Deze workshop heeft nog geen quiz. Wil je er een aanmaken?"
+        );
+        if (createQuiz) {
+          openQuizCreator();
+        }
         return;
       }
 
@@ -55,31 +99,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (submitQuizBtn) {
     submitQuizBtn.addEventListener("click", () => {
-      const quiz = window.currentWorkshopData?.quiz || [];
+      const quiz = currentWorkshopData?.quiz || [];
       let correctCount = 0;
 
-      // Loop over alle vragen
       quiz.forEach((q, index) => {
         const selected = document.querySelector(`input[name="quiz-q${index}"]:checked`);
-        const questionBlock = quizContainer.children[index]; // het div element van de vraag
+        const questionBlock = quizContainer.children[index];
 
-        // Reset kleuren eerst
-        if (questionBlock) {
-          questionBlock.style.backgroundColor = "#f0f4fa"; // standaard achtergrond
-        }
+        if (questionBlock) questionBlock.style.backgroundColor = "#f0f4fa";
 
         if (!selected) {
-          // Niet ingevuld → rood
-          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da"; // licht rood
+          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da";
           return;
         }
 
         const chosen = Number(selected.value);
         if (q.options[chosen]?.correct) {
           correctCount++;
-          if (questionBlock) questionBlock.style.backgroundColor = "#d4edda"; // licht groen
+          if (questionBlock) questionBlock.style.backgroundColor = "#d4edda";
         } else {
-          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da"; // licht rood
+          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da";
         }
       });
 
@@ -118,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML = "";
     questionCount = 0;
 
-    const existingQuiz = window.currentWorkshopData?.quiz || [];
+    const existingQuiz = currentWorkshopData?.quiz || [];
     if (existingQuiz.length > 0) {
       existingQuiz.forEach((q) => {
         addQuestionBlock();
@@ -145,9 +184,9 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   }
 
-  function addQuestionBlock() {
+  async function addQuestionBlock() {
     if (questionCount >= MAX_QUESTIONS) {
-      alert(`Je kunt maximaal ${MAX_QUESTIONS} vragen aanmaken.`);
+      await showMessage(`Je kunt maximaal ${MAX_QUESTIONS} vragen aanmaken.`);
       return;
     }
     questionCount++;
@@ -181,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
     container.appendChild(block);
 
     const deleteBtn = block.querySelector(".delete-q-btn");
-    if (deleteBtn) deleteBtn.addEventListener("click", () => deleteQuestion(block));
+    if (deleteBtn) deleteBtn.addEventListener("click", async () => await deleteQuestion(block));
 
     const addOptionBtn = block.querySelector(".add-option-btn");
     if (addOptionBtn) addOptionBtn.addEventListener("click", () => addOption(block));
@@ -191,12 +230,16 @@ document.addEventListener("DOMContentLoaded", () => {
     addOption(block);
   }
 
-  function deleteQuestion(block) {
+  async function deleteQuestion(block) {
     const blocks = document.querySelectorAll(".quiz-question-block");
     if (blocks.length <= MIN_QUESTIONS) {
-      alert(`Er moeten minimaal ${MIN_QUESTIONS} vragen zijn.`);
+      await showMessage(`Er moeten minimaal ${MIN_QUESTIONS} vragen zijn.`);
       return;
     }
+
+    const confirmed = await showConfirm("Weet je zeker dat je deze vraag wilt verwijderen?");
+    if (!confirmed) return;
+
     block.remove();
     questionCount--;
     renumberQuestions();
@@ -236,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteOptionBtn) deleteOptionBtn.addEventListener("click", () => optionRow.remove());
   }
 
-  function saveQuizToForm() {
+  async function saveQuizToForm() {
     const quiz = [];
     document.querySelectorAll(".quiz-question-block").forEach((block) => {
       const questionText = block.querySelector(".question-text-input")?.value || "";
@@ -254,10 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
       hiddenInput.value = JSON.stringify(quiz);
     }
 
-    window.currentWorkshopData = window.currentWorkshopData || {};
-    window.currentWorkshopData.quiz = quiz;
+    currentWorkshopData.quiz = quiz;
 
-    alert("Quiz is opgeslagen en wordt meegestuurd bij de workshop.");
+    await showMessage("Quiz is opgeslagen en wordt meegestuurd bij de workshop.");
     closeQuizModals();
   }
 

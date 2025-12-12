@@ -25,6 +25,52 @@
       const favoritesBtn = document.getElementById('favoritesBtn');
       const noResultsMsg = document.getElementById('no-results');
 
+
+      // =======================
+// Popup modal voor alerts en confirms
+// =======================
+      window.popupAlert = function(message) {
+        return new Promise(resolve => {
+          const modal = document.getElementById('popupModal');
+          const msg = document.getElementById('popupModalMessage');
+          const okBtn = document.getElementById('popupModalOk');
+          const cancelBtn = document.getElementById('popupModalCancel');
+
+          msg.textContent = message;
+          cancelBtn.style.display = 'none';
+          modal.style.display = 'flex';
+
+          okBtn.onclick = () => {
+            modal.style.display = 'none';
+            resolve();
+          };
+        });
+      };
+
+      window.popupConfirm = function(message) {
+        return new Promise(resolve => {
+          const modal = document.getElementById('popupModal');
+          const msg = document.getElementById('popupModalMessage');
+          const okBtn = document.getElementById('popupModalOk');
+          const cancelBtn = document.getElementById('popupModalCancel');
+
+          msg.textContent = message;
+          cancelBtn.style.display = 'inline-block';
+          modal.style.display = 'flex';
+
+          okBtn.onclick = () => {
+            modal.style.display = 'none';
+            resolve(true);
+          };
+
+          cancelBtn.onclick = () => {
+            modal.style.display = 'none';
+            resolve(false);
+          };
+        });
+      };
+
+
       // =======================
       // Globale variabelen
       // =======================
@@ -49,8 +95,9 @@
           filterAndRenderWorkshops(workshops);
 
         } catch (e) {
-          alert(e.message);
+          await window.popupAlert(e.message);
         }
+
       }
 
       // NIEUW: Favoriete workshops laden
@@ -80,10 +127,11 @@
           userFavorites = favorites.map(fav => fav.workshop.id);
 
         } catch (e) {
-          console.error('Kon favorieten van gebruiker niet laden:', e.message);
-          userFavorites = [];
+          await window.popupAlert('Kon favorieten niet laden: ' + e.message);
         }
+
       }
+
 
       // NIEUW: Favoriete workshops ophalen en tonen
       async function loadFavoriteWorkshops() {
@@ -102,7 +150,7 @@
           filterAndRenderWorkshops(favoriteWorkshops);
 
         } catch (e) {
-          alert('Kon favorieten niet laden: ' + e.message);
+          await window.popupAlert('Kon favorieten niet laden: ' + e.message);
         }
       }
 
@@ -268,8 +316,7 @@
               }
 
             } catch (err) {
-              console.error('Kon favoriete status niet opslaan:', err.message);
-              alert('Fout bij het opslaan van de favoriete status.');
+              await window.popupAlert('Fout bij het opslaan van de favoriete status.');
               // Terugdraaien van de UI als de API faalt
               likeBadge.textContent = liked ? '♡' : '❤️';
             }
@@ -356,7 +403,7 @@
 
           detailsPopup.style.display = 'flex';
         } catch (e) {
-          alert(e.message);
+          await window.popupAlert(e.message);
         }
       }
 
@@ -625,13 +672,13 @@
 
       // Review opslaan
       async function submitReview() {
-        if (!window.currentWorkshopId) return alert("Geen workshop geselecteerd.");
+        if (!window.currentWorkshopId) return await window.popupAlert("Geen workshop geselecteerd.");
 
         const text = document.getElementById("reviewText").value.trim();
-        if (window.selectedStars === 0) return alert("Selecteer een aantal sterren.");
+        if (window.selectedStars === 0) return await window.popupAlert("Selecteer een aantal sterren.");
 
         const token = localStorage.getItem("jwt");
-        if (!token) return alert("Je moet ingelogd zijn.");
+        if (!token) return await window.popupAlert("Je moet ingelogd zijn.");
 
         try {
           const res = await fetch(`${window.API_URL}/reviews`, {
@@ -660,10 +707,10 @@
           }
 
           await loadReviews(window.currentWorkshopId);
-          alert("Review opgeslagen!");
+          await window.popupAlert("Review opgeslagen!");
           closeReviewPopup();
         } catch (err) {
-          alert("Er ging iets mis bij opslaan. Details: " + err.message);
+          await window.popupAlert("Er ging iets mis bij opslaan. Details: " + err.message);
         }
       }
 

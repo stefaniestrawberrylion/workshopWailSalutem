@@ -14,7 +14,7 @@
     <input type="text" id="searchInput" placeholder="Zoek gebruikers...">
   </div>
 </header>
-<div style="text-align: center; margin: 20px 0;">
+<div>
   <button id="backBtn">⬅ Terug naar dashboard</button>
 </div>
 <h1>Gebruikersprofielen</h1>
@@ -31,6 +31,20 @@
     <p id="modalPhone"></p>
   </div>
 </div>
+
+<!-- Notification -->
+<div id="notification" class="notification"></div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <p id="confirmMessage"></p>
+    <button id="confirmYes">Ja</button>
+    <button id="confirmNo">Nee</button>
+  </div>
+</div>
+
+
 
 <script src="/js/admin/gebruikersProfiel.js"></script>
 </body>

@@ -700,3 +700,47 @@ input.form-input{
 }
 .btn-primary{ background:var(--accent); color:white; box-shadow:0 6px 18px rgba(109,40,217,0.12); }
 .btn-danger{ background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+
+
+
+
+
+.custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.custom-modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    max-width: 80%;
+    text-align: center;
+    position: relative;
+}
+
+.custom-modal-buttons {
+    margin-top: 15px;
+}
+
+.custom-modal-buttons button {
+    margin: 0 10px;
+    padding: 5px 15px;
+}
+
+.custom-close {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}

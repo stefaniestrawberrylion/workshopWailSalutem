@@ -1,33 +1,34 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // =======================
-  // API Base URL
-  // =======================
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3000"
       : "https://workshoptest.wailsalutem-foundation.com";
 
-
-  // =======================
-  // Token check
-  // =======================
   const token = localStorage.getItem("jwt");
 
+  const showNotification = (message, type = "info") => {
+    const notificationsDiv = document.getElementById("notifications");
+    const notif = document.createElement("div");
+    notif.textContent = message;
+    notif.className = `notification ${type}`; // types: info, success, error
+    notificationsDiv.appendChild(notif);
+    setTimeout(() => notif.remove(), 5000);
+  };
+
   if (!token) {
-    alert("Niet ingelogd!");
-    window.location.href = "/inlog";
+    showNotification("Niet ingelogd!", "error");
+    setTimeout(() => window.location.href = "/inlog", 2000);
     return;
   }
 
   try {
-    // Decode token payload
     const payload = JSON.parse(atob(token.split(".")[1]));
     const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
 
     if (!roles.includes("ADMIN")) {
-      alert("Geen toegang!");
-      window.location.href = "/dashboarduser";
+      showNotification("Geen toegang!", "error");
+      setTimeout(() => window.location.href = "/dashboarduser", 2000);
       return;
     }
 
@@ -36,21 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "/inlog";
     return;
   }
-//log out
-  const logoutButton = document.getElementById("logoutButton");
-  if (logoutButton) {
-    logoutButton.addEventListener("click", () => {
-      if (confirm("Weet je zeker dat je wilt uitloggen?")) {
-        localStorage.removeItem("jwt");
-        window.location.href = "/";
-      }
-    });
-  }
-  // =======================
-  // Fetch Pending Users
-  // =======================
-  async function fetchPendingUsers() {
 
+  async function fetchPendingUsers() {
     try {
       const response = await fetch(`${API_URL}/register/pending`, {
         headers: { "Authorization": `Bearer ${token}` },
@@ -62,9 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      if (!response.ok) {
-        return;
-      }
+      if (!response.ok) return;
 
       const users = await response.json();
 
@@ -74,12 +60,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificationsDiv.innerHTML = "";
 
       users.forEach(user => {
-        // Notificatie
         const notif = document.createElement("div");
         notif.textContent = `Nieuwe aanmelding: ${user.firstName} ${user.lastName}`;
+        notif.className = "notification info";
         notificationsDiv.appendChild(notif);
 
-        // Table row
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${user.firstName} ${user.lastName}</td>
@@ -95,12 +80,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
     } catch (err) {
+      showNotification("Fout bij ophalen van gebruikers.", "error");
     }
   }
 
-  // =======================
-  // Approve User
-  // =======================
   window.approveUser = async function (userId) {
     try {
       const response = await fetch(`${API_URL}/register/approve/${userId}`, {
@@ -109,25 +92,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (response.status === 401) {
-        alert("Sessie verlopen. Log opnieuw in.");
+        showNotification("Sessie verlopen. Log opnieuw in.", "error");
         localStorage.removeItem("jwt");
-        window.location.href = "/inlog";
+        setTimeout(() => window.location.href = "/inlog", 2000);
         return;
       }
 
       if (response.ok) {
-        alert("Gebruiker goedgekeurd!");
+        showNotification("Gebruiker goedgekeurd!", "success");
         fetchPendingUsers();
       } else {
-        alert("Fout bij goedkeuren gebruiker.");
+        showNotification("Fout bij goedkeuren gebruiker.", "error");
       }
     } catch (err) {
+      showNotification("Fout bij goedkeuren gebruiker.", "error");
     }
   };
 
-  // =======================
-  // Deny User
-  // =======================
   window.denyUser = async function (userId) {
     try {
       const response = await fetch(`${API_URL}/register/deny/${userId}`, {
@@ -136,25 +117,52 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (response.status === 401) {
-        alert("Sessie verlopen. Log opnieuw in.");
+        showNotification("Sessie verlopen. Log opnieuw in.", "error");
         localStorage.removeItem("jwt");
-        window.location.href = "/inlog";
+        setTimeout(() => window.location.href = "/inlog", 2000);
         return;
       }
 
       if (response.ok) {
-        alert("Gebruiker afgekeurd!");
+        showNotification("Gebruiker afgekeurd!", "success");
         fetchPendingUsers();
       } else {
-        alert("Fout bij afkeuren gebruiker.");
+        showNotification("Fout bij afkeuren gebruiker.", "error");
       }
     } catch (err) {
+      showNotification("Fout bij afkeuren gebruiker.", "error");
     }
   };
 
-  // =======================
-  // Auto load pending users
-  // =======================
   await fetchPendingUsers();
+
+  const logoutButton = document.getElementById("logoutButton");
+  const logoutModal = document.getElementById("logoutModal");
+  const confirmLogout = document.getElementById("confirmLogout");
+  const cancelLogout = document.getElementById("cancelLogout");
+
+  if (logoutButton && logoutModal) {
+    logoutButton.addEventListener("click", () => {
+      logoutModal.style.display = "block";
+    });
+
+    confirmLogout.addEventListener("click", () => {
+      localStorage.removeItem("jwt");
+      window.location.href = "/";
+    });
+
+    cancelLogout.addEventListener("click", () => {
+      logoutModal.style.display = "none";
+    });
+
+    // Klik buiten de modal sluit het
+    window.addEventListener("click", (e) => {
+      if (e.target === logoutModal) {
+        logoutModal.style.display = "none";
+      }
+    });
+  }
+
+
 
 });
