@@ -13,8 +13,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     notif.textContent = message;
     notif.className = `notification ${type}`; // types: info, success, error
     notificationsDiv.appendChild(notif);
-    setTimeout(() => notif.remove(), 5000);
+
+    // 2 seconden zichtbaar
+    setTimeout(() => notif.remove(), 2000);
   };
+
 
   if (!token) {
     showNotification("Niet ingelogd!", "error");

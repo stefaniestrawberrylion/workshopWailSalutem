@@ -38,14 +38,24 @@
 
           msg.textContent = message;
           cancelBtn.style.display = 'none';
+          okBtn.style.display = 'none';
+          modal.classList.remove('fade-out');
           modal.style.display = 'flex';
+          modal.style.zIndex = '999999';
 
-          okBtn.onclick = () => {
+          // Na 1.5 seconde begin fade-out
+          setTimeout(() => {
+            modal.classList.add('fade-out');
+          }, 1500);
+
+          // Sluit volledig na 2 seconde
+          setTimeout(() => {
             modal.style.display = 'none';
             resolve();
-          };
+          }, 2000);
         });
       };
+
 
       window.popupConfirm = function(message) {
         return new Promise(resolve => {

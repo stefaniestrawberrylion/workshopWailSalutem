@@ -21,12 +21,21 @@ document.addEventListener("DOMContentLoaded", () => {
       msgEl.textContent = message;
       modal.style.display = "flex";
 
+      // Automatisch sluiten na 2 seconden
+      const timer = setTimeout(() => {
+        modal.style.display = "none";
+        resolve();
+      }, 2000);
+
+      // Sluiten via knop ook mogelijk, annuleer timer
       okBtn.onclick = () => {
+        clearTimeout(timer);
         modal.style.display = "none";
         resolve();
       };
     });
   }
+
 
   async function showConfirm(message) {
     return new Promise((resolve) => {

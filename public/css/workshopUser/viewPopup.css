@@ -605,3 +605,26 @@ main {
 #favoritesBtn i {
     color: #e84a4a;
 }
+
+
+
+/* Basis popup styling */
+#popupModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 99999;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out; /* animatie */
+}
+
+/* Als de popup verdwijnt */
+#popupModal.fade-out {
+    opacity: 0;
+}

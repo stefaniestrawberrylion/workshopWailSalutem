@@ -744,3 +744,12 @@ input.form-input{
     font-size: 20px;
     cursor: pointer;
 }
+/* Fade-out animatie voor custom modal */
+#customModal {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#customModal.fade-out {
+    opacity: 0;
+}

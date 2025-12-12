@@ -9,11 +9,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const confirmNo = document.getElementById("confirmNo");
 
   // Custom notification functie
-  const showNotification = (msg, duration = 3000) => {
+  const showNotification = (msg, duration = 2000) => { // standaard 2000ms = 2s
+    const notification = document.getElementById('notification'); // zorg dat dit element bestaat
     notification.textContent = msg;
     notification.style.display = "block";
-    setTimeout(() => notification.style.display = "none", duration);
+
+    setTimeout(() => {
+      notification.style.display = "none";
+    }, duration);
   };
+
 
   // Custom confirm functie, retourneert een Promise
   const customConfirm = (msg) => {

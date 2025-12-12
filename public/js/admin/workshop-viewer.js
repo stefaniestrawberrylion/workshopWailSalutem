@@ -710,12 +710,21 @@ Het team
       alertMsg.textContent = message;
       alertModal.style.display = 'flex';
 
+      // Timer voor automatisch sluiten na 2 seconden
+      const timer = setTimeout(() => {
+        alertModal.style.display = 'none';
+        resolve();
+      }, 2000);
+
+      // Sluiten via knop annuleert timer
       okBtn.onclick = () => {
+        clearTimeout(timer);
         alertModal.style.display = 'none';
         resolve();
       };
     });
   }
+
 
   function showConfirm(message) {
     return new Promise(resolve => {

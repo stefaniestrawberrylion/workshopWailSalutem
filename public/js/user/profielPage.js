@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       : 'https://workshoptest.wailsalutem-foundation.com';
 
   // --- CUSTOM MODAL FUNCTIES ---
-  function showAlert(message) {
+  async function showAlert(message) {
     return new Promise((resolve) => {
       const modal = document.getElementById('customModal');
       const msgEl = document.getElementById('customModalMessage');
@@ -14,59 +14,21 @@ window.addEventListener('DOMContentLoaded', async () => {
       const closeBtn = modal.querySelector('.custom-close');
 
       msgEl.textContent = message;
-      okBtn.style.display = 'inline-block';
+      okBtn.style.display = 'none';       // Verberg OK-knop voor automatische sluiting
       cancelBtn.style.display = 'none';
+      modal.classList.remove('fade-out'); // Reset fade-out
       modal.style.display = 'block';
 
-      function close() {
-        modal.style.display = 'none';
-        okBtn.removeEventListener('click', okHandler);
-        closeBtn.removeEventListener('click', close);
-      }
+      // Start fade-out na 1.5 seconde
+      setTimeout(() => {
+        modal.classList.add('fade-out');
+      }, 1500);
 
-      function okHandler() {
-        close();
+      // Sluit modal volledig na 2 seconden
+      setTimeout(() => {
+        modal.style.display = 'none';
         resolve();
-      }
-
-      okBtn.addEventListener('click', okHandler);
-      closeBtn.addEventListener('click', close);
-    });
-  }
-
-  function showConfirm(message) {
-    return new Promise((resolve) => {
-      const modal = document.getElementById('customModal');
-      const msgEl = document.getElementById('customModalMessage');
-      const okBtn = document.getElementById('customModalOk');
-      const cancelBtn = document.getElementById('customModalCancel');
-      const closeBtn = modal.querySelector('.custom-close');
-
-      msgEl.textContent = message;
-      okBtn.style.display = 'inline-block';
-      cancelBtn.style.display = 'inline-block';
-      modal.style.display = 'block';
-
-      function close() {
-        modal.style.display = 'none';
-        okBtn.removeEventListener('click', okHandler);
-        cancelBtn.removeEventListener('click', cancelHandler);
-        closeBtn.removeEventListener('click', close);
-      }
-
-      function okHandler() {
-        close();
-        resolve(true);
-      }
-
-      function cancelHandler() {
-        close();
-        resolve(false);
-      }
-
-      okBtn.addEventListener('click', okHandler);
-      cancelBtn.addEventListener('click', cancelHandler);
-      closeBtn.addEventListener('click', close);
+      }, 2000);
     });
   }
 
