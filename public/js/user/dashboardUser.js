@@ -180,12 +180,62 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // LOGOUT
+// NIEUWE LOGOUT MET CUSTOM MODAL
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+  const closeBtn = logoutModal ? logoutModal.querySelector('.close-btn') : null;
+
+  // Functie om de modal te sluiten
+  function closeModal() {
+    if (logoutModal) {
+      logoutModal.style.display = 'none';
+    }
+  }
+
+  // Functie om de modal te openen
+  function openModal(e) {
+    if (e) e.preventDefault();
+    if (logoutModal) {
+      logoutModal.style.display = 'flex'; // Gebruik 'flex' voor centering
+    }
+  }
+
+  // Uitlogknop in de sidebar
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
+    logoutBtn.addEventListener('click', openModal);
+  }
+
+  // Annuleren/Sluiten knoppen
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', closeModal);
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+
+  // Sluiten wanneer de gebruiker buiten de modal klikt
+  if (logoutModal) {
+    window.addEventListener('click', (event) => {
+      if (event.target === logoutModal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Bevestigen en uitloggen
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+      // 1. Verwijder de JWT
       localStorage.removeItem('jwt');
-      alert("Je bent uitgelogd!");
+
+      // 2. Sluit de pop-up
+      closeModal();
+
+      // 3. Optioneel: Toon een kort bericht, hoewel de redirect direct kan
+      // alert("Je bent uitgelogd!");
+
+      // 4. Redirect naar de homepage
       window.location.href = "/";
     });
   }

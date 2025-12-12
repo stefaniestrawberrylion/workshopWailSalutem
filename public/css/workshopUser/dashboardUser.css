@@ -7,6 +7,16 @@
     --sidebar-width-collapsed: 70px;
     --sidebar-width-expanded: 200px;
     --sidebar-transition: 0.3s ease;
+
+    /* VARIABELEN VAN DE EERSTE SET (GEÏNTEGREERD VOOR CARDS) */
+    --primary: #5481B7;
+    --glass-bg: rgba(255,255,255,0.18);
+    --glass-border: rgba(255,255,255,0.45);
+    --radius: 16px;
+    --blur: 18px;
+    --card-w: 280px;
+    --transition: 0.38s cubic-bezier(.2,1,.22,1);
+    --cardAccent: rgba(90,141,255,0.18);
 }
 
 html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui;}
@@ -45,6 +55,7 @@ body{background:var(--page-bg); color:#111;}
     gap:10px;
     transition: all var(--sidebar-transition);
     overflow:hidden;
+    z-index: 100; /* Zorg dat de sidebar boven de content ligt */
 }
 
 @media (min-width:721px){
@@ -85,37 +96,128 @@ body{background:var(--page-bg); color:#111;}
     flex:1;
     padding:20px;
     overflow:auto;
+    /* Standaard positie naast de ingeklapte sidebar */
     margin-left: var(--sidebar-width-collapsed);
+    transition: margin-left var(--sidebar-transition); /* Toevoegen van transitie voor verschuiving */
 }
+
+/* CONTENT AANPASSINGEN VOOR VERSCHUIVEN (Desktop) */
+@media (min-width:721px){
+    /* Wanneer over de sidebar wordt gehoverd, verschuift de content */
+    .sidebar:hover ~ .content {
+        margin-left: var(--sidebar-width-expanded);
+    }
+}
+
+
+/* SECTION CARD (WRAPPER) - Stijl voor de sectie container */
 .card{
-    background:var(--card-bg);
-    padding:20px;
-    margin-bottom:20px;
-    border-radius:10px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.05);
+    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15));
+    border-radius:var(--radius);
+    padding:26px;
+    margin-bottom:30px;
+    border:1px solid var(--glass-border);
+    box-shadow: 0 14px 40px rgba(10,20,50,0.08);
+    backdrop-filter: blur(8px);
 }
+.card-title{
+    font-size:1.35rem;
+    font-weight:700;
+    margin-bottom:14px;
+    color:#111827;
+}
+
+
+/* CARD GRID (of SLIDER) CONTAINER */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-    gap:15px;
+    gap:20px;
 }
+
+/* WORKSHOP CARD - De individuele kaartstijl (Glassmorphism + Hover) */
 .card-item{
-    background:white;
-    padding:16px;
-    border-radius:10px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.05);
+    position:relative;
+    min-width:250px;
+    padding:24px;
+    border-radius:var(--radius);
+    background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+    border:2px solid var(--glass-border);
+    backdrop-filter: blur(var(--blur)) saturate(120%);
+    box-shadow:
+            0 15px 40px rgba(0,0,0,0.1),
+            inset 0 1px 1px rgba(255,255,255,0.1);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    transform-origin:center;
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    overflow:hidden;
+    z-index: 1;
+    color:#111827;
 }
+
+/* Decoratieve glow/Holografische touch */
+.card-item::before{
+    content:"";
+    position:absolute;
+    left:-30%;
+    top:-40%;
+    width:160%;
+    height:120%;
+    background: radial-gradient(600px 200px at 20% 10%, rgba(90,141,255,0.12), transparent 25%),
+    radial-gradient(300px 120px at 80% 80%, rgba(255,143,199,0.06), transparent 20%);
+    z-index:0;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity var(--transition);
+}
+
+/* CARD HOVER EFFECT */
+.card-item:hover{
+    transform: translateY(-12px) scale(1.05);
+    border-color: var(--primary);
+    box-shadow:
+            0 30px 60px rgba(6,10,30,0.3),
+            0 0 25px var(--cardAccent);
+    z-index:10;
+}
+
+.card-item:hover::before{
+    opacity:1;
+}
+
+/* CARD CONTENT */
+.card-item .card-content{
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+.card-item h3{font-size:1.18rem;margin-bottom:6px;font-weight:700;}
+.card-item p{color:rgba(15,23,42,0.7);font-size:0.95rem;line-height:1.4;}
+
+/* BUTTON */
 .btn{
     display:inline-block;
     padding:10px 14px;
-    background:var(--accent);
+    background:linear-gradient(180deg,var(--primary), #3762d1); /* Meer primaire/glassy look */
     color:white;
     border-radius:8px;
     text-decoration:none;
+    font-weight:700;
+    box-shadow: 0 4px 10px rgba(58,95,255,0.18);
+    transition: transform .18s ease, box-shadow .3s ease;
 }
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow: 0 8px 20px rgba(58,95,255,0.25);
+}
+
 .logout-btn {
-    margin-top: auto; /* naar beneden */
-    margin-bottom: 20px; /* afstand vanaf onderkant */
+    margin-top: auto;
+    margin-bottom: 20px;
 }
 
 
@@ -139,7 +241,124 @@ body{background:var(--page-bg); color:#111;}
 
     .page-wrapper{display:block;}
     .content{padding:12px;}
-    .sidebar:hover + .content {
+
+    /* Wanneer de sidebar opent op mobiel, duwen we de content naar rechts */
+    .sidebar.sidebar-open ~ .content {
         margin-left: var(--sidebar-width-expanded);
     }
+}
+
+
+/* ERROR/MODAL STYLES (onveranderd) */
+
+/* Custom Modal Algemeen */
+.custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 20000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+}
+
+/* Modal Inhoud */
+.modal-content {
+    background: #ffffff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    text-align: center;
+}
+
+/* Modal Header/Icon */
+.modal-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.modal-icon {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #5481B7;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    box-shadow: 0 5px 15px rgb(65, 113, 170);
+}
+
+.modal-header .close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.modal-header .close-btn:hover,
+.modal-header .close-btn:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+/* Modal Body */
+.modal-body p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 40px 0 30px 0;
+}
+
+/* Modal Footer (Knoppen) */
+.modal-footer {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 10px;
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.modal-btn-cancel {
+    background-color: #e0e0e0;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.modal-btn-cancel:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-1px);
+}
+
+.modal-btn-confirm {
+    background: linear-gradient(180deg, #5481B7, #698ac1);
+    color: #fff;
+    box-shadow: 0 4px 10px rgb(14, 74, 129);
+}
+
+.modal-btn-confirm:hover {
+    background: linear-gradient(180deg, #5481B7, #4171aa);
+    transform: translateY(-1px);
 }
