@@ -377,3 +377,57 @@ main {
 #popupErrorContainer #closePopupErrorBtn:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
+
+
+
+
+/* Loading popup styles */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.loading-animation {
+    width: 200px;
+    height: 80px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+
+.loading-image {
+    width: 60px;
+    height: 60px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    animation: moveSideToSide 1.5s infinite ease-in-out;
+}
+
+@keyframes moveSideToSide {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(120px);
+    }
+    50% {
+        transform: translateX(0);
+    }
+    75% {
+        transform: translateX(120px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* Modal achtergrond donkerder maken */
+#loadingPopup.custom-modal {
+    background-color: rgba(0, 0, 0, 0.8);
+}

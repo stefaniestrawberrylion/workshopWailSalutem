@@ -347,8 +347,232 @@
       }
 
       // =======================
-      // View workshop details
-      // =======================
+// Quiz Popup functionaliteit
+// =======================
+      const quizPopup = document.getElementById('quizPopup');
+      const quizContainer = document.getElementById('quizContainer');
+      const submitQuizBtn = document.getElementById('submitQuizBtn');
+      const quizResult = document.getElementById('quizResult');
+      const closeQuizBtn = document.querySelector('.close-quiz-popup');
+
+// Sluit quiz popup
+      closeQuizBtn.addEventListener('click', () => {
+        quizPopup.classList.remove('active');
+        setTimeout(() => {
+          quizPopup.style.display = 'none';
+          quizContainer.innerHTML = '';
+          if (quizResult) {
+            quizResult.textContent = '';
+            quizResult.classList.remove('show');
+          }
+        }, 300);
+      });
+
+// Sluit bij klikken buiten de popup
+      quizPopup.addEventListener('click', (e) => {
+        if (e.target === quizPopup) {
+          quizPopup.classList.remove('active');
+          setTimeout(() => {
+            quizPopup.style.display = 'none';
+            quizContainer.innerHTML = '';
+            if (quizResult) {
+              quizResult.textContent = '';
+              quizResult.classList.remove('show');
+            }
+          }, 300);
+        }
+      });
+
+// Functie om quiz te starten
+      async function startQuiz(workshopId) {
+        try {
+          window.currentWorkshopId = workshopId;
+
+          const res = await fetch(`${window.API_URL}/workshops/${workshopId}`, {
+            headers: window.getAuthHeaders()
+          });
+          if (!res.ok) throw new Error('Workshop niet gevonden');
+
+          const workshop = await res.json();
+          const quiz = workshop.quiz || [];
+
+          if (quiz.length === 0) {
+            await popupAlert('Deze workshop heeft geen quiz.');
+            return;
+          }
+
+          displayQuiz(quiz);
+
+        } catch (error) {
+          await popupAlert('Kon quiz niet laden: ' + error.message);
+        }
+      }
+
+// Functie om quiz te tonen
+      function displayQuiz(quiz) {
+        if (!quizContainer || !quizPopup) return;
+
+        quizPopup.style.display = 'flex'; // Zorg dat popup zichtbaar is
+        quizPopup.classList.add('active');
+
+        quizContainer.innerHTML = '';
+        if (quizResult) {
+          quizResult.textContent = '';
+          quizResult.classList.remove('show');
+        }
+
+        // Progress indicator
+        const progressHTML = `
+    <div class="quiz-progress">
+        <span id="currentQuestion">1</span>
+        <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" id="progressFill"></div>
+        </div>
+        <span id="totalQuestions">${quiz.length}</span>
+    </div>
+  `;
+        quizContainer.innerHTML = progressHTML;
+
+        // Vragen toevoegen
+        quiz.forEach((question, index) => {
+          const questionBlock = document.createElement('div');
+          questionBlock.className = 'quiz-question-block';
+          questionBlock.dataset.questionIndex = index;
+
+          let html = `<h3>${index + 1}. ${question.question}</h3>`;
+          question.options.forEach((option, optionIndex) => {
+            html += `
+        <label>
+          <input type="radio" name="quiz-q${index}" value="${optionIndex}">
+          <span>${option.text}</span>
+        </label>
+      `;
+          });
+
+          questionBlock.innerHTML = html;
+          quizContainer.appendChild(questionBlock);
+
+          questionBlock.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+              updateProgress(quiz.length);
+            });
+          });
+        });
+
+        updateProgress(quiz.length);
+      }
+
+// Progress bar update
+      function updateProgress(totalQuestions) {
+        const answered = document.querySelectorAll('.quiz-question-block input[type="radio"]:checked').length;
+        const progressFill = document.getElementById('progressFill');
+        const currentQuestion = document.getElementById('currentQuestion');
+
+        if (progressFill) {
+          const percentage = (answered / totalQuestions) * 100;
+          progressFill.style.width = `${percentage}%`;
+        }
+
+        if (currentQuestion) {
+          currentQuestion.textContent = answered + 1;
+        }
+      }
+
+// Submit quiz
+      submitQuizBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${window.API_URL}/workshops/${window.currentWorkshopId}`, {
+            headers: window.getAuthHeaders()
+          });
+          if (!res.ok) throw new Error('Kon quiz antwoorden niet controleren');
+
+          const workshop = await res.json();
+          const quiz = workshop.quiz || [];
+
+          if (quiz.length === 0) {
+            quizResult.textContent = 'Geen quiz beschikbaar';
+            quizResult.classList.add('show');
+            return;
+          }
+
+          let correctCount = 0;
+          quiz.forEach((question, index) => {
+            const selected = document.querySelector(`input[name="quiz-q${index}"]:checked`);
+            const questionBlock = quizContainer.querySelector(`[data-question-index="${index}"]`);
+
+            if (!questionBlock) return;
+
+            if (!selected) {
+              questionBlock.style.borderLeftColor = '#ffc107'; // Geel voor niet beantwoord
+              return;
+            }
+
+            const chosenIndex = parseInt(selected.value);
+            const isCorrect = question.options[chosenIndex]?.correct === true;
+            if (isCorrect) {
+              correctCount++;
+              questionBlock.style.borderLeftColor = '#28a745'; // Groen voor correct
+            } else {
+              questionBlock.style.borderLeftColor = '#dc3545'; // Rood voor fout
+            }
+          });
+
+          const totalQuestions = quiz.length;
+          const percentage = Math.round((correctCount / totalQuestions) * 100);
+
+          if (quizResult) {
+            let feedbackClass = '';
+            let feedbackText = '';
+            if (percentage === 100) { feedbackClass='perfect'; feedbackText='Perfect! Alle antwoorden zijn correct! 🎉'; }
+            else if (percentage >= 70) { feedbackClass='good'; feedbackText='Goed gedaan! 💪'; }
+            else if (percentage >= 50) { feedbackClass='average'; feedbackText='Niet slecht! 👍'; }
+            else { feedbackClass='poor'; feedbackText='Misschien nog een keer proberen? 😊'; }
+
+            quizResult.innerHTML = `
+        <div class="quiz-score-display">${correctCount} / ${totalQuestions}</div>
+        <div class="quiz-score-percentage">${percentage}%</div>
+        <div class="quiz-feedback ${feedbackClass}">${feedbackText}</div>
+      `;
+            quizResult.classList.add('show');
+            setTimeout(() => { quizResult.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+          }
+
+          // Eventueel opslaan
+          await saveQuizResult(correctCount, totalQuestions);
+
+        } catch (error) {
+          if (quizResult) {
+            quizResult.textContent = 'Fout bij controleren: ' + error.message;
+            quizResult.classList.add('show');
+          }
+        }
+      });
+
+// Opslaan resultaat
+      async function saveQuizResult(correct, total) {
+        const token = localStorage.getItem('jwt');
+        if (!token) return;
+
+        try {
+          await fetch(`${window.API_URL}/quiz/results`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+              workshopId: window.currentWorkshopId,
+              score: correct,
+              totalQuestions: total,
+              percentage: Math.round((correct / total) * 100)
+            })
+          });
+        } catch (error) { console.warn('Kon quizresultaat niet opslaan:', error); }
+      }
+
+// =======================
+// View workshop details
+// =======================
       async function viewWorkshopDetails(id) {
         try {
           window.currentWorkshopId = id;
@@ -359,10 +583,6 @@
           });
           if (!resWorkshop.ok) throw new Error('Workshop niet gevonden');
           const workshop = await resWorkshop.json();
-
-          const detailMyReviewStars = document.getElementById('detailMyReviewStars');
-          detailMyReviewStars.style.cursor = 'pointer';
-          detailMyReviewStars.onclick = () => openReviewPopup(window.currentWorkshopId);
 
           // Vul workshopgegevens
           document.getElementById('detailName').value = workshop.name;
@@ -381,18 +601,20 @@
             detailLabelPreview.appendChild(span);
           });
 
-    // Haal de elementen op
+          // Haal de elementen op
           const parentalConsentCheckbox = document.getElementById('detailParentalConsent');
           const consentContactLinkSpan = document.getElementById('consentContactLink');
-
-
 
           parentalConsentCheckbox.checked = workshop.parentalConsent || false;
 
           if (workshop.parentalConsent) {
             // Toon de tekst en de link
             consentContactLinkSpan.innerHTML = `
-    <span style="color: #698ac1; font-weight: bold;"><a href="/documenten/2.1. Toestemmingsformulier.pdf" target="_blank" style="color: #698ac1;">Toestemmingsformulier</a></span>    `;
+                <span style="color: #698ac1; font-weight: bold;">
+                    <a href="/documenten/2.1. Toestemmingsformulier.pdf" target="_blank" style="color: #698ac1;">
+                        Toestemmingsformulier
+                    </a>
+                </span>`;
             // Maak de checkbox duidelijk dat het vereist is
             parentalConsentCheckbox.nextElementSibling.textContent = 'Oudertoestemming vereist:';
           } else {
@@ -400,6 +622,7 @@
             consentContactLinkSpan.innerHTML = '';
             parentalConsentCheckbox.nextElementSibling.textContent = 'Oudertoestemming niet vereist';
           }
+
           // Media & documenten
           renderMediaSlideshow(workshop.files || []);
           // Maak de documentenlijsten leeg voordat je ze vult
@@ -411,12 +634,72 @@
           // Haal review op
           await loadReviews(id);
 
+          // QUIZ KNOB TOEVOEGEN - NIEUW
+          const detailReviewBox = document.getElementById('detailReviewBox');
+          if (detailReviewBox) {
+            // Verwijder bestaande quiz knop als die er al is
+            const existingQuizSection = document.querySelector('.quiz-section');
+            if (existingQuizSection) {
+              existingQuizSection.remove();
+            }
+
+            // Controleer of er een quiz is
+            const quiz = workshop.quiz || [];
+
+            // Voeg quiz sectie toe na de review box
+            const quizSection = document.createElement('div');
+            quizSection.className = 'quiz-section';
+            quizSection.style.cssText = `
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
+            `;
+
+            if (quiz.length > 0) {
+              quizSection.innerHTML = `
+                    <h4 style="margin-bottom: 10px;">Test je kennis</h4>
+                    <button class="quiz-start-btn" style="
+                        padding: 10px 16px;
+                        background: #5481B7;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        width: 100%;
+                    ">
+                        Maak de quiz (${quiz.length} vragen)
+                    </button>
+                `;
+
+              // Voeg event listener toe voor de quiz knop
+              const quizButton = quizSection.querySelector('.quiz-start-btn');
+              quizButton.addEventListener('click', () => startQuiz(id));
+            } else {
+              quizSection.innerHTML = `
+                    <p style="color: #666; font-size: 14px; margin: 0;">
+                        Deze workshop heeft nog geen quiz
+                    </p>
+                `;
+            }
+
+            // Voeg toe na de review box
+            detailReviewBox.parentNode.insertBefore(quizSection, detailReviewBox.nextSibling);
+          }
+
+          // Update my review stars (bestaande functionaliteit)
+          const detailMyReviewStars = document.getElementById('detailMyReviewStars');
+          if (detailMyReviewStars) {
+            detailMyReviewStars.style.cursor = 'pointer';
+            detailMyReviewStars.onclick = () => openReviewPopup(window.currentWorkshopId);
+          }
+
           detailsPopup.style.display = 'flex';
+
         } catch (e) {
-          await window.popupAlert(e.message);
+          await popupAlert(e.message);
         }
       }
-
       function addDocumentToDetail(f){
         const li = document.createElement('li');
         Object.assign(li.style, {
@@ -817,6 +1100,14 @@
         }
       }
 
+      // Event listener voor quiz knop
+      document.addEventListener('click', function(e) {
+        if (e.target.id === 'startQuizBtn' || e.target.classList.contains('quiz-start-btn')) {
+          if (window.currentWorkshopId) {
+            startQuiz(window.currentWorkshopId);
+          }
+        }
+      });
 
       // [INITIËLE CHECK TOEGEVOEGD]
       checkURLForWorkshopHash();

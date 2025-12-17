@@ -382,46 +382,61 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', desc);
-      formData.append('duration', durationStr);
-      formData.append("parentalConsent", parentalConsent);
-      formData.append('labels', JSON.stringify(labels));
+      // Toon laadpopup
+      const loadingPopup = document.getElementById('loadingPopup');
+      const loadingMessage = document.getElementById('loadingMessage');
+      if (loadingPopup) {
+        loadingMessage.textContent = currentWorkshopId ?
+          'Workshop bijwerken...' : 'Workshop opslaan...';
+        loadingPopup.style.display = 'flex';
 
-      if (mainImage) {
-        const safeName = makeSafeFileName(mainImage.name);
-        const safeFile = new File([mainImage], safeName, { type: mainImage.type });
-        formData.append('image', safeFile);
-      }
-
-      // 🔹 Voor al je bestanden in verschillende categorieën:
-      const appendFilesSafely = (files, key) => {
-        files.forEach(f => {
-          const safeName = makeSafeFileName(f.name);
-          const safeFile = new File([f], safeName, { type: f.type });
-          formData.append(key, safeFile);
-        });
-      };
-
-      appendFilesSafely(selectedMedia, 'media');
-      appendFilesSafely(selectedInstructions, 'instructionsFiles');
-      appendFilesSafely(selectedManuals, 'manualsFiles');
-      appendFilesSafely(selectedDemo, 'demoFiles');
-      appendFilesSafely(selectedWorksheets, 'worksheetsFiles');
-
-      // 🔹 Ook de meta-data opslaan met veilige namen
-      formData.append('documentMeta', JSON.stringify([
-        ...selectedInstructions.map(f => ({ name: makeSafeFileName(f.name), category: 'instructions' })),
-        ...selectedManuals.map(f => ({ name: makeSafeFileName(f.name), category: 'manuals' })),
-        ...selectedDemo.map(f => ({ name: makeSafeFileName(f.name), category: 'demo' })),
-        ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
-      ]));
-      if (window.currentWorkshopData?.quiz) {
-        formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+        // Forceer popup naar boven
+        const root = document.getElementById('global-modal-root');
+        if (root && loadingPopup.parentNode !== root) {
+          root.appendChild(loadingPopup);
+        }
       }
 
       try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('description', desc);
+        formData.append('duration', durationStr);
+        formData.append("parentalConsent", parentalConsent);
+        formData.append('labels', JSON.stringify(labels));
+
+        if (mainImage) {
+          const safeName = makeSafeFileName(mainImage.name);
+          const safeFile = new File([mainImage], safeName, { type: mainImage.type });
+          formData.append('image', safeFile);
+        }
+
+        // 🔹 Voor al je bestanden in verschillende categorieën:
+        const appendFilesSafely = (files, key) => {
+          files.forEach(f => {
+            const safeName = makeSafeFileName(f.name);
+            const safeFile = new File([f], safeName, { type: f.type });
+            formData.append(key, safeFile);
+          });
+        };
+
+        appendFilesSafely(selectedMedia, 'media');
+        appendFilesSafely(selectedInstructions, 'instructionsFiles');
+        appendFilesSafely(selectedManuals, 'manualsFiles');
+        appendFilesSafely(selectedDemo, 'demoFiles');
+        appendFilesSafely(selectedWorksheets, 'worksheetsFiles');
+
+        // 🔹 Ook de meta-data opslaan met veilige namen
+        formData.append('documentMeta', JSON.stringify([
+          ...selectedInstructions.map(f => ({ name: makeSafeFileName(f.name), category: 'instructions' })),
+          ...selectedManuals.map(f => ({ name: makeSafeFileName(f.name), category: 'manuals' })),
+          ...selectedDemo.map(f => ({ name: makeSafeFileName(f.name), category: 'demo' })),
+          ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
+        ]));
+        if (window.currentWorkshopData?.quiz) {
+          formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+        }
+
         const token = localStorage.getItem("jwt");
         if (!token) {
           throw new Error("Geen JWT token beschikbaar");
@@ -439,23 +454,45 @@ document.addEventListener('DOMContentLoaded', () => {
           headers
         });
 
+        // Update laadbericht
+        if (loadingMessage) {
+          loadingMessage.textContent = 'Opslaan voltooid...';
+        }
+
         const responseBody = await response.text();
 
         if (!response.ok) {
           throw new Error('Fout bij opslaan van de workshop');
         }
 
+        // Korte pauze om het "voltooid" bericht te laten zien
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         clearPopup();
         popup.style.display = 'none';
+
+        // Verberg laadpopup
+        if (loadingPopup) {
+          loadingPopup.style.display = 'none';
+        }
+
+        // Toon succesbericht
+        await showAlert(currentWorkshopId ?
+          'Workshop succesvol bijgewerkt!' :
+          'Workshop succesvol aangemaakt!');
+
         // Herlaad workshops in het andere bestand via event
         window.dispatchEvent(new CustomEvent('workshopsUpdated'));
 
       } catch (e) {
+        // Verberg laadpopup bij fout
+        if (loadingPopup) {
+          loadingPopup.style.display = 'none';
+        }
         showError(e.message);
       }
     });
   }
-
   // =======================
   // Clear functies
   // =======================

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Workshop Keuze</title>
-    <link rel="stylesheet" href="/css/workshopAdmin/AddWorkshop.css">
-    <link rel="stylesheet" href="/css/workshopAdmin/DetailWorkshop.css">
-    <link rel="stylesheet" href="/css/workshopAdmin/OverView.css">
-    <link rel="stylesheet" href="/css/workshopAdmin/reviewResponce.css">
+    <link rel="stylesheet" href="/css/workshopAdmin/workshop/AddWorkshop.css">
+    <link rel="stylesheet" href="/css/workshopAdmin/workshop/DetailWorkshop.css">
+    <link rel="stylesheet" href="/css/workshopAdmin/workshop/OverView.css">
+    <link rel="stylesheet" href="/css/workshopAdmin/workshop/reviewResponce.css">
 
 
 
@@ -33,6 +33,19 @@
     <div id="errorContainer" class="error-container" style="display:none;">
         <span id="errorMessage"></span>
         <button id="closeErrorBtn">&times;</button>
+    </div>
+    <div id="loadingPopup" class="custom-modal" style="display:none;">
+        <div class="custom-modal-content" style="background: transparent; box-shadow: none;">
+            <div class="loading-container">
+                <div class="loading-animation">
+                    <!-- Heen en weer bewegende afbeelding -->
+                    <img src="/image/Robotnik.png" alt="Laden..." class="loading-image">
+                </div>
+                <p id="loadingMessage" style="color: white; margin-top: 20px; font-weight: bold;">
+                    Workshop opslaan...
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
