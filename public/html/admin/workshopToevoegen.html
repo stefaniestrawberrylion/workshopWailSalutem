@@ -13,6 +13,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<div id="global-modal-root">
+    <div id="customAlert" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="customAlertMessage"></p>
+            <button id="customAlertOk">OK</button>
+        </div>
+    </div>
+
+    <div id="customConfirm" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="customConfirmMessage"></p>
+            <div class="confirm-buttons">
+                <button id="customConfirmYes">Ja</button>
+                <button id="customConfirmNo">Nee</button>
+            </div>
+        </div>
+    </div>
+    <div id="errorContainer" class="error-container" style="display:none;">
+        <span id="errorMessage"></span>
+        <button id="closeErrorBtn">&times;</button>
+    </div>
+</div>
 
 <header>
     <div class="logo"><img src="../../image/logo.png" alt="Logo"></div>
@@ -21,11 +43,7 @@
         <input type="text" id="searchInput" placeholder="Zoek workshops...">
     </div>
 </header>
-<!-- Foutmelding container -->
-<div id="errorContainer" class="error-container" style="display:none;">
-    <span id="errorMessage"></span>
-    <button id="closeErrorBtn">&times;</button>
-</div>
+
 
 <main>
     <button class="workshop-button" id="addWorkshopBtn">Workshop toevoegen</button>
@@ -189,8 +207,8 @@
             <div class="popup-left">
                 <div class="media-upload">
                     <div id="detailMediaContainer"></div>
-                    <button id="prevDetailMedia">◀</button>
-                    <button id="nextDetailMedia">▶</button>
+                    <button id="prevDetailMedia" style="display:none;">◀</button>
+                    <button id="nextDetailMedia" style="display:none;">▶</button>
                 </div>
                 <!-- Bestanden per categorie (zelfde structuur als create popup) -->
                 <div id="detailFilesContainer">
@@ -271,7 +289,7 @@
         </div>
 
     </div>
-</div>
+
 
 <div id="reviewsPopup" class="reviews-popup">
     <div class="reviews-content">
@@ -357,24 +375,7 @@ Het team
     </div>
 </div>
 
-<!-- Custom Alert -->
-<div id="customAlert" class="custom-modal">
-    <div class="custom-modal-content">
-        <p id="customAlertMessage"></p>
-        <button id="customAlertOk">OK</button>
-    </div>
-</div>
 
-<!-- Custom Confirm -->
-<div id="customConfirm" class="custom-modal">
-    <div class="custom-modal-content">
-        <p id="customConfirmMessage"></p>
-        <div class="confirm-buttons">
-            <button id="customConfirmYes">Ja</button>
-            <button id="customConfirmNo">Nee</button>
-        </div>
-    </div>
-</div>
 
 
 <script src="/js/admin/workshop-management.js"></script>

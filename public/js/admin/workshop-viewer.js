@@ -1,5 +1,6 @@
 // workshop-viewer.js
 document.addEventListener('DOMContentLoaded', () => {
+  const root = document.getElementById("global-modal-root");
   // =======================
   // Elementen ophalen voor viewer
   // =======================
@@ -41,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  //helper popup
+  function forceToTop(el) {
+    document.body.appendChild(el);
+  }
+
+
   // =======================
   // Close details popup
   // =======================
@@ -65,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Fout bij ophalen workshops');
 
       const workshops = await res.json();
+      console.log('Workshops data:', workshops); // <-- Dit toont de volledige data
       renderWorkshops(workshops);
     } catch (e) {
       showAlert("Niet gevonden")
@@ -83,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Pak de eerste afbeelding, fallback naar default
       let firstImage = w.files?.find(f => f.type?.includes('image'));
-      let imageUrl = '/image/default-workshop.png';
+      let imageUrl = '/image/default-workshop.jpeg';
       if (firstImage) {
         const rawUrl = firstImage.url || firstImage.name || firstImage.path;
         if (rawUrl) {
@@ -152,28 +160,50 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
 
-      // ✅ Sla de volledige workshop op inclusief quiz
+      // Sla data op
       window.currentWorkshopData = w;
-      window.currentWorkshopData.quiz = w.quiz || []; // belangrijk voor quiz popup
+      window.currentWorkshopData.quiz = w.quiz || [];
 
       // Basis info
-      document.getElementById('detailName').value = w.name;
-      document.getElementById('detailDesc').value = w.description;
-      document.getElementById('detailDuration').value = formatDuration(w.duration);
+      const nameInput = document.getElementById('detailName');
+      const descInput = document.getElementById('detailDesc');
+      const durationInput = document.getElementById('detailDuration');
+      nameInput.value = w.name;
+      descInput.value = w.description;
+      durationInput.value = formatDurationForTimeInput(w.duration);
+
       const parentalConsentEl = document.getElementById('detailParentalConsent');
       parentalConsentEl.checked = w.parentalConsent || false;
-      parentalConsentEl.disabled = true;
 
       // Labels
       detailLabelPreview.innerHTML = '';
       const labelsArray = w.labels ? (typeof w.labels === 'string' ? JSON.parse(w.labels) : w.labels) : [];
+      window.currentWorkshopLabels = labelsArray.slice();
+
       labelsArray.forEach(label => {
-        const span = document.createElement('span');
-        span.textContent = label.name;
-        span.style.backgroundColor = label.color;
-        span.style.borderColor = label.color;
-        span.style.color = getContrastYIQ(label.color);
+        const span = createLabelSpan(label);
         detailLabelPreview.appendChild(span);
+      });
+
+      // Label toevoeg velden herstellen
+      const labelAddContainer = document.createElement('div');
+      labelAddContainer.className = 'label-add-container';
+      labelAddContainer.innerHTML = `
+      <input type="text" placeholder="Nieuw label" id="detailLabelInput">
+      <input type="color" id="detailLabelColor" value="#5481B7">
+      <button type="button" id="addLabelBtnDetail">+</button>
+    `;
+      detailLabelPreview.appendChild(labelAddContainer);
+
+      document.getElementById('addLabelBtnDetail').addEventListener('click', () => {
+        const name = document.getElementById('detailLabelInput').value.trim();
+        const color = document.getElementById('detailLabelColor').value;
+        if (!name) return showAlert('Voer een naam in');
+        const newLabel = { name, color };
+        window.currentWorkshopLabels.push(newLabel);
+        const span = createLabelSpan(newLabel);
+        detailLabelPreview.insertBefore(span, labelAddContainer);
+        document.getElementById('detailLabelInput').value = '';
       });
 
       // Documenten
@@ -181,56 +211,366 @@ document.addEventListener('DOMContentLoaded', () => {
       detailManualsList.innerHTML = '';
       detailDemoList.innerHTML = '';
       detailWorksheetsList.innerHTML = '';
+      window.currentWorkshopDocuments = { instructions: [], manuals: [], demo: [], worksheets: [] };
+
       if (w.documents && Array.isArray(w.documents)) {
         w.documents.forEach(f => {
-          const li = createDocumentListItem(f);
-          const cat = (f.category || f.type || 'worksheets').toLowerCase();
-          if (cat === 'instructions') detailInstructionsList.appendChild(li);
-          else if (cat === 'manuals' || cat === 'handleiding') detailManualsList.appendChild(li);
-          else if (cat === 'demo') detailDemoList.appendChild(li);
+          const cat = (f.category || 'worksheets').toLowerCase();
+          let category = 'worksheets';
+          if (cat.includes('instruct')) category = 'instructions';
+          else if (cat.includes('manual') || cat.includes('handleiding')) category = 'manuals';
+          else if (cat.includes('demo')) category = 'demo';
+
+          window.currentWorkshopDocuments[category].push({ name: f.name, url: f.url || f.path, existing: true, category });
+          const li = createDocumentListItem(f, category, true);
+          if (category === 'instructions') detailInstructionsList.appendChild(li);
+          else if (category === 'manuals') detailManualsList.appendChild(li);
+          else if (category === 'demo') detailDemoList.appendChild(li);
           else detailWorksheetsList.appendChild(li);
         });
       }
 
-      // Media slideshow
+      addFileUploadToCategory('instructions', detailInstructionsList);
+      addFileUploadToCategory('manuals', detailManualsList);
+      addFileUploadToCategory('demo', detailDemoList);
+      addFileUploadToCategory('worksheets', detailWorksheetsList);
+
+      // --- MEDIA SECTIE ---
       const container = document.getElementById('detailMediaContainer');
       container.innerHTML = '';
+
+      // BELANGRIJK: Initialiseer de array alleen als deze nog niet bestaat
+      // (dit voorkomt dat we de bestaande media verliezen bij het openen van de popup)
+      if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
+        window.currentWorkshopMedia = [];
+      } else {
+        // Als er al media in de array zit, render deze opnieuw
+        window.currentWorkshopMedia.forEach((media, index) => {
+          media.element.style.display = index === 0 ? 'flex' : 'none';
+          container.appendChild(media.element);
+        });
+      }
+
+      // Voeg bestaande media toe (maar alleen als ze nog niet in de array zitten)
       const mediaFiles = w.files || [];
       mediaFiles.forEach((file, i) => {
-        const el = getMediaElement(file);
-        if (!el) return;
-        el.style.display = i === 0 ? 'block' : 'none';
-        container.appendChild(el);
+        // Check of deze file al in de array zit
+        const exists = window.currentWorkshopMedia.some(m =>
+          m.existing && (m.url === file.url || m.file?.name === file.name)
+        );
+
+        if (!exists) {
+          const mediaItem = document.createElement('div');
+          mediaItem.style.display = i === 0 && window.currentWorkshopMedia.length === 0 ? 'flex' : 'none';
+          mediaItem.style.justifyContent = 'center';
+          mediaItem.style.alignItems = 'center';
+          mediaItem.style.width = '100%';
+          mediaItem.style.height = '250px';
+          mediaItem.style.position = 'relative';
+
+          const mediaElement = getMediaElement(file);
+          if (mediaElement) {
+            mediaElement.style.maxWidth = '100%';
+            mediaElement.style.maxHeight = '100%';
+            mediaElement.style.objectFit = 'contain';
+
+            const removeBtn = createRemoveBtn(mediaItem);
+            mediaItem.appendChild(mediaElement);
+            mediaItem.appendChild(removeBtn);
+            container.appendChild(mediaItem);
+
+            // Voeg toe aan de array
+            window.currentWorkshopMedia.push({
+              element: mediaItem,
+              file: file,
+              existing: true,
+              url: file.url || file.path
+            });
+          }
+        }
       });
 
-      // Reviews
+      // Upload knop wrapper
+      const mediaUploadWrapper = document.createElement('div');
+      mediaUploadWrapper.className = 'media-upload-wrapper';
+      mediaUploadWrapper.style.textAlign = 'center';
+      mediaUploadWrapper.style.marginTop = '15px';
+      mediaUploadWrapper.innerHTML = `
+      <label style="cursor:pointer; padding:10px 16px; background:#5481B7; color:white; border-radius:6px; display:inline-flex; align-items:center; gap:8px;">
+        <i class="fa fa-plus"></i> Media toevoegen
+        <input type="file" id="detailMediaInput" accept="image/*, video/*" multiple style="display:none;">
+      </label>
+    `;
+      container.appendChild(mediaUploadWrapper);
+
+      document.getElementById('detailMediaInput').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        const { currentImageCount, currentVideoCount } = validateMediaLimits();
+        // Simpele check
+        if (currentImageCount + files.length > 6) return showAlert("Te veel afbeeldingen");
+
+        files.forEach(file => addNewMediaFile(file));
+        e.target.value = '';
+      });
+
+      window.detailMediaCurrentIndex = 0;
+      updateMediaNavigation();
       setupReviews(w);
 
-      // Slideshow knoppen
-      let currentIndex = 0;
-      prevBtn.onclick = () => {
-        if (!container.children.length) return;
-        container.children[currentIndex].style.display = 'none';
-        currentIndex = (currentIndex - 1 + container.children.length) % container.children.length;
-        container.children[currentIndex].style.display = 'block';
-      };
-      nextBtn.onclick = () => {
-        if (!container.children.length) return;
-        container.children[currentIndex].style.display = 'none';
-        currentIndex = (currentIndex + 1) % container.children.length;
-        container.children[currentIndex].style.display = 'block';
-      };
-
+      document.getElementById('updateWorkshopBtn').style.display = 'block';
       detailsPopup.style.display = 'flex';
     } catch (e) {
-      showAlert("Niet gevonden");
+      showAlert("Fout: " + e.message);
     }
   }
 
-  // =======================
-  // Helper functions
-  // =======================
-  function createDocumentListItem(f) {
+  // Helper: maakt de rode X knop
+  function createRemoveBtn(mediaItem) {
+    const btn = document.createElement('button');
+    btn.textContent = '✖';
+    btn.style.cssText = 'position:absolute; top:10px; right:10px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;';
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = window.currentWorkshopMedia.findIndex(m => m.element === mediaItem);
+      if (index > -1) {
+        window.currentWorkshopMedia.splice(index, 1);
+        mediaItem.remove();
+        window.detailMediaCurrentIndex = Math.max(0, window.detailMediaCurrentIndex - 1);
+        updateMediaNavigation();
+      }
+    });
+    return btn;
+  }
+
+// Helper: maakt label span
+  function createLabelSpan(label) {
+    const span = document.createElement('span');
+    span.textContent = label.name;
+    span.style.cssText = `background:${label.color}; color:${getContrastYIQ(label.color)}; cursor:pointer; padding:6px 12px; margin:3px; border-radius:15px; display:inline-flex; align-items:center; font-size:14px; font-weight:500;`;
+
+    span.addEventListener('click', () => {
+      const idx = window.currentWorkshopLabels.findIndex(l => l.name === label.name);
+      if (idx > -1) {
+        window.currentWorkshopLabels.splice(idx, 1);
+        span.remove();
+      }
+    });
+    return span;
+  }
+
+
+// Helper functie om duration te formatteren voor time input
+  function formatDurationForTimeInput(duration) {
+    if (typeof duration === 'string') {
+      // Als het al een tijdstring is zoals "01:15"
+      if (duration.includes(':')) {
+        return duration;
+      }
+      // Als het minuten zijn
+      const minutes = parseInt(duration);
+      if (!isNaN(minutes)) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      }
+    } else if (typeof duration === 'number') {
+      const minutes = duration;
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    }
+    return '01:00'; // Default
+  }
+// Voeg deze hulpfunctie toe bovenaan (bij de andere helper functies)
+  function validateMediaLimits() {
+    if (!window.currentWorkshopMedia) {
+      return { currentImageCount: 0, currentVideoCount: 0 };
+    }
+
+    const currentImageCount = window.currentWorkshopMedia.filter(m => {
+      if (m.existing) {
+        const ext = (m.url || '').split('.').pop()?.toLowerCase();
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+      } else if (m.file) {
+        return m.file.type.startsWith('image/');
+      }
+      return false;
+    }).length;
+
+    const currentVideoCount = window.currentWorkshopMedia.filter(m => {
+      if (m.existing) {
+        const ext = (m.url || '').split('.').pop()?.toLowerCase();
+        return ['mp4', 'webm', 'ogg'].includes(ext);
+      } else if (m.file) {
+        return m.file.type.startsWith('video/');
+      }
+      return false;
+    }).length;
+
+    return { currentImageCount, currentVideoCount };
+  }
+
+  function addNewMediaFile(file) {
+    const container = document.getElementById('detailMediaContainer');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'workshop-media-item';
+      mediaItem.style.display = 'none'; // Wordt beheerd door updateMediaNavigation
+      mediaItem.style.justifyContent = 'center';
+      mediaItem.style.alignItems = 'center';
+      mediaItem.style.width = '100%';
+      mediaItem.style.height = '250px';
+      mediaItem.style.position = 'relative';
+
+      let mediaElement;
+      if (file.type.startsWith('image/')) {
+        mediaElement = document.createElement('img');
+        mediaElement.src = e.target.result;
+      } else if (file.type.startsWith('video/')) {
+        mediaElement = document.createElement('video');
+        mediaElement.src = e.target.result;
+        mediaElement.controls = true;
+      }
+
+      mediaElement.style.maxWidth = '100%';
+      mediaElement.style.maxHeight = '100%';
+      mediaElement.style.objectFit = 'contain';
+
+      // Verwijderknop hergebruiken
+      const removeBtn = createRemoveBtn(mediaItem);
+
+      mediaItem.appendChild(mediaElement);
+      mediaItem.appendChild(removeBtn);
+
+      // Zoek de upload wrapper om het nieuwe item DAARBOVEN te zetten
+      const uploadWrapper = container.querySelector('.media-upload-wrapper');
+      container.insertBefore(mediaItem, uploadWrapper);
+
+      // TOEVEOGEN aan de bestaande globale array
+      window.currentWorkshopMedia.push({
+        element: mediaItem,
+        file: file,
+        existing: false,
+        url: e.target.result
+      });
+
+      // Verspring direct naar de nieuwe afbeelding
+      window.detailMediaCurrentIndex = window.currentWorkshopMedia.length - 1;
+      updateMediaNavigation();
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+
+  function updateMediaNavigation() {
+    if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
+      document.getElementById('prevDetailMedia').style.display = 'none';
+      document.getElementById('nextDetailMedia').style.display = 'none';
+      return;
+    }
+
+    // Zorg dat de index altijd geldig is
+    if (window.detailMediaCurrentIndex >= window.currentWorkshopMedia.length || window.detailMediaCurrentIndex < 0) {
+      window.detailMediaCurrentIndex = 0;
+    }
+
+    // Toon alleen het huidige item
+    window.currentWorkshopMedia.forEach((m, i) => {
+      m.element.style.display = i === window.detailMediaCurrentIndex ? 'flex' : 'none';
+    });
+
+    const prevBtn = document.getElementById('prevDetailMedia');
+    const nextBtn = document.getElementById('nextDetailMedia');
+
+    if (window.currentWorkshopMedia.length > 1) {
+      prevBtn.style.display = 'block';
+      nextBtn.style.display = 'block';
+
+      prevBtn.onclick = (e) => {
+        e.stopPropagation();
+        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex - 1 + window.currentWorkshopMedia.length) % window.currentWorkshopMedia.length;
+        updateMediaNavigation();
+      };
+
+      nextBtn.onclick = (e) => {
+        e.stopPropagation();
+        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex + 1) % window.currentWorkshopMedia.length;
+        updateMediaNavigation();
+      };
+    } else {
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+    }
+  }
+
+
+
+// Helper functie om bestand upload toe te voegen aan categorie
+  function addFileUploadToCategory(category, listElement) {
+    const uploadContainer = document.createElement('div');
+    uploadContainer.style.marginTop = '10px';
+
+    const uploadLabel = document.createElement('label');
+    uploadLabel.style.display = 'inline-block';
+    uploadLabel.style.padding = '6px 12px';
+    uploadLabel.style.background = '#5481B7';
+    uploadLabel.style.color = 'white';
+    uploadLabel.style.borderRadius = '4px';
+    uploadLabel.style.cursor = 'pointer';
+    uploadLabel.style.fontSize = '14px';
+    uploadLabel.textContent = `➕ Bestand toevoegen aan ${category}`;
+
+    const uploadInput = document.createElement('input');
+    uploadInput.type = 'file';
+    uploadInput.multiple = true;
+    uploadInput.style.display = 'none';
+
+    uploadLabel.appendChild(uploadInput);
+    uploadContainer.appendChild(uploadLabel);
+    listElement.appendChild(uploadContainer);
+
+    uploadInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        // Controleer bestandstype
+        const ext = file.name.split('.').pop().toLowerCase();
+        const forbiddenExtensions = ['doc', 'docx'];
+
+        if (forbiddenExtensions.includes(ext)) {
+          showAlert(`Bestandstype .${ext} is niet toegestaan. Gebruik PDF of TXT.`);
+          return;
+        }
+
+        // Voeg toe aan huidige documenten
+        if (!window.currentWorkshopDocuments[category]) {
+          window.currentWorkshopDocuments[category] = [];
+        }
+
+        window.currentWorkshopDocuments[category].push({
+          file: file,
+          existing: false
+        });
+
+        // Toon in lijst
+        const tempDoc = {
+          name: file.name,
+          url: URL.createObjectURL(file)
+        };
+
+        const li = createDocumentListItem(tempDoc, category, false);
+        listElement.insertBefore(li, uploadContainer);
+      });
+
+      uploadInput.value = '';
+    });
+  }
+
+// Pas createDocumentListItem aan om verwijder functionaliteit te hebben
+  function createDocumentListItem(f, category, isExisting) {
     const li = document.createElement('li');
     li.style.display = 'flex';
     li.style.alignItems = 'center';
@@ -267,76 +607,281 @@ document.addEventListener('DOMContentLoaded', () => {
     right.style.alignItems = 'center';
     right.style.gap = '8px';
 
-    if (f.size) {
-      const size = document.createElement('span');
-      size.textContent = `${(f.size / 1024).toFixed(1)} KB`;
-      size.style.fontSize = '12px';
-      size.style.color = '#777';
-      right.appendChild(size);
+    // Verwijder knop
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '✖';
+    removeBtn.style.background = '#dc3545';
+    removeBtn.style.color = 'white';
+    removeBtn.style.border = 'none';
+    removeBtn.style.borderRadius = '4px';
+    removeBtn.style.width = '24px';
+    removeBtn.style.height = '24px';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.display = 'flex';
+    removeBtn.style.alignItems = 'center';
+    removeBtn.style.justifyContent = 'center';
+
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Verwijder uit huidige documenten
+      if (window.currentWorkshopDocuments[category]) {
+        const index = window.currentWorkshopDocuments[category].findIndex(doc =>
+          isExisting ? doc.name === f.name : doc.file.name === f.name
+        );
+
+        if (index > -1) {
+          window.currentWorkshopDocuments[category].splice(index, 1);
+        }
+      }
+
+      li.remove();
+    });
+
+    right.appendChild(removeBtn);
+
+    // Download/bekijk knoppen alleen voor bestaande bestanden
+    if (isExisting && f.url) {
+      if (f.size) {
+        const size = document.createElement('span');
+        size.textContent = `${(f.size / 1024).toFixed(1)} KB`;
+        size.style.fontSize = '12px';
+        size.style.color = '#777';
+        right.appendChild(size);
+      }
+
+      const downloadLink = document.createElement('a');
+      downloadLink.textContent = 'Download';
+      downloadLink.href = f.url.startsWith('http') ? f.url : `${API_URL}${f.url}`;
+      downloadLink.setAttribute('download', f.name || 'bestand');
+      downloadLink.style.background = '#486c8a';
+      downloadLink.style.color = 'white';
+      downloadLink.style.border = 'none';
+      downloadLink.style.padding = '4px 10px';
+      downloadLink.style.borderRadius = '4px';
+      downloadLink.style.cursor = 'pointer';
+      downloadLink.style.textDecoration = 'none';
+      downloadLink.addEventListener('click', e => e.stopPropagation());
+      right.appendChild(downloadLink);
+
+      const viewLink = document.createElement('a');
+      const fileUrl = (f.url || f.name || f.path).startsWith('http')
+        ? (f.url || f.name || f.path)
+        : `${API_URL}/uploads/${encodeURIComponent((f.url || f.name || f.path).split(/[/\\]/).pop())}`;
+
+      viewLink.href = fileUrl;
+      viewLink.textContent = 'Bekijk';
+      viewLink.target = '_blank';
+      viewLink.rel = 'noopener noreferrer';
+      viewLink.style.background = '#6C757D';
+      viewLink.style.color = 'white';
+      viewLink.style.border = 'none';
+      viewLink.style.padding = '4px 10px';
+      viewLink.style.borderRadius = '4px';
+      viewLink.style.cursor = 'pointer';
+      viewLink.style.textDecoration = 'none';
+      viewLink.addEventListener('click', e => e.stopPropagation());
+      right.appendChild(viewLink);
     }
-
-    const downloadLink = document.createElement('a');
-    downloadLink.textContent = 'Download';
-    downloadLink.href = f.url.startsWith('http') ? f.url : `${API_URL}${f.url}`;
-    downloadLink.setAttribute('download', f.name || 'bestand');
-    downloadLink.style.background = '#486c8a';
-    downloadLink.style.color = 'white';
-    downloadLink.style.border = 'none';
-    downloadLink.style.padding = '4px 10px';
-    downloadLink.style.borderRadius = '4px';
-    downloadLink.style.cursor = 'pointer';
-    downloadLink.style.textDecoration = 'none';
-    downloadLink.addEventListener('click', e => e.stopPropagation());
-    right.appendChild(downloadLink);
-
-    const viewLink = document.createElement('a');
-    const fileUrl = (f.url || f.name || f.path).startsWith('http')
-      ? (f.url || f.name || f.path)
-      : `${API_URL}/uploads/${encodeURIComponent((f.url || f.name || f.path).split(/[/\\]/).pop())}`;
-
-    viewLink.href = fileUrl;
-    viewLink.textContent = 'Bekijk';
-    viewLink.target = '_blank';
-    viewLink.rel = 'noopener noreferrer';
-    viewLink.style.background = '#6C757D';
-    viewLink.style.color = 'white';
-    viewLink.style.border = 'none';
-    viewLink.style.padding = '4px 10px';
-    viewLink.style.borderRadius = '4px';
-    viewLink.style.cursor = 'pointer';
-    viewLink.style.textDecoration = 'none';
-    viewLink.addEventListener('click', e => e.stopPropagation());
-    right.appendChild(viewLink);
 
     li.appendChild(right);
     return li;
   }
 
+
+
+  ///UPDATE WORKSHOP
+
+
+  // Update workshop functionaliteit
+// Update workshop functionaliteit
+  document.getElementById('updateWorkshopBtn').addEventListener('click', async () => {
+    if (!currentWorkshopId) return;
+
+    const confirmUpdate = await showConfirm('Weet je zeker dat je deze workshop wilt bijwerken?');
+    if (!confirmUpdate) return;
+
+    try {
+      const name = document.getElementById('detailName').value.trim();
+      const desc = document.getElementById('detailDesc').value.trim();
+      const duration = document.getElementById('detailDuration').value;
+      const parentalConsent = document.getElementById('detailParentalConsent').checked;
+
+      if (!name || !desc || !duration) {
+        showAlert("Naam, beschrijving en duur zijn verplicht.");
+        return;
+      }
+
+      // Controleer duur
+      let totalMinutes = 0;
+      const timeParts = duration.split(':');
+      if (timeParts.length === 2) {
+        const [h, m] = timeParts.map(Number);
+        totalMinutes = h * 60 + m;
+      } else {
+        totalMinutes = Number(duration);
+      }
+
+      if (isNaN(totalMinutes) || totalMinutes < 60 || totalMinutes > 120) {
+        showAlert("De duur moet tussen 1 en 2 uur liggen (bijv. 01:15).");
+        return;
+      }
+
+      // Bereid FormData voor
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('description', desc);
+      formData.append('duration', duration);
+      formData.append('parentalConsent', parentalConsent);
+      formData.append('labels', JSON.stringify(window.currentWorkshopLabels || []));
+
+      // BELANGRIJK: Upload ALLE media als nieuwe bestanden
+      if (window.currentWorkshopMedia && window.currentWorkshopMedia.length > 0) {
+        // We moeten bestaande bestanden opnieuw uploaden als File objecten
+        // Dit kan alleen als we ze eerst downloaden, wat complex is
+
+        // Alternatief: Stuur alleen de nieuwe bestanden en laat backend oude behouden
+        // Dit is de huidige aanpak, maar de backend moet dan oude bestanden niet verwijderen
+
+        // Laten we het probleem anders aanpakken:
+        // We moeten de backend vertellen om oude bestanden te behouden
+        // Voeg een veld toe om aan te geven dat dit een update is, geen volledige vervanging
+        formData.append('isUpdate', 'true');
+
+        // Upload alleen nieuwe bestanden
+        const newMediaFiles = window.currentWorkshopMedia.filter(m => !m.existing && m.file);
+        newMediaFiles.forEach((media, index) => {
+          if (media.file) {
+            const safeName = makeSafeFileName(media.file.name);
+            const safeFile = new File([media.file], safeName, { type: media.file.type });
+            formData.append('media', safeFile);
+          }
+        });
+      }
+
+      // Voeg nieuwe document bestanden toe
+      const appendNewFiles = (category, formKey) => {
+        const docs = window.currentWorkshopDocuments[category] || [];
+        docs.forEach(doc => {
+          if (!doc.existing && doc.file) {
+            const safeName = makeSafeFileName(doc.file.name);
+            const safeFile = new File([doc.file], safeName, { type: doc.file.type });
+            formData.append(formKey, safeFile);
+          }
+        });
+      };
+
+      appendNewFiles('instructions', 'instructionsFiles');
+      appendNewFiles('manuals', 'manualsFiles');
+      appendNewFiles('demo', 'demoFiles');
+      appendNewFiles('worksheets', 'worksheetsFiles');
+
+      // Voeg document metadata toe (zowel bestaande als nieuwe)
+      const allDocs = [
+        ...(window.currentWorkshopDocuments.instructions || []),
+        ...(window.currentWorkshopDocuments.manuals || []),
+        ...(window.currentWorkshopDocuments.demo || []),
+        ...(window.currentWorkshopDocuments.worksheets || [])
+      ];
+
+      const docMeta = allDocs.map(doc => ({
+        name: makeSafeFileName(doc.name || doc.file?.name),
+        category: doc.category ||
+          (doc.name ?
+            (doc.name.includes('instruct') ? 'instructions' :
+              doc.name.includes('manual') ? 'manuals' :
+                doc.name.includes('demo') ? 'demo' : 'worksheets')
+            : 'worksheets')
+      }));
+
+      formData.append('documentMeta', JSON.stringify(docMeta));
+
+      // Voeg quiz toe als die bestaat
+      if (window.currentWorkshopData?.quiz) {
+        formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+      }
+
+      // Verstuur update request
+      const token = localStorage.getItem("jwt");
+      if (!token) {
+        throw new Error("Geen JWT token beschikbaar");
+      }
+
+      const response = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Fout bij updaten: ${response.status} - ${errorText}`);
+      }
+
+      // Succes
+      detailsPopup.style.display = 'none';
+      clearDetailsPopup();
+      await showAlert("Workshop succesvol bijgewerkt!");
+
+      // Herlaad workshops
+      window.dispatchEvent(new CustomEvent('workshopsUpdated'));
+
+    } catch (e) {
+      showAlert("Fout bij updaten workshop: " + e.message);
+    }
+  });
+
+
+  // Helper functie voor veilige bestandsnamen (dezelfde als in management.js)
+  function makeSafeFileName(fileName) {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9._-]/g, '');
+  }
+
+
   function getMediaElement(file) {
-    let rawUrl = file.url || file.name;
+    let rawUrl = file.url || file.name || file.path;
     if (!rawUrl) return null;
 
+    let fileUrl;
+
+    // Bepaal URL - zelfde logica als in renderWorkshops
+    if (rawUrl.startsWith('http')) {
+      fileUrl = rawUrl;
+    } else if (rawUrl.startsWith('/uploads/') || rawUrl.startsWith('uploads/')) {
+      const cleanPath = rawUrl.replace(/^\/+/, '').replace(/^uploads\/?/, '');
+      fileUrl = `${API_URL}/uploads/${encodeURIComponent(cleanPath.split('/').pop())}`;
+    } else {
+      fileUrl = `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
+    }
+
     const ext = rawUrl.split('.').pop()?.toLowerCase();
-    let fileUrl = rawUrl.startsWith('http')
-      ? rawUrl
-      : `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
 
-    if (!ext) return null;
-
-    if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
       const img = document.createElement('img');
       img.src = fileUrl;
+      img.alt = 'Workshop media';
+      img.onerror = () => {
+        console.error('Failed to load image:', fileUrl);
+        img.src = '/image/default-workshop.jpeg';
+      };
       return img;
-    } else if (['mp4','webm','ogg'].includes(ext)) {
+    } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
       const video = document.createElement('video');
       video.src = fileUrl;
       video.controls = true;
+      video.preload = 'metadata';
       return video;
     }
 
     return null;
   }
-
   function getFileIconClass(fileName){
     if(!fileName) return 'fa-file';
     const ext = fileName.split('.').pop().toLowerCase();
@@ -594,20 +1139,53 @@ Het team
   // =======================
   // Clear details popup
   // =======================
-  function clearDetailsPopup(){
-    currentWorkshopId=null;
-    document.getElementById('detailName').value='';
-    document.getElementById('detailDesc').value='';
-    document.getElementById('detailDuration').value='';
-    detailLabelPreview.innerHTML='';
-    if(detailInstructionsList) detailInstructionsList.innerHTML='';
-    if(detailManualsList) detailManualsList.innerHTML='';
-    if(detailDemoList) detailDemoList.innerHTML='';
-    if(detailWorksheetsList) detailWorksheetsList.innerHTML='';
-    const mediaContainer = document.getElementById('detailMediaContainer');
-    if(mediaContainer) mediaContainer.innerHTML='';
-  }
+  function clearDetailsPopup() {
+    currentWorkshopId = null;
+    window.currentWorkshopData = null;
+    window.currentWorkshopLabels = [];
+    window.currentWorkshopMedia = [];
+    window.currentWorkshopDocuments = {
+      instructions: [],
+      manuals: [],
+      demo: [],
+      worksheets: []
+    };
+    window.detailMediaCurrentIndex = 0;
 
+    // Reset input velden
+    const nameInput = document.getElementById('detailName');
+    const descInput = document.getElementById('detailDesc');
+    const durationInput = document.getElementById('detailDuration');
+
+    nameInput.value = '';
+    nameInput.readOnly = false;
+
+    descInput.value = '';
+    descInput.readOnly = false;
+
+    durationInput.value = '';
+    durationInput.readOnly = false;
+
+    // Reset parental consent
+    document.getElementById('detailParentalConsent').checked = false;
+
+    // Clear labels
+    detailLabelPreview.innerHTML = '';
+
+    // Clear document lists
+    if (detailInstructionsList) detailInstructionsList.innerHTML = '';
+    if (detailManualsList) detailManualsList.innerHTML = '';
+    if (detailDemoList) detailDemoList.innerHTML = '';
+    if (detailWorksheetsList) detailWorksheetsList.innerHTML = '';
+
+    // Clear media container
+    const mediaContainer = document.getElementById('detailMediaContainer');
+    if (mediaContainer) mediaContainer.innerHTML = '';
+
+    // Clear reviews
+    const reviewBox = document.getElementById('detailReviewBox');
+    if (reviewBox) reviewBox.innerHTML = '';
+  }
   // =======================
   // Categorie toggle
   // =======================
@@ -706,7 +1284,7 @@ Het team
       const alertModal = document.getElementById('customAlert');
       const alertMsg = document.getElementById('customAlertMessage');
       const okBtn = document.getElementById('customAlertOk');
-
+      forceToTop(alertModal);
       alertMsg.textContent = message;
       alertModal.style.display = 'flex';
 
@@ -732,7 +1310,7 @@ Het team
       const confirmMsg = document.getElementById('customConfirmMessage');
       const yesBtn = document.getElementById('customConfirmYes');
       const noBtn = document.getElementById('customConfirmNo');
-
+      forceToTop(confirmModal);
       confirmMsg.textContent = message;
       confirmModal.style.display = 'flex';
 

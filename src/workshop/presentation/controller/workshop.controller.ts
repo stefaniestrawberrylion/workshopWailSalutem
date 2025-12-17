@@ -12,6 +12,7 @@ import {
   NotFoundException,
   Req,
   Query,
+  Put,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
@@ -180,6 +181,54 @@ export class WorkshopController {
     );
 
     return this.toDto(workshop);
+  }
+  //Update workshop
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'image', maxCount: 1 },
+        { name: 'media', maxCount: 10 },
+        { name: 'instructionsFiles', maxCount: 10 },
+        { name: 'manualsFiles', maxCount: 10 },
+        { name: 'demoFiles', maxCount: 10 },
+        { name: 'worksheetsFiles', maxCount: 10 },
+        { name: 'labelsFile', maxCount: 1 },
+      ],
+      multerOptions,
+    ),
+  )
+  async updateWorkshop(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthenticatedRequest,
+    @Body() body: any,
+    @UploadedFiles() files: Record<string, MulterFile[]>,
+  ): Promise<WorkshopDto> {
+    // Labels parsen indien aanwezig
+    if (files.labelsFile || body.labels) {
+      body.labels = await this.workshopService.parseLabels(files, body);
+    }
+
+    const workshop = await this.workshopService.updateWorkshop(
+      id,
+      body,
+      files.image?.[0],
+      files.media,
+      files.instructionsFiles,
+      files.manualsFiles,
+      files.demoFiles,
+      files.worksheetsFiles,
+    );
+
+    // Reviews en gemiddelde ophalen voor DTO
+    const average = await this.reviewService.getAverageForWorkshop(id);
+    const count = await this.reviewService.getCountForWorkshop(id);
+    const reviews = await this.reviewService.findByWorkshop(id);
+
+    return this.toDto(workshop, average, count, reviews);
   }
 
   // =======================

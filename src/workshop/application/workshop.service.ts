@@ -124,6 +124,62 @@ export class WorkshopService {
     }
   }
 
+  //updateWorkshop
+// updateWorkshop
+  async updateWorkshop(
+    id: number,
+    data: Partial<CreateWorkshopDto>,
+    image?: MulterFile,
+    media?: MulterFile[],
+    instructionsFiles?: MulterFile[],
+    manualsFiles?: MulterFile[],
+    demoFiles?: MulterFile[],
+    worksheetsFiles?: MulterFile[],
+  ): Promise<Workshop> {
+    const workshop = await this.getWorkshop(id);
+
+    // Update basisvelden
+    if (data.name) workshop.name = data.name;
+    if (data.description) workshop.description = data.description;
+    if (data.duration) workshop.duration = data.duration;
+    if (data.labels) workshop.labelsJson = JSON.stringify(data.labels);
+    if (data.parentalConsent !== undefined)
+      workshop.parentalConsent = String(data.parentalConsent) === 'true';
+    if (data.quiz)
+      workshop.quizJson =
+        typeof data.quiz === 'string' ? data.quiz : JSON.stringify(data.quiz);
+
+    // Update bestanden - BELANGRIJK: Voeg nieuwe media toe aan bestaande
+    if (image) workshop.imagePath = this.saveFile(image);
+    if (media && media.length > 0) {
+      // Voeg nieuwe bestanden toe aan bestaande bestanden
+      const existingFiles = workshop.files || [];
+      const newFiles = this.saveFiles(media);
+      workshop.files = [...existingFiles, ...newFiles];
+    }
+
+    // Voeg nieuwe documenten toe aan bestaande documenten
+    const newDocuments: DocumentInfo[] = [
+      ...this.createDocumentInfos(instructionsFiles, 'instructions'),
+      ...this.createDocumentInfos(manualsFiles, 'manuals'),
+      ...this.createDocumentInfos(demoFiles, 'demo'),
+      ...this.createDocumentInfos(worksheetsFiles, 'worksheets'),
+    ];
+
+    if (newDocuments.length > 0) {
+      // Parse bestaande documenten
+      const existingDocuments: DocumentInfo[] = workshop.documentsJson
+        ? (typeof workshop.documentsJson === 'string'
+          ? JSON.parse(workshop.documentsJson)
+          : workshop.documentsJson)
+        : [];
+
+      // Combineer bestaande en nieuwe documenten
+      workshop.documentsJson = JSON.stringify([...existingDocuments, ...newDocuments]);
+    }
+
+    return this.workshopRepository.save(workshop);
+  }
   private saveFile(file: MulterFile): string {
     if (!file) return '';
     const absolutePath =
@@ -143,7 +199,7 @@ export class WorkshopService {
     return paths;
   }
 
-  private async parseLabels(
+  public async parseLabels(
     files: Record<string, MulterFile[]>,
     body: any,
   ): Promise<string[]> {

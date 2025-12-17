@@ -395,54 +395,12 @@
     .popup-left { min-width: 420px; }
     .popup-right { min-width: 260px; }
 }
-.upload-error {
-    color: #d93025; /* rood */
-    background: #fdecea;
-    border: 1px solid #f5c6cb;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-top: 8px;
-    display: none; /* pas zichtbaar bij fout */
-}
-
-.upload-error.show {
-    display: block;
-    animation: fadeIn 0.2s ease-in-out;
-}
-
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-.error-container {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    padding: 10px 20px;
-    border-radius: 8px;
-    margin: 10px auto;
-    width: 90%;
-    max-width: 800px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    animation: fadeIn 0.3s ease-in-out;
-}
 
-#errorContainer button {
-    background: none;
-    border: none;
-    color: #721c24;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 /* Oudertoestemming checkbox container */
 #workshopPopup label[for="parentalConsent"],
 #workshopPopup label input#parentalConsent {
@@ -822,4 +780,306 @@
     color: #5481B7;
     text-align: center;
     font-size: 16px;
+}
+
+
+
+
+/* CSS voor bewerkbare workshop details */
+.editable-field {
+    border: 1px solid #5481B7;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.editable-field:focus {
+    outline: none;
+    border-color: #486c8a;
+    box-shadow: 0 0 0 2px rgba(72, 108, 138, 0.2);
+}
+
+.removable-label {
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.removable-label:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.media-item {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.media-item:hover {
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.remove-media-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 10;
+}
+
+.remove-media-btn:hover {
+    background: #dc3545;
+}
+
+.file-item-removable {
+    position: relative;
+}
+
+.remove-file-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.remove-file-btn:hover {
+    background: #c82333;
+}
+
+.add-file-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #5481B7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.add-file-btn:hover {
+    background: #486c8a;
+}
+
+/* Update knop styling */
+.update-workshop-btn {
+    background: linear-gradient(135deg, #5481B7, #486c8a);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.update-workshop-btn:hover {
+    background: linear-gradient(135deg, #486c8a, #3a5570);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Fix voor labels in detail popup */
+#detailLabelPreview span {
+    background: #5481B7;
+    color: white;
+    padding: 6px 12px;
+    margin: 3px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 32px;
+    border: none !important;
+}
+
+#detailLabelPreview span:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* Fix voor media slideshow */
+#detailMediaContainer {
+    position: relative;
+    min-height: 250px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f5f7fa;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+#detailMediaContainer > div {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 250px;
+}
+
+#detailMediaContainer img,
+#detailMediaContainer video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Media navigatie knoppen */
+#prevDetailMedia,
+#nextDetailMedia {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(84, 129, 183, 0.8);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#prevDetailMedia {
+    left: 10px;
+}
+
+#nextDetailMedia {
+    right: 10px;
+}
+
+#prevDetailMedia:hover,
+#nextDetailMedia:hover {
+    background: rgba(84, 129, 183, 1);
+}
+
+/* Verwijder knop voor media */
+.remove-media-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 10;
+}
+
+.remove-media-btn:hover {
+    background: #dc3545;
+}
+
+/* Verwijder knop voor bestanden */
+.remove-file-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.remove-file-btn:hover {
+    background: #c82333;
+}
+
+/* Maak input velden bewerkbaar in detail popup */
+#detailName,
+#detailDesc,
+#detailDuration {
+    background-color: #fff;
+    border: 1px solid #5481B7;
+    color: #333;
+    cursor: text;
+}
+
+#detailName:focus,
+#detailDesc:focus,
+#detailDuration:focus {
+    outline: none;
+    border-color: #486c8a;
+    box-shadow: 0 0 0 2px rgba(84, 129, 183, 0.2);
+}
+
+/* Label toevoeg velden */
+.label-add-container {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.label-add-container input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.label-add-container input[type="color"] {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.label-add-container button {
+    width: 40px;
+    height: 40px;
+    background: #5481B7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.label-add-container button:hover {
+    background: #486c8a;
 }

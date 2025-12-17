@@ -20,11 +20,11 @@
     max-height: 95%;
     background: #f1f4f8;
     border-radius: 20px;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     padding: 0;
     position: relative;
+    overflow: visible;
 }
 
 /* Popup body - volledige beschikbare breedte gebruiken */
@@ -35,6 +35,8 @@
     flex: 1;
     box-sizing: border-box;
     width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Linker paneel */

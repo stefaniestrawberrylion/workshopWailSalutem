@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('closePopupBtn');
   const saveBtn = document.getElementById('saveWorkshopBtn');
   const closeDetailsBtnCancel = document.getElementById('closePopupBtnCancel');
+  const root = document.getElementById("global-modal-root");
 
   const mainImageInput = document.getElementById('workshopMainImage');
   const workshopImagesInput = document.getElementById('workshopImages');
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showError(message) {
     const popup = document.getElementById('workshopPopup');
-    const popupVisible = popup && popup.style.display === 'block';
+    const popupVisible = popup && popup.style.display === 'flex';
 
     const container = popupVisible
       ? document.getElementById('popupErrorContainer')
@@ -74,6 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!container || !messageBox) return;
 
+    // Forceer container naar de top van het DOM (global root)
+    const root = document.getElementById('global-modal-root');
+    if (root && container.parentNode !== root) {
+      root.appendChild(container);
+    }
+
     messageBox.textContent = message;
     container.style.display = 'flex';
 
@@ -82,8 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(window.errorTimeout);
     window.errorTimeout = setTimeout(() => {
       container.style.display = 'none';
-    }, 5000);
+    }, 2000);
   }
+
+
 
   // =======================
   // Open/Close popup
