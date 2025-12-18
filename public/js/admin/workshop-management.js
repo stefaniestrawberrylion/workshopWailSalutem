@@ -382,13 +382,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Toon laadpopup
+      // Toon laadpopup met progress bar
       const loadingPopup = document.getElementById('loadingPopup');
       const loadingMessage = document.getElementById('loadingMessage');
+      const uploadProgress = document.getElementById('uploadProgress');
+
       if (loadingPopup) {
         loadingMessage.textContent = currentWorkshopId ?
-          'Workshop bijwerken...' : 'Workshop opslaan...';
+          'Workshop bijwerken...' : 'Workshop uploaden...';
         loadingPopup.style.display = 'flex';
+        uploadProgress.style.width = '0%';
 
         // Forceer popup naar boven
         const root = document.getElementById('global-modal-root');
@@ -443,52 +446,97 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error("Geen JWT token beschikbaar");
         }
 
-        const headers = { "Authorization": `Bearer ${token}` };
         const url = currentWorkshopId
           ? `${API_URL}/workshops/${currentWorkshopId}`
           : `${API_URL}/workshops`;
         const method = currentWorkshopId ? 'PUT' : 'POST';
 
-        const response = await fetch(url, {
-          method,
-          body: formData,
-          headers
+        // 🔹 Gebruik XMLHttpRequest voor upload progress tracking
+        const xhr = new XMLHttpRequest();
+
+        // Stel progress event in
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable && uploadProgress) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            uploadProgress.style.width = `${percentComplete}%`;
+
+            // Update loading message gebaseerd op progress
+            if (percentComplete < 100) {
+              loadingMessage.textContent = `Uploaden... ${Math.round(percentComplete)}%`;
+            } else {
+              loadingMessage.textContent = 'Verwerken...';
+            }
+          }
         });
 
-        // Update laadbericht
-        if (loadingMessage) {
-          loadingMessage.textContent = 'Opslaan voltooid...';
-        }
+        // Stel de completion handler in
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const responseData = JSON.parse(xhr.responseText);
 
-        const responseData = await response.json();
-        if (!response.ok) {
-          throw new Error(responseData.message || 'Fout bij opslaan van de workshop');
-        }
+              // Zet progress op 100%
+              if (uploadProgress) {
+                uploadProgress.style.width = '100%';
+                loadingMessage.textContent = 'Opslaan voltooid!';
+              }
 
-        // Korte pauze om het "voltooid" bericht te laten zien
-        await new Promise(resolve => setTimeout(resolve, 500));
+              // Korte pauze om het "voltooid" bericht te laten zien
+              setTimeout(() => {
+                clearPopup();
+                popup.style.display = 'none';
 
-        clearPopup();
-        popup.style.display = 'none';
+                // Verberg laadpopup
+                if (loadingPopup) {
+                  loadingPopup.style.display = 'none';
+                }
 
-        // Verberg laadpopup
-        if (loadingPopup) {
-          loadingPopup.style.display = 'none';
-        }
+                // Toon succesbericht
+                showAlert(currentWorkshopId ?
+                  'Workshop succesvol bijgewerkt!' :
+                  'Workshop succesvol aangemaakt!').then(() => {
+                  // **BELANGRIJK: Herlaad workshops DIRECT**
+                  if (typeof loadWorkshops === 'function') {
+                    loadWorkshops();
+                  }
+                  // Ook event dispatchen voor andere listeners
+                  window.dispatchEvent(new CustomEvent('workshopsUpdated'));
+                });
+              }, 500);
 
-        // Toon succesbericht
-        await showAlert(currentWorkshopId ?
-          'Workshop succesvol bijgewerkt!' :
-          'Workshop succesvol aangemaakt!');
+            } catch (e) {
+              // Verberg laadpopup bij fout
+              if (loadingPopup) {
+                loadingPopup.style.display = 'none';
+              }
+              showError('Fout bij verwerken van server response');
+            }
+          } else {
+            // Verberg laadpopup bij fout
+            if (loadingPopup) {
+              loadingPopup.style.display = 'none';
+            }
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              showError(errorData.message || 'Fout bij opslaan van de workshop');
+            } catch (e) {
+              showError(`Server error: ${xhr.status}`);
+            }
+          }
+        };
 
-        // **BELANGRIJK: Herlaad workshops DIRECT**
-        // Dit is de kritieke stap die ontbrak
-        if (typeof loadWorkshops === 'function') {
-          loadWorkshops(); // Deze functie zit in workshop-viewer.js
-        }
+        xhr.onerror = function() {
+          // Verberg laadpopup bij netwerkfout
+          if (loadingPopup) {
+            loadingPopup.style.display = 'none';
+          }
+          showError('Netwerkfout. Controleer je verbinding.');
+        };
 
-        // Ook event dispatchen voor andere listeners
-        window.dispatchEvent(new CustomEvent('workshopsUpdated'));
+        // Open en stuur de request
+        xhr.open(method, url);
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+        xhr.send(formData);
 
       } catch (e) {
         // Verberg laadpopup bij fout
@@ -499,7 +547,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
 
 // In workshop-management.js, na DOMContentLoaded:
   window.addEventListener('workshopsUpdated', () => {

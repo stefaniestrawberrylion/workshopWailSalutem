@@ -608,3 +608,30 @@
 .btn-secondary:hover {
     background-color: #e0e0e0;
 }
+
+/* Voeg dit toe aan je CSS */
+#uploadProgress {
+    width: 0%;
+    height: 10px;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    border-radius: 5px;
+    transition: width 0.3s ease-in-out;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+}
+
+.loading-image {
+    width: 100px;
+    height: 100px;
+    animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+    from { transform: translateY(0px); }
+    to { transform: translateY(-10px); }
+}
