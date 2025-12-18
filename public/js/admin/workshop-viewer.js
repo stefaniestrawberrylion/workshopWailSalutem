@@ -63,19 +63,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+
+  // Luister naar workshop updates van management.js
+  window.addEventListener('workshopsUpdated', () => {
+    loadWorkshops();
+  });
+
   // =======================
   // Workshops ophalen en renderen
   // =======================
   async function loadWorkshops() {
     try {
-      const res = await fetch(`${API_URL}/workshops`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Fout bij ophalen workshops');
+      const response = await fetch(`${API_URL}/workshops`, {
+        headers: getAuthHeaders()
+      });
 
-      const workshops = await res.json();
-      console.log('Workshops data:', workshops); // <-- Dit toont de volledige data
-      renderWorkshops(workshops);
-    } catch (e) {
-      showAlert("Niet gevonden")
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Render de workshops in de grid
+      renderWorkshops(data);
+
+    } catch (err) {
+      showAlert("Fout bij laden van workshops: " + err.message);
     }
   }
 
@@ -319,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('updateWorkshopBtn').style.display = 'block';
       detailsPopup.style.display = 'flex';
+      loadWorkshops();
     } catch (e) {
       showAlert("Fout: " + e.message);
     }
@@ -694,7 +708,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ///UPDATE WORKSHOP
 
 
-  // Update workshop functionaliteit
 // Update workshop functionaliteit
   document.getElementById('updateWorkshopBtn').addEventListener('click', async () => {
     if (!currentWorkshopId) return;
@@ -1330,4 +1343,9 @@ Het team
   // Init
   // =======================
   loadWorkshops();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      loadWorkshops();
+    }
+  });
 });

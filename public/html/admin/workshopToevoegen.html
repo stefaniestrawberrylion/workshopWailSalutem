@@ -38,15 +38,20 @@
         <div class="custom-modal-content" style="background: transparent; box-shadow: none;">
             <div class="loading-container">
                 <div class="loading-animation">
-                    <!-- Heen en weer bewegende afbeelding -->
                     <img src="/image/Robotnik.png" alt="Laden..." class="loading-image">
                 </div>
                 <p id="loadingMessage" style="color: white; margin-top: 20px; font-weight: bold;">
                     Workshop opslaan...
                 </p>
+                <!-- Progress bar toegevoegd -->
+                <div style="width: 100%; background: rgba(255,255,255,0.2); border-radius: 5px; margin-top: 10px;">
+                    <div id="uploadProgress" style="width: 0%; height: 10px; background: #4caf50; border-radius: 5px;"></div>
+                </div>
             </div>
         </div>
     </div>
+
+</div>
 </div>
 
 <header>

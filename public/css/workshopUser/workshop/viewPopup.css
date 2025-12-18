@@ -407,33 +407,6 @@ main {
     opacity: 1;
 }
 
-/* Language switcher */
-.language-switcher {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-}
-
-.language-switcher .flag {
-    width: 32px;
-    height: 22px;
-    cursor: pointer;
-    border-radius: 4px;
-    object-fit: cover;
-    transition: transform 0.2s;
-}
-
-.language-switcher .flag:hover {
-    transform: scale(1.1);
-}
 /* Workshop info hover vergroting */
 .workshop-info p {
     overflow: hidden;

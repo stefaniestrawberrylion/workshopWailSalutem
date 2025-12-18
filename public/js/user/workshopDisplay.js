@@ -355,18 +355,20 @@
       const quizResult = document.getElementById('quizResult');
       const closeQuizBtn = document.querySelector('.close-quiz-popup');
 
-// Sluit quiz popup
-      closeQuizBtn.addEventListener('click', () => {
-        quizPopup.classList.remove('active');
-        setTimeout(() => {
-          quizPopup.style.display = 'none';
-          quizContainer.innerHTML = '';
-          if (quizResult) {
-            quizResult.textContent = '';
-            quizResult.classList.remove('show');
-          }
-        }, 300);
-      });
+      if (closeQuizBtn) {
+        closeQuizBtn.addEventListener('click', () => {
+          quizPopup.classList.remove('active');
+          setTimeout(() => {
+            quizPopup.style.display = 'none';
+            quizContainer.innerHTML = '';
+            if (quizResult) {
+              quizResult.textContent = '';
+              quizResult.classList.remove('show');
+            }
+          }, 300);
+        });
+      }
+
 
 // Sluit bij klikken buiten de popup
       quizPopup.addEventListener('click', (e) => {

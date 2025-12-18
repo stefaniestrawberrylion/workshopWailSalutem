@@ -52,9 +52,7 @@
                 <i class="fa-regular fa-heart"></i>
                 <span data-i18n="favorites">Favorieten</span>
             </button>
-            <button id="langToggle">
-                <img src="/image/Schermafbeelding%202025-09-19%20143613.png" alt="NL" id="flagIcon" width="24">
-            </button>
+
         </div>
 
         <span class="sidebar-text" data-i18n="dashboard">Dashboard</span>
@@ -181,9 +179,182 @@
             <div class="modal-content filter-form">
                 <span class="close" id="closeFilterModalBtn">&times;</span>
                 <div class="modal-header"><img src="../../image/logo.png" class="modal-logo"></div>
+
                 <div class="modal-body">
                     <h3>Filter Workshops</h3>
-                    <!-- Filters hier (rating, duur, labels) -->
+
+                    <!-- Rating Filter -->
+                    <div class="filter-section">
+                        <label>Minimale Beoordeling</label>
+                        <div class="rating-filter">
+                            <div class="stars-filter">
+                                <i class="fa-solid fa-star" data-value="1"></i>
+                                <i class="fa-solid fa-star" data-value="2"></i>
+                                <i class="fa-solid fa-star" data-value="3"></i>
+                                <i class="fa-solid fa-star" data-value="4"></i>
+                                <i class="fa-solid fa-star" data-value="5"></i>
+                            </div>
+                            <span id="selectedRatingText">Geen minimum</span>
+                        </div>
+                    </div>
+
+                    <!-- Duur Filter -->
+                    <div class="filter-section">
+                        <label>Maximale Duur</label>
+                        <select id="durationFilter">
+                            <option value="">Geen selectie</option>
+                            <option value="60-75">1:00 – 1:15</option>
+                            <option value="75-90">1:15 – 1:30</option>
+                            <option value="90-105">1:30 – 1:45</option>
+                            <option value="105-120">1:45 – 2:00</option>
+                        </select>
+                    </div>
+
+                    <!-- Labels Filter -->
+                    <div class="filter-section">
+                        <label>Labels</label>
+                        <div class="labels-filter">
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelAI" value="AI">
+                                <label for="filterLabelAI">AI</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelComputerVision" value="Computer Vision">
+                                <label for="filterLabelComputerVision">Computer Vision</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelWorkshop" value="Workshop">
+                                <label for="filterLabelWorkshop">Workshop</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelTechniek" value="Techniek">
+                                <label for="filterLabelTechniek">Techniek</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelRobotica" value="Robotica">
+                                <label for="filterLabelRobotica">Robotica</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelPrivacy" value="Privacy">
+                                <label for="filterLabelPrivacy">Privacy</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelBeginner" value="Beginner">
+                                <label for="filterLabelBeginner">Beginner</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelGemiddeld" value="Gemiddeld">
+                                <label for="filterLabelGemiddeld">Gemiddeld</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelBevorderd" value="Bevorderd">
+                                <label for="filterLabelBevorderd">Bevorderd</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelKinderen" value="Kinderen">
+                                <label for="filterLabelKinderen">Kinderen</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelJongeren" value="Jongeren">
+                                <label for="filterLabelJongeren">Jongeren</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelTeams" value="Teams">
+                                <label for="filterLabelTeams">Teams</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelDesign" value="Design">
+                                <label for="filterLabelDesign">Design</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelWebdevelopment" value="Webdevelopment">
+                                <label for="filterLabelWebdevelopment">Webdevelopment</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelData" value="Data">
+                                <label for="filterLabelData">Data</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelPraktijk" value="Praktijk">
+                                <label for="filterLabelPraktijk">Praktijk</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelTheorie" value="Theorie">
+                                <label for="filterLabelTheorie">Theorie</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG1" value="SDG 1 - Geen armoede">
+                                <label for="filterLabelSDG1">SDG 1 - Geen armoede</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG2" value="SDG 2 - Geen honger">
+                                <label for="filterLabelSDG2">SDG 2 - Geen honger</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG3" value="SDG 3 - Goede gezondheid en welzijn">
+                                <label for="filterLabelSDG3">SDG 3 - Goede gezondheid en welzijn</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG4" value="SDG 4 - Kwaliteitsonderwijs">
+                                <label for="filterLabelSDG4">SDG 4 - Kwaliteitsonderwijs</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG5" value="SDG 5 - Gendergelijkheid">
+                                <label for="filterLabelSDG5">SDG 5 - Gendergelijkheid</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG6" value="SDG 6 - Schoon water en sanitair">
+                                <label for="filterLabelSDG6">SDG 6 - Schoon water en sanitair</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG7" value="SDG 7 - Betaalbare en duurzame energie">
+                                <label for="filterLabelSDG7">SDG 7 - Betaalbare en duurzame energie</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG8" value="SDG 8 - Waardig werk en economische groei">
+                                <label for="filterLabelSDG8">SDG 8 - Waardig werk en economische groei</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG9" value="SDG 9 - Industrie, innovatie en infrastructuur">
+                                <label for="filterLabelSDG9">SDG 9 - Industrie, innovatie en infrastructuur</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG10" value="SDG 10 - Ongelijkheid verminderen">
+                                <label for="filterLabelSDG10">SDG 10 - Ongelijkheid verminderen</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG11" value="SDG 11 - Duurzame steden en gemeenschappen">
+                                <label for="filterLabelSDG11">SDG 11 - Duurzame steden en gemeenschappen</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG12" value="SDG 12 - Verantwoorde consumptie en productie">
+                                <label for="filterLabelSDG12">SDG 12 - Verantwoorde consumptie en productie</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG13" value="SDG 13 - Klimaatactie">
+                                <label for="filterLabelSDG13">SDG 13 - Klimaatactie</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG14" value="SDG 14 - Leven in het water">
+                                <label for="filterLabelSDG14">SDG 14 - Leven in het water</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG15" value="SDG 15 - Leven op het land">
+                                <label for="filterLabelSDG15">SDG 15 - Leven op het land</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG16" value="SDG 16 - Vrede, justitie en sterke publieke diensten">
+                                <label for="filterLabelSDG16">SDG 16 - Vrede, justitie en sterke publieke diensten</label>
+                            </div>
+                            <div class="label-option">
+                                <input type="checkbox" id="filterLabelSDG17" value="SDG 17 - Partnerschap om de doelstellingen te bereiken">
+                                <label for="filterLabelSDG17">SDG 17 - Partnerschap om de doelstellingen te bereiken</label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Filter Acties -->
                     <div class="filter-actions">
                         <button id="applyFiltersBtn">Filters Toepassen</button>
                         <button id="clearFiltersBtn">Filters Wissen</button>
@@ -222,7 +393,9 @@
 <script src="/js/user/workshop.js"></script>
 <script src="/js/user/workshopDisplay.js"></script>
 <script src="/js/user/filter.js"></script>
-<script src="/js/user/language.js"></script>
 
 </body>
 </html>
+
+
+

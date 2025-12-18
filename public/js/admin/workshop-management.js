@@ -433,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ...selectedDemo.map(f => ({ name: makeSafeFileName(f.name), category: 'demo' })),
           ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
         ]));
+
         if (window.currentWorkshopData?.quiz) {
           formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
         }
@@ -459,10 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
           loadingMessage.textContent = 'Opslaan voltooid...';
         }
 
-        const responseBody = await response.text();
-
+        const responseData = await response.json();
         if (!response.ok) {
-          throw new Error('Fout bij opslaan van de workshop');
+          throw new Error(responseData.message || 'Fout bij opslaan van de workshop');
         }
 
         // Korte pauze om het "voltooid" bericht te laten zien
@@ -481,7 +481,13 @@ document.addEventListener('DOMContentLoaded', () => {
           'Workshop succesvol bijgewerkt!' :
           'Workshop succesvol aangemaakt!');
 
-        // Herlaad workshops in het andere bestand via event
+        // **BELANGRIJK: Herlaad workshops DIRECT**
+        // Dit is de kritieke stap die ontbrak
+        if (typeof loadWorkshops === 'function') {
+          loadWorkshops(); // Deze functie zit in workshop-viewer.js
+        }
+
+        // Ook event dispatchen voor andere listeners
         window.dispatchEvent(new CustomEvent('workshopsUpdated'));
 
       } catch (e) {
@@ -493,6 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+
+// In workshop-management.js, na DOMContentLoaded:
+  window.addEventListener('workshopsUpdated', () => {
+    // De viewer zal zichzelf vernieuwen
+  });
+
   // =======================
   // Clear functies
   // =======================
@@ -535,4 +548,77 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     clearPopup: clearPopup
   };
+
+
+  // workshop-management.js - Voeg deze functies toe bovenaan na DOMContentLoaded
+
+  function showAlert(message) {
+    return new Promise(resolve => {
+      const alertModal = document.getElementById('customAlert');
+      const alertMsg = document.getElementById('customAlertMessage');
+      const okBtn = document.getElementById('customAlertOk');
+
+      if (!alertModal || !alertMsg || !okBtn) {
+        console.error('Alert modal elementen niet gevonden');
+        resolve();
+        return;
+      }
+
+      // Forceer naar top
+      const root = document.getElementById('global-modal-root');
+      if (root && alertModal.parentNode !== root) {
+        root.appendChild(alertModal);
+      }
+
+      alertMsg.textContent = message;
+      alertModal.style.display = 'flex';
+
+      // Timer voor automatisch sluiten na 2 seconden
+      const timer = setTimeout(() => {
+        alertModal.style.display = 'none';
+        resolve();
+      }, 2000);
+
+      // Sluiten via knop annuleert timer
+      okBtn.onclick = () => {
+        clearTimeout(timer);
+        alertModal.style.display = 'none';
+        resolve();
+      };
+    });
+  }
+
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const confirmModal = document.getElementById('customConfirm');
+      const confirmMsg = document.getElementById('customConfirmMessage');
+      const yesBtn = document.getElementById('customConfirmYes');
+      const noBtn = document.getElementById('customConfirmNo');
+
+      if (!confirmModal || !confirmMsg || !yesBtn || !noBtn) {
+        console.error('Confirm modal elementen niet gevonden');
+        resolve(false);
+        return;
+      }
+
+      // Forceer naar top
+      const root = document.getElementById('global-modal-root');
+      if (root && confirmModal.parentNode !== root) {
+        root.appendChild(confirmModal);
+      }
+
+      confirmMsg.textContent = message;
+      confirmModal.style.display = 'flex';
+
+      yesBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(false);
+      };
+    });
+  }
 });
+
