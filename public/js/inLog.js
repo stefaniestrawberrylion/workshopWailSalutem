@@ -142,6 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+// ================== ENTER TO LOGIN ==================
+  const loginInputs = document.querySelectorAll(
+    ".login input[type='email'], .login input[type='password']"
+  );
+
+  loginInputs.forEach(input => {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        loginBtn.click(); // exact dezelfde login-logica
+      }
+    });
+  });
+
 
   // ================== REGISTRATIE ==================
   const sendEmailBtn = document.getElementById('sendEmail');
@@ -197,6 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         showCustomPopup("Fout bij versturen van aanvraag. Controleer netwerk of backend.", 'error');
       }
+    });
+  }
+// ================== ENTER TO REGISTER ==================
+  const registrationForm = document.getElementById("registrationForm");
+
+  if (registrationForm && sendEmailBtn) {
+    registrationForm.addEventListener("submit", (e) => {
+      e.preventDefault(); // voorkomt page refresh
+      sendEmailBtn.click(); // triggert jouw bestaande validatie + fetch
     });
   }
 
