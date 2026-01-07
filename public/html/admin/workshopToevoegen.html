@@ -52,7 +52,6 @@
     </div>
 
 </div>
-</div>
 
 <header>
     <div class="logo"><img src="../../image/logo.png" alt="Logo"></div>
@@ -275,18 +274,22 @@
 
                     <div id="detailReviewBox"></div>
                 </div>
-                <button id="btnStartQuiz" class="quiz-start-btn" style="
-  margin-top:15px;
-  padding:10px 16px;
-  background:#5481B7;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-">
-                    Maak de quiz
+                <button id="btnStartQuiz" class="quiz-start-btn"    style="
+
+                margin-top:15px;
+                padding:10px 16px;
+                background:#5481B7;
+                color:white;
+                border:none;
+                border-radius:6px;
+                cursor:pointer;
+                font-size:16px;
+                ">
+                    Quiz bekijken / bewerken
                 </button>
+                <input type="hidden" id="hiddenQuizField" name="quiz">
+
+
 
 
                 <div class="popup-buttons">
@@ -371,27 +374,6 @@ Het team
 </div>
 
 
-<div id="quizPopup" class="popupq" style="display:none;">
-    <div class="popupq-content" style="max-width:600px;">
-        <span class="close-quiz-popup" style="cursor:pointer; float:right; font-size:22px;">✖</span>
-        <h2>Quiz</h2>
-
-        <div id="quizContainer"></div>
-
-        <button id="submitQuizBtn" style="
-      margin-top:15px;
-      padding:10px 16px;
-      background:#486c8a;
-      color:white;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;">
-            Controleer antwoorden
-        </button>
-
-        <div id="quizResult" style="margin-top:10px; font-weight:bold;"></div>
-    </div>
-</div>
 
 
 

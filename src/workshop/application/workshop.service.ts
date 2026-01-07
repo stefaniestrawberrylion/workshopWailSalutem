@@ -149,6 +149,12 @@ export class WorkshopService {
     if (data.labels) workshop.labelsJson = JSON.stringify(data.labels);
     if (data.parentalConsent !== undefined)
       workshop.parentalConsent = String(data.parentalConsent) === 'true';
+    if (data.quiz) {
+      workshop.quizJson =
+        typeof data.quiz === 'string'
+          ? data.quiz
+          : JSON.stringify(data.quiz);
+    }
 
     if (image) workshop.imagePath = this.saveFile(image);
     if (media?.length)

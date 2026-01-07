@@ -2,12 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // =======================
   // DOM ELEMENTS
   // =======================
-  const quizPopup = document.getElementById("quizPopup");
-  const quizContainer = document.getElementById("quizContainer");
-  const submitQuizBtn = document.getElementById("submitQuizBtn");
-  const quizResult = document.getElementById("quizResult");
+  const quizPopup = document.getElementById("modal-quiz-creator");
+  const quizContainer = document.getElementById("creator-questions-container");
   const btnStartQuiz = document.getElementById("btnStartQuiz");
-  let currentWorkshopData = window.currentWorkshopData || {};
+
+  // =======================
+  // GLOBAL WORKSHOP STATE
+  // =======================
+  const getWorkshopData = () => window.currentWorkshopData || {};
+  const getQuiz = () =>
+    Array.isArray(getWorkshopData().quiz) ? getWorkshopData().quiz : [];
 
   // =======================
   // CUSTOM ALERTS / CONFIRMS
@@ -17,25 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const modal = document.getElementById("customAlert");
       const msgEl = document.getElementById("customAlertMessage");
       const okBtn = document.getElementById("customAlertOk");
-
       msgEl.textContent = message;
       modal.style.display = "flex";
-
-      // Automatisch sluiten na 2 seconden
-      const timer = setTimeout(() => {
-        modal.style.display = "none";
-        resolve();
-      }, 2000);
-
-      // Sluiten via knop ook mogelijk, annuleer timer
       okBtn.onclick = () => {
-        clearTimeout(timer);
         modal.style.display = "none";
         resolve();
       };
     });
   }
-
 
   async function showConfirm(message) {
     return new Promise((resolve) => {
@@ -43,277 +36,192 @@ document.addEventListener("DOMContentLoaded", () => {
       const msgEl = document.getElementById("customConfirmMessage");
       const yesBtn = document.getElementById("customConfirmYes");
       const noBtn = document.getElementById("customConfirmNo");
-
       msgEl.textContent = message;
       modal.style.display = "flex";
-
-      yesBtn.onclick = () => {
-        modal.style.display = "none";
-        resolve(true);
-      };
-      noBtn.onclick = () => {
-        modal.style.display = "none";
-        resolve(false);
-      };
+      yesBtn.onclick = () => { modal.style.display = "none"; resolve(true); };
+      noBtn.onclick = () => { modal.style.display = "none"; resolve(false); };
     });
   }
 
   // =======================
-  // QUIZ VIEWER
+  // QUIZ CREATOR LOGIC
   // =======================
-  if (btnStartQuiz) {
-    btnStartQuiz.addEventListener("click", async () => {
-      const quiz = currentWorkshopData?.quiz || [];
-
-      if (quiz.length === 0) {
-        const createQuiz = await showConfirm(
-          "Deze workshop heeft nog geen quiz. Wil je er een aanmaken?"
-        );
-        if (createQuiz) {
-          openQuizCreator();
-        }
-        return;
-      }
-
-      if (quizContainer) quizContainer.innerHTML = "";
-
-      quiz.forEach((q, index) => {
-        const div = document.createElement("div");
-        div.classList.add("quiz-question-block");
-
-        let html = `<h3>${index + 1}. ${q.question}</h3>`;
-        q.options.forEach((opt, i) => {
-          html += `
-            <label style="display:block; margin-bottom:6px;">
-              <input type="radio" name="quiz-q${index}" value="${i}">
-              ${opt.text}
-            </label>
-          `;
-        });
-
-        div.innerHTML = html;
-        if (quizContainer) quizContainer.appendChild(div);
-      });
-
-      if (quizPopup) quizPopup.style.display = "flex";
-    });
-  }
-
-  const closeQuizBtn = document.querySelector(".close-quiz-popup");
-  if (closeQuizBtn) {
-    closeQuizBtn.addEventListener("click", () => {
-      if (quizPopup) quizPopup.style.display = "none";
-    });
-  }
-
-  if (submitQuizBtn) {
-    submitQuizBtn.addEventListener("click", () => {
-      const quiz = currentWorkshopData?.quiz || [];
-      let correctCount = 0;
-
-      quiz.forEach((q, index) => {
-        const selected = document.querySelector(`input[name="quiz-q${index}"]:checked`);
-        const questionBlock = quizContainer.children[index];
-
-        if (questionBlock) questionBlock.style.backgroundColor = "#f0f4fa";
-
-        if (!selected) {
-          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da";
-          return;
-        }
-
-        const chosen = Number(selected.value);
-        if (q.options[chosen]?.correct) {
-          correctCount++;
-          if (questionBlock) questionBlock.style.backgroundColor = "#d4edda";
-        } else {
-          if (questionBlock) questionBlock.style.backgroundColor = "#f8d7da";
-        }
-      });
-
-      if (quizResult) {
-        quizResult.textContent = `Je hebt ${correctCount} van de ${quiz.length} vragen goed!`;
-      }
-    });
-  }
-
-  // =======================
-  // QUIZ CREATOR BUTTONS
-  // =======================
-  const addQBtn = document.querySelector(".add-q-btn");
-  if (addQBtn) addQBtn.addEventListener("click", addQuestionBlock);
-
-  const btnOpenQuizCreator = document.getElementById("btnOpenQuizCreator");
-  if (btnOpenQuizCreator) btnOpenQuizCreator.addEventListener("click", openQuizCreator);
-
-  const closeQuizCreatorBtn = document.querySelector(".close-quiz");
-  if (closeQuizCreatorBtn) closeQuizCreatorBtn.addEventListener("click", closeQuizModals);
-
-  // =======================
-  // QUIZ CREATOR FUNCTIONS
-  // =======================
-  let questionCount = 0;
   const MIN_QUESTIONS = 5;
   const MAX_QUESTIONS = 10;
+  const MIN_OPTIONS = 2;
+  const MAX_OPTIONS = 4;
 
   function openQuizCreator() {
-    const modal = document.getElementById("modal-quiz-creator");
-    if (!modal) return;
-    modal.style.display = "flex";
+    if (!quizPopup) return;
+    quizPopup.style.display = "flex";
+    quizContainer.innerHTML = "";
 
-    const container = document.getElementById("creator-questions-container");
-    if (!container) return;
-    container.innerHTML = "";
-    questionCount = 0;
-
-    const existingQuiz = currentWorkshopData?.quiz || [];
+    const existingQuiz = getQuiz();
     if (existingQuiz.length > 0) {
       existingQuiz.forEach((q) => {
-        addQuestionBlock();
-        const lastBlock = container.lastElementChild;
-        if (lastBlock) lastBlock.querySelector(".question-text-input").value = q.question;
-
-        q.options.forEach((opt, i) => {
-          if (i >= 5) addOption(lastBlock);
-          const optRow = lastBlock.querySelectorAll(".answer-option-row")[i];
-          if (optRow) {
-            optRow.querySelector(".answer-option-input").value = opt.text;
-            optRow.querySelector(".is-correct-checkbox").checked = opt.correct;
-          }
+        const block = addQuestionBlock(false);
+        block.querySelector(".question-text-input").value = q.question;
+        q.options.forEach((opt) => {
+          addOption(block, opt.text, opt.correct);
         });
       });
     } else {
-      addQuestionBlock();
+      // Start direct met 5 lege vragen (het minimum)
+      for (let i = 0; i < MIN_QUESTIONS; i++) {
+        addQuestionBlock(true);
+      }
     }
+    reindexQuestions();
   }
 
-  function closeQuizModals() {
-    const modal = document.getElementById("modal-quiz-creator");
-    if (!modal) return;
-    modal.style.display = "none";
-  }
-
-  async function addQuestionBlock() {
-    if (questionCount >= MAX_QUESTIONS) {
-      await showMessage(`Je kunt maximaal ${MAX_QUESTIONS} vragen aanmaken.`);
-      return;
+  function addQuestionBlock(addEmptyOptions = true) {
+    const currentBlocks = quizContainer.querySelectorAll(".quiz-question-block").length;
+    if (currentBlocks >= MAX_QUESTIONS) {
+      showMessage(`Je kunt maximaal ${MAX_QUESTIONS} vragen toevoegen.`);
+      return null;
     }
-    questionCount++;
-
-    const container = document.getElementById("creator-questions-container");
-    if (!container) return;
 
     const block = document.createElement("div");
     block.className = "quiz-question-block";
-    block.dataset.questionId = questionCount;
+    const qUniqueId = Date.now() + Math.random();
+    block.dataset.questionId = qUniqueId;
 
     block.innerHTML = `
       <div class="quiz-question-header">
-        <h4>Vraag ${questionCount}</h4>
+        <h4 class="question-label">Vraag</h4>
         <button type="button" class="delete-q-btn">🗑️</button>
       </div>
-
-      <div class="question-input-group">
-        <input type="text" class="question-text-input" placeholder="Typ hier je vraag...">
-      </div>
-
-      <p class="answer-options-title">Antwoord opties (vink correcte antwoorden aan)</p>
-
+      <input type="text" class="question-text-input" placeholder="Typ je vraag...">
       <div class="answer-options"></div>
-
       <button type="button" class="add-option-btn">+ Optie toevoegen</button>
-
-      <hr class="question-separator">
+      <hr>
     `;
 
-    container.appendChild(block);
+    quizContainer.appendChild(block);
 
-    const deleteBtn = block.querySelector(".delete-q-btn");
-    if (deleteBtn) deleteBtn.addEventListener("click", async () => await deleteQuestion(block));
+    block.querySelector(".delete-q-btn").addEventListener("click", () => deleteQuestion(block));
+    block.querySelector(".add-option-btn").addEventListener("click", () => addOption(block));
 
-    const addOptionBtn = block.querySelector(".add-option-btn");
-    if (addOptionBtn) addOptionBtn.addEventListener("click", () => addOption(block));
+    if (addEmptyOptions) {
+      addOption(block);
+      addOption(block);
+    }
 
-    // Voeg standaard 2 opties toe
-    addOption(block);
-    addOption(block);
+    reindexQuestions();
+    return block;
+  }
+
+  function addOption(block, text = "", correct = false) {
+    const container = block.querySelector(".answer-options");
+    const currentOptions = container.querySelectorAll(".answer-option-row").length;
+
+    if (currentOptions >= MAX_OPTIONS) {
+      showMessage(`Maximaal ${MAX_OPTIONS} opties per vraag.`);
+      return;
+    }
+
+    const qId = block.dataset.questionId;
+    const row = document.createElement("div");
+    row.className = "answer-option-row";
+    row.innerHTML = `
+      <input type="radio" name="correct-${qId}" class="is-correct-checkbox" ${correct ? 'checked' : ''}>
+      <input type="text" class="answer-option-input" placeholder="Antwoord optie..." value="${text}">
+      <button type="button" class="delete-option-btn">✖</button>
+    `;
+
+    container.appendChild(row);
+    row.querySelector(".delete-option-btn").addEventListener("click", () => {
+      const remaining = container.querySelectorAll(".answer-option-row").length;
+      if (remaining <= MIN_OPTIONS) {
+        showMessage(`Minimaal ${MIN_OPTIONS} opties vereist.`);
+      } else {
+        row.remove();
+      }
+    });
   }
 
   async function deleteQuestion(block) {
-    const blocks = document.querySelectorAll(".quiz-question-block");
-    if (blocks.length <= MIN_QUESTIONS) {
-      await showMessage(`Er moeten minimaal ${MIN_QUESTIONS} vragen zijn.`);
+    const currentBlocks = quizContainer.querySelectorAll(".quiz-question-block").length;
+    if (currentBlocks <= MIN_QUESTIONS) {
+      await showMessage(`Minimaal ${MIN_QUESTIONS} vragen zijn verplicht voor een quiz.`);
       return;
     }
 
     const confirmed = await showConfirm("Weet je zeker dat je deze vraag wilt verwijderen?");
-    if (!confirmed) return;
-
-    block.remove();
-    questionCount--;
-    renumberQuestions();
+    if (confirmed) {
+      block.remove();
+      reindexQuestions();
+    }
   }
 
-  function renumberQuestions() {
-    const blocks = document.querySelectorAll(".quiz-question-block");
-    blocks.forEach((block, idx) => {
-      block.dataset.questionId = idx + 1;
-      const h4 = block.querySelector("h4");
-      if (h4) h4.textContent = `Vraag ${idx + 1}`;
-
-      const radios = block.querySelectorAll(".is-correct-checkbox");
-      radios.forEach((r) => {
-        r.name = `correct-${idx + 1}`;
-      });
+  function reindexQuestions() {
+    const blocks = quizContainer.querySelectorAll(".quiz-question-block");
+    blocks.forEach((block, index) => {
+      block.querySelector(".question-label").textContent = `Vraag ${index + 1}`;
     });
-  }
-
-  function addOption(block) {
-    const container = block.querySelector(".answer-options");
-    if (!container) return;
-
-    const qId = block.dataset.questionId || document.querySelectorAll(".quiz-question-block").length;
-    const optionRow = document.createElement("div");
-    optionRow.className = "answer-option-row";
-
-    optionRow.innerHTML = `
-      <input type="radio" name="correct-${qId}" class="is-correct-checkbox">
-      <input type="text" class="answer-option-input" placeholder="Antwoord optie...">
-      <button type="button" class="delete-option-btn">✖</button>
-    `;
-
-    container.appendChild(optionRow);
-
-    const deleteOptionBtn = optionRow.querySelector(".delete-option-btn");
-    if (deleteOptionBtn) deleteOptionBtn.addEventListener("click", () => optionRow.remove());
   }
 
   async function saveQuizToForm() {
     const quiz = [];
-    document.querySelectorAll(".quiz-question-block").forEach((block) => {
-      const questionText = block.querySelector(".question-text-input")?.value || "";
+    const blocks = quizContainer.querySelectorAll(".quiz-question-block");
+    let errorMsg = "";
+
+    if (blocks.length < MIN_QUESTIONS) {
+      errorMsg = `Een quiz moet minimaal ${MIN_QUESTIONS} vragen bevatten.`;
+    }
+
+    blocks.forEach((block, idx) => {
+      const questionText = block.querySelector(".question-text-input").value.trim();
       const options = [];
-      block.querySelectorAll(".answer-option-row").forEach((opt) => {
-        const text = opt.querySelector(".answer-option-input")?.value || "";
-        const correct = !!opt.querySelector(".is-correct-checkbox")?.checked;
-        options.push({ text, correct });
+      const optionRows = block.querySelectorAll(".answer-option-row");
+      let hasCorrect = false;
+
+      optionRows.forEach((row) => {
+        const text = row.querySelector(".answer-option-input").value.trim();
+        const correct = row.querySelector(".is-correct-checkbox").checked;
+        if (correct) hasCorrect = true;
+        if (text !== "") options.push({ text, correct });
       });
+
+      if (!questionText) errorMsg = `Vraag ${idx + 1} heeft geen tekst.`;
+      if (options.length < MIN_OPTIONS) errorMsg = `Vraag ${idx + 1} moet minimaal ${MIN_OPTIONS} gevulde opties hebben.`;
+      if (!hasCorrect) errorMsg = `Vraag ${idx + 1} heeft geen correct antwoord geselecteerd.`;
+
       quiz.push({ question: questionText, options });
     });
 
-    const hiddenInput = document.getElementById("hiddenQuizField");
-    if (hiddenInput) {
-      hiddenInput.value = JSON.stringify(quiz);
+    if (errorMsg) {
+      await showMessage(errorMsg);
+      return;
     }
 
-    currentWorkshopData.quiz = quiz;
+    if (!window.currentWorkshopData) window.currentWorkshopData = {};
+    window.currentWorkshopData.quiz = quiz;
+    window.currentWorkshopData.quizUpdated = true;
 
-    await showMessage("Quiz is opgeslagen en wordt meegestuurd bij de workshop.");
+    const statusText = document.getElementById("quizStatusText");
+    const qCountSpan = document.getElementById("quizQCount");
+    if (statusText && qCountSpan) {
+      statusText.style.display = "inline";
+      qCountSpan.textContent = quiz.length;
+    }
+
+    await showMessage("Quiz succesvol opgeslagen!");
     closeQuizModals();
   }
 
-  // Globale functies beschikbaar maken
-  window.addQuestionBlock = addQuestionBlock;
+  function closeQuizModals() {
+    quizPopup.style.display = "none";
+  }
+
+  // =======================
+  // BINDING
+  // =======================
+  const btnOpenCreator = document.getElementById("btnOpenQuizCreator");
+  if (btnOpenCreator) btnOpenCreator.addEventListener("click", openQuizCreator);
+  if (btnStartQuiz) btnStartQuiz.addEventListener("click", openQuizCreator);
+
+  window.addQuestionBlock = () => addQuestionBlock(true);
   window.openQuizCreator = openQuizCreator;
   window.closeQuizModals = closeQuizModals;
   window.saveQuizToForm = saveQuizToForm;

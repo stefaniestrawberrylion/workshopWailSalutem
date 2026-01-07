@@ -173,9 +173,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Workshop niet gevonden');
       const w = await res.json();
 
-      // Sla data op
-      window.currentWorkshopData = w;
-      window.currentWorkshopData.quiz = w.quiz || [];
+      window.currentWorkshopData = {
+        ...w,
+        quiz: (() => {
+          if (Array.isArray(w.quiz)) return w.quiz;
+          if (typeof w.quizJson === 'string') {
+            try {
+              return JSON.parse(w.quizJson);
+            } catch {
+              return [];
+            }
+          }
+          return [];
+        })()
+      };
 
       // Basis info
       const nameInput = document.getElementById('detailName');
@@ -1154,7 +1165,10 @@ Het team
   // =======================
   function clearDetailsPopup() {
     currentWorkshopId = null;
-    window.currentWorkshopData = null;
+
+    // ❌ NIET wissen:
+    // window.currentWorkshopData = null;
+
     window.currentWorkshopLabels = [];
     window.currentWorkshopMedia = [];
     window.currentWorkshopDocuments = {

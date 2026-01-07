@@ -24,6 +24,9 @@ export class MailService {
     sgMail.setApiKey(this.config.get<string>('SENDGRID_API_KEY')!);
   }
 
+  /**
+   * Stuur een notificatie naar de admin over een nieuw registratieverzoek
+   */
   async sendAdminNotification(userEmail: string, username: string) {
     const msg = {
       to: this.adminEmail,
@@ -37,6 +40,7 @@ export class MailService {
         </div>
       `,
     };
+
     try {
       await sgMail.send(msg);
     } catch (err: any) {
@@ -47,6 +51,9 @@ export class MailService {
     }
   }
 
+  /**
+   * Stuur status van de registratie naar de gebruiker
+   */
   async sendUserStatus(userEmail: string, status: 'goedgekeurd' | 'afgewezen') {
     const htmlContent =
       status === 'goedgekeurd'
@@ -69,6 +76,10 @@ export class MailService {
       );
     }
   }
+
+  /**
+   * Algemeen e-mailbericht versturen
+   */
   async sendGenericEmail(
     toEmail: string,
     subject: string,
@@ -77,7 +88,7 @@ export class MailService {
     const msg = {
       to: toEmail,
       from: this.fromEmail,
-      subject: subject,
+      subject,
       html: htmlContent,
     };
 
@@ -89,6 +100,38 @@ export class MailService {
         err.response?.body || err,
       );
       throw new Error('Fout bij verzenden e-mail.');
+    }
+  }
+
+  /**
+   * Stuur e-mail naar admin wanneer een gebruiker zijn/haar account verwijdert
+   */
+  async sendAccountDeletionNotification(
+    userEmail: string,
+    username: string,
+  ): Promise<void> {
+    const msg = {
+      to: this.adminEmail,
+      from: this.fromEmail,
+      subject: 'Gebruiker heeft account verwijderd',
+      html: `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <h2 style="color: #ff4d4f;">Account verwijderd</h2>
+          <p>Gebruiker <b>${username}</b> met e-mail <a href="mailto:${userEmail}">${userEmail}</a> heeft zijn/haar account verwijderd.</p>
+          <p style="margin-top: 20px;">Bekijk het admin dashboard voor meer details: 
+             <a href="https://workshoptest.wailsalutem-foundation.com/dashboard">Admin Dashboard</a>
+          </p>
+        </div>
+      `,
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (err: any) {
+      console.error(
+        '[MailService] Fout bij verzenden account deletion e-mail:',
+        err.response?.body || err,
+      );
     }
   }
 }

@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { MailService } from '../../../mail/application/mail.service';
 
 interface AuthenticatedRequest extends Request {
   user: { id: number; [key: string]: any };
@@ -32,12 +33,47 @@ function getErrorMessage(error: unknown): string {
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly mailService: MailService,
+  ) {}
 
   // ================== APPROVED USERS ==================
   @Get('approved')
   async getApprovedUsers() {
     return this.userService.getUsersByStatus(Status.APPROVED);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async deleteMe(@Req() req: AuthenticatedRequest) {
+    try {
+      const userId = req.user.id;
+
+      // 1. Haal gebruiker op voor de mail (optioneel)
+      const user = await this.userService.getUserById(userId);
+      if (!user) {
+        throw new HttpException(
+          'Gebruiker niet gevonden',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      // 2. Verwijder de gebruiker uit de database
+      await this.userService.deleteUser(userId);
+
+      // 3. Stuur optioneel een afscheidsmail of notificatie naar admin
+      await this.mailService.sendAccountDeletionNotification(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+      );
+
+      return { success: true, message: 'Account succesvol verwijderd' };
+    } catch (err: unknown) {
+      throw new HttpException(
+        { success: false, message: getErrorMessage(err) },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   // ================== DELETE USER ==================

@@ -145,7 +145,48 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+//verwijderen acc
+  // Zoek de knop op in je profielPage.js
+  const deleteBtn = document.getElementById('deleteAccount');
 
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      // Altijd een extra bevestiging vragen bij verwijderen
+      const confirmed = confirm(
+        'Weet je het zeker? Je account en alle bijbehorende gegevens worden definitief verwijderd.'
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`, // De token die je eerder uit localStorage haalde
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Kon account niet verwijderen.');
+        }
+
+        // SUCCES:
+        await showAlert('Je account is verwijderd. Je wordt nu uitgelogd.');
+
+        // Verwijder de token zodat de gebruiker niet meer geautoriseerd is
+        localStorage.removeItem('jwt');
+
+        // Stuur de gebruiker terug naar de loginpagina of home
+        window.location.href = '/';
+
+      } catch (err) {
+        console.error(err);
+        await showAlert(`Fout bij verwijderen: ${err.message}`);
+      }
+    });
+  }
   // --- SIDEBAR LINKS ACTIVE LOGICA ---
   document.querySelectorAll(".sidebar a").forEach(link => {
     link.addEventListener("click", function () {
