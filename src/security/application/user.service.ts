@@ -222,4 +222,26 @@ export class UserService {
     // Gebruik van de nieuwe, algemene methode in MailService
     await this.mailService.sendGenericEmail(email, subject, html);
   }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    // Veiligheid: als de gebruiker niet bestaat, gooi geen error maar stop gewoon
+    // Zo weten kwaadwillenden niet welke e-mails in je database staan.
+    if (!user) return;
+
+    // Genereer een simpel tijdelijk token (bijv. geldig voor 15 min)
+    const resetToken = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email, purpose: 'password_reset' },
+      { secret: this.configService.get('JWT_SECRET'), expiresIn: '15m' },
+    );
+
+    const resetLink = `${this.configService.get('FRONTEND_URL')}/reset-password.html?token=${resetToken}`;
+
+    await this.mailService.sendGenericEmail(
+      user.email,
+      'Wachtwoord Herstellen',
+      `Klik op deze link om je wachtwoord te wijzigen: <a href="${resetLink}">Wachtwoord wijzigen</a>. Deze link is 15 minuten geldig.`,
+    );
+  }
 }

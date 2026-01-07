@@ -17,7 +17,9 @@
       <input type="email" placeholder="Email">
       <input type="password" placeholder="Wachtwoord">
       <button>Log in</button>
+      <p><a href="#" id="forgotPasswordLink" style="font-size: 0.8rem; color: #666;">Wachtwoord vergeten?</a></p>
     </div>
+
     <div class="email-input">
       <h2>Vraag account aan</h2>
       <p>Vul je gegevens in om een account aan te vragen</p>
@@ -60,12 +62,17 @@
         </div>
         <small>Minimaal 12 tekens, 1 hoofdletter, 1 kleine letter, 1 speciaal teken (!@#$%&*)</small>
 
-
         <button type="submit" id="sendEmail">Versturen</button>
       </form>
     </div>
 
-
+    <div class="forgot-password-input" style="display:none;" id="forgotPasswordSection">
+      <h2>Wachtwoord herstellen</h2>
+      <p>Vul je e-mailadres in om een herstel-instructie te ontvangen.</p>
+      <input type="email" id="forgotEmail" placeholder="E-mailadres">
+      <button id="sendResetLink">Verstuur herstel-link</button>
+      <button id="backToLoginFromForgot" style="background:none; color:gray; border:none; cursor:pointer;">Terug naar inloggen</button>
+    </div>
   </div>
 
   <div class="panel right" id="rightPanel">
@@ -88,7 +95,3 @@
 
 </body>
 </html>
-
-
-
-<!--zo weghalen-->

@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================== CUSTOM POPUP FUNCTIE ==================
   const popupContainer = document.getElementById('customPopupContainer');
 
- function showCustomPopup(message, type = 'error', duration = 5000) {
+  function showCustomPopup(message, type = 'error', duration = 5000) {
     if (!popupContainer) {
       return;
     }
@@ -31,16 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener voor handmatig sluiten
     popup.querySelector('.close-btn').addEventListener('click', () => {
       popup.classList.remove('visible');
-      popup.classList.add('fading-out'); // Voor de animatie
-      setTimeout(() => popup.remove(), 300); // Wacht op CSS animatie
-      clearTimeout(timeoutId); // Annuleer automatisch verdwijnen
+      popup.classList.add('fading-out');
+      setTimeout(() => popup.remove(), 300);
+      clearTimeout(timeoutId);
     });
 
     // Automatisch laten verdwijnen na 'duration'
     const timeoutId = setTimeout(() => {
       popup.classList.remove('visible');
-      popup.classList.add('fading-out'); // Voor de animatie
-      setTimeout(() => popup.remove(), 300); // Wacht op CSS animatie
+      popup.classList.add('fading-out');
+      setTimeout(() => popup.remove(), 300);
     }, duration);
   }
   // =========================================================
@@ -94,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email, password }),
         });
 
-        // ⛔ ALTIJD eerst JSON lezen — ook bij error!
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
@@ -113,10 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // 🔑 Token opslaan
         localStorage.setItem("jwt", token);
 
-        // 🔍 Rol uitlezen
         const payload = JSON.parse(atob(token.split('.')[1]));
         const roles = payload.roles
           ? (Array.isArray(payload.roles) ? payload.roles : [payload.roles])
@@ -127,12 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
           showCustomPopup('Welkom admin!', 'success', 1000);
           setTimeout(() => {
             window.location.href = '/dashboard';
-          }, 1000); // Wacht 1 seconde voordat je redirect
+          }, 1000);
         } else if (rolesNormalized.includes('USER')) {
           showCustomPopup('Welkom gebruiker!', 'success', 1000);
           setTimeout(() => {
             window.location.href = '/dashboarduser';
-          }, 1000); // Wacht 1 seconde voordat je redirect
+          }, 1000);
         } else {
           showCustomPopup('Onbekende rol!', 'error');
         }
@@ -142,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-// ================== ENTER TO LOGIN ==================
+
+  // ================== ENTER TO LOGIN ==================
   const loginInputs = document.querySelectorAll(
     ".login input[type='email'], .login input[type='password']"
   );
@@ -151,11 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        loginBtn.click(); // exact dezelfde login-logica
+        loginBtn.click();
       }
     });
   });
-
 
   // ================== REGISTRATIE ==================
   const sendEmailBtn = document.getElementById('sendEmail');
@@ -200,9 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         if (data.success) {
           showCustomPopup("Je aanvraag is verstuurd! De admin zal deze goedkeuren.", 'success');
-          // Optioneel: Formulier resetten
           document.getElementById('registrationForm').reset();
-          // Terug naar login scherm
           cardContainer.classList.remove('show-email');
           cardContainer.classList.add('reset');
         } else {
@@ -213,13 +208,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-// ================== ENTER TO REGISTER ==================
+
+  // ================== ENTER TO REGISTER ==================
   const registrationForm = document.getElementById("registrationForm");
 
   if (registrationForm && sendEmailBtn) {
     registrationForm.addEventListener("submit", (e) => {
-      e.preventDefault(); // voorkomt page refresh
-      sendEmailBtn.click(); // triggert jouw bestaande validatie + fetch
+      e.preventDefault();
+      sendEmailBtn.click();
     });
   }
 
@@ -246,6 +242,109 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = this.value.trim();
       const mobileRegex = /^(?:\+316|06)\d{8}$/;
       phoneError.style.display = mobileRegex.test(value) ? 'none' : 'inline';
+    });
+  }
+
+  // ================== FORGOT PASSWORD FUNCTIONALITY ==================
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const forgotPasswordSection = document.getElementById('forgotPasswordSection');
+  const loginSection = document.querySelector('.login');
+  const emailInputSection = document.querySelector('.email-input');
+  const sendResetLinkBtn = document.getElementById('sendResetLink');
+  const backToLoginFromForgot = document.getElementById('backToLoginFromForgot');
+
+// Scherm wisselen naar wachtwoord vergeten
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Zorg ervoor dat we in de normale login modus zijn (niet in registratie)
+      cardContainer.classList.remove('show-email');
+      cardContainer.classList.add('reset');
+
+      // Verberg de login en toon de wachtwoord-vergeten sectie
+      if (loginSection) loginSection.style.display = 'none';
+      if (emailInputSection) emailInputSection.style.display = 'none';
+      if (forgotPasswordSection) {
+        forgotPasswordSection.style.display = 'flex';
+        // Zorg ervoor dat de CSS animatie werkt
+        forgotPasswordSection.style.opacity = '1';
+        forgotPasswordSection.style.pointerEvents = 'auto';
+      }
+    });
+  }
+
+// Terug naar login vanuit wachtwoord vergeten
+  if (backToLoginFromForgot) {
+    backToLoginFromForgot.addEventListener('click', () => {
+      // Terug naar de normale login weergave
+      cardContainer.classList.remove('show-email');
+      cardContainer.classList.add('reset');
+
+      // Toon login, verberg email input en forgot password
+      if (loginSection) {
+        loginSection.style.display = 'flex';
+        loginSection.style.opacity = '1';
+        loginSection.style.pointerEvents = 'auto';
+      }
+      if (emailInputSection) emailInputSection.style.display = 'none';
+      if (forgotPasswordSection) {
+        forgotPasswordSection.style.display = 'none';
+        forgotPasswordSection.style.opacity = '0';
+        forgotPasswordSection.style.pointerEvents = 'none';
+      }
+    });
+  }
+
+// API Request voor wachtwoord herstel
+  if (sendResetLinkBtn) {
+    sendResetLinkBtn.addEventListener('click', async () => {
+      const email = document.getElementById('forgotEmail').value.trim();
+      if (!email) {
+        showCustomPopup("Vul aub je e-mailadres in.", 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/register/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        showCustomPopup("Als dit account bestaat, is er een instructie gestuurd.", 'success');
+
+        // Terug naar login
+        if (loginSection) {
+          loginSection.style.display = 'flex';
+          loginSection.style.opacity = '1';
+          loginSection.style.pointerEvents = 'auto';
+        }
+        if (emailInputSection) emailInputSection.style.display = 'none';
+        if (forgotPasswordSection) {
+          forgotPasswordSection.style.display = 'none';
+          forgotPasswordSection.style.opacity = '0';
+          forgotPasswordSection.style.pointerEvents = 'none';
+        }
+
+        // Reset het email veld
+        document.getElementById('forgotEmail').value = '';
+
+      } catch (err) {
+        showCustomPopup("Fout bij het aanvragen van wachtwoord herstel.", 'error');
+      }
+    });
+  }
+
+  // ENTER to send reset link
+  const forgotEmailInput = document.getElementById('forgotEmail');
+  if (forgotEmailInput && sendResetLinkBtn) {
+    forgotEmailInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendResetLinkBtn.click();
+      }
     });
   }
 });

@@ -155,7 +155,7 @@ button {
 }
 
 /* Inhoud in panelen */
-.login, .email-input, .default, .email-side {
+.login, .email-input, .default, .email-side, .forgot-password-input {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -165,7 +165,8 @@ button {
 
 /* Verborgen secties standaard */
 .left .email-input,
-.right .email-side {
+.right .email-side,
+.left .forgot-password-input {
     display: none;
     opacity: 0;
     pointer-events: none;
@@ -285,46 +286,57 @@ button {
     background-color: #436c99;
 }
 
-/* Responsief gedrag */
-@media (max-width: 850px) {
-    .card-container {
-        flex-direction: column;
-        width: 90%;
-        height: auto;
-        max-height: none;
-        perspective: none;
-    }
-
-    .panel {
-        width: 100%;
-        border-radius: 0;
-        box-shadow: none;
-    }
-
-    .left, .right {
-        transform: none !important;
-        z-index: auto !important;
-        max-height: none;
-    }
-
-    .card-container.show-email .left,
-    .card-container.show-email .right {
-        transform: none;
-    }
-
-    .email-input, .login, .info {
-        padding-bottom: 2rem;
-    }
-
-    .input-group {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    input {
-        max-width: 100%;
-    }
+/* Forgot password section styling */
+.forgot-password-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s ease;
 }
+
+.forgot-password-input h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.forgot-password-input p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+#forgotEmail {
+    width: 100%;
+    max-width: 260px;
+}
+
+#sendResetLink {
+    background: #5481B7;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+#sendResetLink:hover {
+    background: #436c99;
+}
+
+#backToLoginFromForgot {
+    background: none;
+    color: #666;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: underline;
+}
+
+#backToLoginFromForgot:hover {
+    color: #333;
+}
+
+/* Password group */
 .password-group {
     position: relative;
     display: flex;
@@ -354,7 +366,11 @@ button {
     padding: 0;
 }
 
-/* ... Bestaande CSS ... */
+/* Animation for fade in */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
 /* ================== CUSTOM POPUP STYLES ================== */
 #customPopupContainer {
@@ -362,7 +378,7 @@ button {
     top: 20px;
     right: 20px;
     z-index: 9999;
-    pointer-events: none; /* Maakt klikken door de container heen mogelijk */
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -381,7 +397,7 @@ button {
     min-width: 250px;
     max-width: 90vw;
     position: relative;
-    pointer-events: auto; /* Activeert klikken op de popup zelf */
+    pointer-events: auto;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
@@ -390,11 +406,11 @@ button {
 
 /* Status kleuren */
 .custom-popup.error {
-    background-color: #dc3545; /* Rood voor fouten */
+    background-color: #dc3545;
     border-left: 5px solid #a71d2a;
 }
 .custom-popup.success {
-    background-color: #28a745; /* Groen voor succes */
+    background-color: #28a745;
     border-left: 5px solid #1e7e34;
 }
 
@@ -431,10 +447,50 @@ button {
     color: white;
     text-align: left;
     flex-grow: 1;
-    padding-right: 10px; /* Ruimte voor de sluitknop */
+    padding-right: 10px;
 }
 
-/* Media query voor kleinere schermen */
+/* Responsief gedrag */
+@media (max-width: 850px) {
+    .card-container {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+        max-height: none;
+        perspective: none;
+    }
+
+    .panel {
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .left, .right {
+        transform: none !important;
+        z-index: auto !important;
+        max-height: none;
+    }
+
+    .card-container.show-email .left,
+    .card-container.show-email .right {
+        transform: none;
+    }
+
+    .email-input, .login, .info, .forgot-password-input {
+        padding-bottom: 2rem;
+    }
+
+    .input-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    input {
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 600px) {
     #customPopupContainer {
         top: auto;
@@ -448,4 +504,74 @@ button {
         width: 100%;
         margin-bottom: 5px;
     }
+}
+
+/* Voeg dit toe aan je bestaande CSS */
+.left .login,
+.left .email-input,
+.left .forgot-password-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 2.5rem 2rem;
+    transition: opacity 0.3s ease;
+}
+
+/* Standaard: login is zichtbaar */
+.left .login {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Standaard: email-input en forgot-password zijn verborgen */
+.left .email-input,
+.left .forgot-password-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Wanneer we in email-input modus zijn */
+.card-container.show-email .left .login,
+.card-container.show-email .left .forgot-password-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-email .left .email-input {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Wanneer we in forgot-password modus zijn - specifieke CSS klasse */
+.card-container.show-forgot .left .login,
+.card-container.show-forgot .left .email-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-forgot .left .forgot-password-input {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Reset naar login modus */
+.card-container.reset .left .login {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container.reset .left .email-input,
+.card-container.reset .left .forgot-password-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
 }

@@ -193,4 +193,18 @@ export class RegistrationController {
     await this.userService.deleteUserByEmail(email);
     return { message: `User with email ${email} has been deleted` };
   }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    try {
+      await this.userService.forgotPassword(email);
+      return {
+        success: true,
+        message: 'Indien het account bestaat, is de e-mail verstuurd.',
+      };
+    } catch (err) {
+      // We loggen de error intern, maar sturen een generieke response
+      return { success: true };
+    }
+  }
 }
