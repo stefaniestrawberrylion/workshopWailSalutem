@@ -162,53 +162,67 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function saveQuizToForm() {
-    const quiz = [];
-    const blocks = quizContainer.querySelectorAll(".quiz-question-block");
-    let errorMsg = "";
+    try {
+      const quiz = [];
+      const blocks = quizContainer.querySelectorAll(".quiz-question-block");
+      let errorMsg = "";
 
-    if (blocks.length < MIN_QUESTIONS) {
-      errorMsg = `Een quiz moet minimaal ${MIN_QUESTIONS} vragen bevatten.`;
-    }
+      if (blocks.length < MIN_QUESTIONS) {
+        errorMsg = `Een quiz moet minimaal ${MIN_QUESTIONS} vragen bevatten.`;
+        throw new Error(errorMsg);
+      }
 
-    blocks.forEach((block, idx) => {
-      const questionText = block.querySelector(".question-text-input").value.trim();
-      const options = [];
-      const optionRows = block.querySelectorAll(".answer-option-row");
-      let hasCorrect = false;
+      blocks.forEach((block, idx) => {
+        try {
+          const questionText = block.querySelector(".question-text-input").value.trim();
+          const options = [];
+          const optionRows = block.querySelectorAll(".answer-option-row");
+          let hasCorrect = false;
 
-      optionRows.forEach((row) => {
-        const text = row.querySelector(".answer-option-input").value.trim();
-        const correct = row.querySelector(".is-correct-checkbox").checked;
-        if (correct) hasCorrect = true;
-        if (text !== "") options.push({ text, correct });
+          optionRows.forEach((row, optIdx) => {
+            try {
+              const text = row.querySelector(".answer-option-input").value.trim();
+              const correct = row.querySelector(".is-correct-checkbox").checked;
+              if (correct) hasCorrect = true;
+              if (text !== "") options.push({ text, correct });
+            } catch (errOption) {
+              console.error(`Error in option ${optIdx + 1} of question ${idx + 1}:`, errOption);
+              showMessage(`Fout bij optie ${optIdx + 1} van vraag ${idx + 1}: ${errOption.message}`);
+            }
+          });
+
+          if (!questionText) throw new Error(`Vraag ${idx + 1} heeft geen tekst.`);
+          if (options.length < MIN_OPTIONS) throw new Error(`Vraag ${idx + 1} moet minimaal ${MIN_OPTIONS} gevulde opties hebben.`);
+          if (!hasCorrect) throw new Error(`Vraag ${idx + 1} heeft geen correct antwoord geselecteerd.`);
+
+          quiz.push({ question: questionText, options });
+        } catch (errQ) {
+          console.error(`Error in question ${idx + 1}:`, errQ);
+          throw errQ; // stop de loop en laat zien wat er mis is
+        }
       });
 
-      if (!questionText) errorMsg = `Vraag ${idx + 1} heeft geen tekst.`;
-      if (options.length < MIN_OPTIONS) errorMsg = `Vraag ${idx + 1} moet minimaal ${MIN_OPTIONS} gevulde opties hebben.`;
-      if (!hasCorrect) errorMsg = `Vraag ${idx + 1} heeft geen correct antwoord geselecteerd.`;
+      // Sla quiz op in window.currentWorkshopData
+      if (!window.currentWorkshopData) window.currentWorkshopData = {};
+      window.currentWorkshopData.quiz = quiz;
+      window.currentWorkshopData.quizUpdated = true;
 
-      quiz.push({ question: questionText, options });
-    });
+      const statusText = document.getElementById("quizStatusText");
+      const qCountSpan = document.getElementById("quizQCount");
+      if (statusText && qCountSpan) {
+        statusText.style.display = "inline";
+        qCountSpan.textContent = quiz.length;
+      }
 
-    if (errorMsg) {
-      await showMessage(errorMsg);
-      return;
+      await showMessage("Quiz succesvol opgeslagen!");
+      closeQuizModals();
+
+    } catch (err) {
+      console.error("Error saving quiz:", err);
+      showMessage(`Fout bij opslaan van quiz: ${err.message}`);
     }
-
-    if (!window.currentWorkshopData) window.currentWorkshopData = {};
-    window.currentWorkshopData.quiz = quiz;
-    window.currentWorkshopData.quizUpdated = true;
-
-    const statusText = document.getElementById("quizStatusText");
-    const qCountSpan = document.getElementById("quizQCount");
-    if (statusText && qCountSpan) {
-      statusText.style.display = "inline";
-      qCountSpan.textContent = quiz.length;
-    }
-
-    await showMessage("Quiz succesvol opgeslagen!");
-    closeQuizModals();
   }
+
 
   function closeQuizModals() {
     quizPopup.style.display = "none";

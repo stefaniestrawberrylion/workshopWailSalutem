@@ -715,10 +715,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-
-  ///UPDATE WORKSHOP
-
-
 // Update workshop functionaliteit
   document.getElementById('updateWorkshopBtn').addEventListener('click', async () => {
     if (!currentWorkshopId) return;
@@ -727,32 +723,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirmUpdate) return;
 
     try {
+      // --- STEP 1: Haal form values op ---
       const name = document.getElementById('detailName').value.trim();
       const desc = document.getElementById('detailDesc').value.trim();
       const duration = document.getElementById('detailDuration').value;
       const parentalConsent = document.getElementById('detailParentalConsent').checked;
 
       if (!name || !desc || !duration) {
-        showAlert("Naam, beschrijving en duur zijn verplicht.");
-        return;
+        throw new Error("Naam, beschrijving en duur zijn verplicht.");
       }
 
-      // Controleer duur
+      // --- STEP 2: Controleer duur ---
       let totalMinutes = 0;
       const timeParts = duration.split(':');
       if (timeParts.length === 2) {
         const [h, m] = timeParts.map(Number);
+        if (isNaN(h) || isNaN(m)) throw new Error(`Ongeldige tijdsnotatie: ${duration}`);
         totalMinutes = h * 60 + m;
       } else {
         totalMinutes = Number(duration);
+        if (isNaN(totalMinutes)) throw new Error(`Ongeldige tijdsduur: ${duration}`);
       }
 
-      if (isNaN(totalMinutes) || totalMinutes < 60 || totalMinutes > 120) {
-        showAlert("De duur moet tussen 1 en 2 uur liggen (bijv. 01:15).");
-        return;
+      if (totalMinutes < 60 || totalMinutes > 120) {
+        throw new Error("De duur moet tussen 1 en 2 uur liggen (bijv. 01:15).");
       }
 
-      // Bereid FormData voor
+      // --- STEP 3: Bereid FormData voor ---
       const formData = new FormData();
       formData.append('name', name);
       formData.append('description', desc);
@@ -760,100 +757,98 @@ document.addEventListener('DOMContentLoaded', () => {
       formData.append('parentalConsent', parentalConsent);
       formData.append('labels', JSON.stringify(window.currentWorkshopLabels || []));
 
-      // BELANGRIJK: Upload ALLE media als nieuwe bestanden
-      if (window.currentWorkshopMedia && window.currentWorkshopMedia.length > 0) {
-        // We moeten bestaande bestanden opnieuw uploaden als File objecten
-        // Dit kan alleen als we ze eerst downloaden, wat complex is
-
-        // Alternatief: Stuur alleen de nieuwe bestanden en laat backend oude behouden
-        // Dit is de huidige aanpak, maar de backend moet dan oude bestanden niet verwijderen
-
-        // Laten we het probleem anders aanpakken:
-        // We moeten de backend vertellen om oude bestanden te behouden
-        // Voeg een veld toe om aan te geven dat dit een update is, geen volledige vervanging
-        formData.append('isUpdate', 'true');
-
-        // Upload alleen nieuwe bestanden
-        const newMediaFiles = window.currentWorkshopMedia.filter(m => !m.existing && m.file);
-        newMediaFiles.forEach((media, index) => {
-          if (media.file) {
+      // --- STEP 4: Upload media ---
+      try {
+        if (window.currentWorkshopMedia && window.currentWorkshopMedia.length > 0) {
+          formData.append('isUpdate', 'true');
+          const newMediaFiles = window.currentWorkshopMedia.filter(m => !m.existing && m.file);
+          newMediaFiles.forEach((media, index) => {
+            if (!media.file) throw new Error(`Media bestand ontbreekt bij index ${index}`);
             const safeName = makeSafeFileName(media.file.name);
             const safeFile = new File([media.file], safeName, { type: media.file.type });
             formData.append('media', safeFile);
-          }
-        });
+          });
+        }
+      } catch (mediaError) {
+        throw new Error("Fout bij toevoegen van media: " + mediaError.message);
       }
 
-      // Voeg nieuwe document bestanden toe
+      // --- STEP 5: Upload documenten ---
       const appendNewFiles = (category, formKey) => {
         const docs = window.currentWorkshopDocuments[category] || [];
-        docs.forEach(doc => {
+        docs.forEach((doc, idx) => {
           if (!doc.existing && doc.file) {
-            const safeName = makeSafeFileName(doc.file.name);
-            const safeFile = new File([doc.file], safeName, { type: doc.file.type });
-            formData.append(formKey, safeFile);
+            try {
+              const safeName = makeSafeFileName(doc.file.name);
+              const safeFile = new File([doc.file], safeName, { type: doc.file.type });
+              formData.append(formKey, safeFile);
+            } catch (docError) {
+              throw new Error(`Fout bij document "${doc.file.name}" in categorie "${category}": ${docError.message}`);
+            }
           }
         });
       };
 
-      appendNewFiles('instructions', 'instructionsFiles');
-      appendNewFiles('manuals', 'manualsFiles');
-      appendNewFiles('demo', 'demoFiles');
-      appendNewFiles('worksheets', 'worksheetsFiles');
+      ['instructions', 'manuals', 'demo', 'worksheets'].forEach(cat => {
+        appendNewFiles(cat, `${cat}Files`);
+      });
 
-      // Voeg document metadata toe (zowel bestaande als nieuwe)
-      const allDocs = [
-        ...(window.currentWorkshopDocuments.instructions || []),
-        ...(window.currentWorkshopDocuments.manuals || []),
-        ...(window.currentWorkshopDocuments.demo || []),
-        ...(window.currentWorkshopDocuments.worksheets || [])
-      ];
+      // --- STEP 6: Voeg document metadata toe ---
+      try {
+        const allDocs = [
+          ...(window.currentWorkshopDocuments.instructions || []),
+          ...(window.currentWorkshopDocuments.manuals || []),
+          ...(window.currentWorkshopDocuments.demo || []),
+          ...(window.currentWorkshopDocuments.worksheets || [])
+        ];
 
-      const docMeta = allDocs.map(doc => ({
-        name: makeSafeFileName(doc.name || doc.file?.name),
-        category: doc.category ||
-          (doc.name ?
-            (doc.name.includes('instruct') ? 'instructions' :
-              doc.name.includes('manual') ? 'manuals' :
-                doc.name.includes('demo') ? 'demo' : 'worksheets')
-            : 'worksheets')
-      }));
+        const docMeta = allDocs.map(doc => ({
+          name: makeSafeFileName(doc.name || doc.file?.name),
+          category: doc.category ||
+            (doc.name ?
+              (doc.name.includes('instruct') ? 'instructions' :
+                doc.name.includes('manual') ? 'manuals' :
+                  doc.name.includes('demo') ? 'demo' : 'worksheets')
+              : 'worksheets')
+        }));
 
-      formData.append('documentMeta', JSON.stringify(docMeta));
-
-      // Voeg quiz toe als die bestaat
-      if (window.currentWorkshopData?.quiz) {
-        formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+        formData.append('documentMeta', JSON.stringify(docMeta));
+      } catch (metaError) {
+        throw new Error("Fout bij samenstellen document metadata: " + metaError.message);
       }
 
-      // Verstuur update request
+      // --- STEP 7: Voeg quiz toe als die bestaat ---
+      try {
+        if (window.currentWorkshopData?.quiz) {
+          formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
+        }
+      } catch (quizError) {
+        throw new Error("Fout bij toevoegen van quiz: " + quizError.message);
+      }
+
+      // --- STEP 8: Verstuur update request ---
       const token = localStorage.getItem("jwt");
-      if (!token) {
-        throw new Error("Geen JWT token beschikbaar");
-      }
+      if (!token) throw new Error("Geen JWT token beschikbaar");
 
       const response = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
         method: 'PUT',
         body: formData,
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+        headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Fout bij updaten: ${response.status} - ${errorText}`);
+        throw new Error(`Fout bij updaten workshop: ${response.status} - ${errorText}`);
       }
 
-      // Succes
+      // --- STEP 9: Succes ---
       detailsPopup.style.display = 'none';
       clearDetailsPopup();
       await showAlert("Workshop succesvol bijgewerkt!");
-
-      // Herlaad workshops
       window.dispatchEvent(new CustomEvent('workshopsUpdated'));
 
     } catch (e) {
+      console.error("Update Workshop Error:", e);
       showAlert("Fout bij updaten workshop: " + e.message);
     }
   });
