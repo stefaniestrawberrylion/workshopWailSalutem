@@ -44,6 +44,12 @@ export class User {
   @Column({ nullable: true })
   avatarUrl?: string;
 
+  // user.entity.ts
+  @Column({ nullable: true })
+  passwordResetCode?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordResetExpires?: Date;
   getUsername(): string {
     return this.email;
   }

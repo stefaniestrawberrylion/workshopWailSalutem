@@ -196,15 +196,18 @@ export class RegistrationController {
 
   @Post('forgot-password')
   async forgotPassword(@Body('email') email: string) {
-    try {
-      await this.userService.forgotPassword(email);
-      return {
-        success: true,
-        message: 'Indien het account bestaat, is de e-mail verstuurd.',
-      };
-    } catch (err) {
-      // We loggen de error intern, maar sturen een generieke response
-      return { success: true };
-    }
+    await this.userService.requestPasswordReset(email);
+    return { success: true };
   }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    await this.userService.resetPassword(
+      body.email,
+      body.code,
+      body.password,
+    );
+    return { success: true };
+  }
+
 }

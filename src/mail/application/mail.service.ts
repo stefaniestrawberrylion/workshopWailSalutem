@@ -102,6 +102,29 @@ export class MailService {
       throw new Error('Fout bij verzenden e-mail.');
     }
   }
+  async sendPasswordResetCode(email: string, name: string, code: string) {
+    const msg = {
+      to: email,
+      from: this.fromEmail,
+      subject: 'Wachtwoord resetten',
+      html: `
+      <p>Hallo ${name},</p>
+      <p>Gebruik onderstaande resetcode:</p>
+      <h2 style="letter-spacing:3px">${code}</h2>
+      <p>Deze code is 15 minuten geldig.</p>
+    `,
+    };
+
+    try {
+      const result = await sgMail.send(msg);
+      console.log('[MailService] Reset mail verzonden aan:', email);
+      return result;
+    } catch (err: any) {
+      console.error('[MailService] Fout bij verzenden reset e-mail:', err.response?.body || err);
+      throw new Error('Fout bij verzenden reset e-mail');
+    }
+  }
+
 
   /**
    * Stuur e-mail naar admin wanneer een gebruiker zijn/haar account verwijdert

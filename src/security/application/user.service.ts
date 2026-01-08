@@ -136,6 +136,7 @@ export class UserService {
     if (result.affected && result.affected > 0) {
       try {
         await this.sendAccountDeletedEmail(user.email);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         // Fout bij verzenden e-mail wordt niet gelogd, maar de delete is wel gelukt
       }
@@ -188,6 +189,7 @@ export class UserService {
 
     try {
       await this.sendAccountDeletedEmail(email);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       // Fout bij verzenden e-mail wordt niet gelogd
     }
@@ -223,25 +225,49 @@ export class UserService {
     await this.mailService.sendGenericEmail(email, subject, html);
   }
 
-  async forgotPassword(email: string): Promise<void> {
+  async requestPasswordReset(email: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { email } });
 
-    // Veiligheid: als de gebruiker niet bestaat, gooi geen error maar stop gewoon
-    // Zo weten kwaadwillenden niet welke e-mails in je database staan.
-    if (!user) return;
+    if (!user) return; // BELANGRIJK: geen fout gooien
 
-    // Genereer een simpel tijdelijk token (bijv. geldig voor 15 min)
-    const resetToken = await this.jwtService.signAsync(
-      { sub: user.id, email: user.email, purpose: 'password_reset' },
-      { secret: this.configService.get('JWT_SECRET'), expiresIn: '15m' },
-    );
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await bcrypt.hash(code, 10);
 
-    const resetLink = `${this.configService.get('FRONTEND_URL')}/reset-password.html?token=${resetToken}`;
+    user.passwordResetCode = hashedCode;
+    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000);
 
-    await this.mailService.sendGenericEmail(
+    await this.userRepository.save(user);
+
+    await this.mailService.sendPasswordResetCode(
       user.email,
-      'Wachtwoord Herstellen',
-      `Klik op deze link om je wachtwoord te wijzigen: <a href="${resetLink}">Wachtwoord wijzigen</a>. Deze link is 15 minuten geldig.`,
+      `${user.firstName}`,
+      code,
     );
+  }
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user || !user.passwordResetCode || !user.passwordResetExpires) {
+      throw new BadRequestException('Ongeldige resetgegevens');
+    }
+
+    if (user.passwordResetExpires < new Date()) {
+      throw new BadRequestException('Resetcode is verlopen');
+    }
+
+    const codeOk = await bcrypt.compare(code, user.passwordResetCode);
+    if (!codeOk) {
+      throw new BadRequestException('Ongeldige resetcode');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+
+    await this.userRepository.save(user);
   }
 }

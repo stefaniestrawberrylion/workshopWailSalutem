@@ -98,25 +98,36 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-align: center;
 }
 
 /* Teksten */
 h2, h3 {
     margin-bottom: 0.5rem;
+    text-align: center;
+}
+h2 {
+    font-size: 1.8rem;
+    color: #333;
+}
+h3 {
+    font-size: 1.5rem;
+    color: white;
 }
 p {
     margin-bottom: 1rem;
     text-align: center;
     font-size: 0.9rem;
     color: #333;
+    line-height: 1.4;
 }
-.right p, .right h3 {
+.right p {
     color: white;
 }
 
 /* Algemene inputs en knoppen */
 input {
-    margin: 0.7rem 0;
+    margin: 0.5rem 0;
     padding: 0.8rem 1rem;
     width: 100%;
     max-width: 260px;
@@ -138,6 +149,7 @@ button {
     cursor: pointer;
     font-weight: bold;
     font-size: 0.95rem;
+    min-width: 180px;
 }
 .left button {
     background: #5481B7;
@@ -161,21 +173,119 @@ button {
     justify-content: center;
     align-items: center;
     width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    transition: opacity 0.3s ease;
 }
 
-/* Verborgen secties standaard */
-.left .email-input,
-.right .email-side,
-.left .forgot-password-input {
+/* Standaard: login is zichtbaar */
+.card-container .left .login {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Standaard: email-input en forgot-password zijn verborgen */
+.card-container .left .email-input,
+.card-container .left .forgot-password-input {
     display: none;
     opacity: 0;
     pointer-events: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    padding: 0 2rem;
+}
+
+/* Wanneer we in email-input modus zijn (show-email) */
+.card-container.show-email .left .login,
+.card-container.show-email .left .forgot-password-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-email .left .email-input {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Wanneer we in forgot-password modus zijn (show-forgot) */
+.card-container.show-forgot .left .login,
+.card-container.show-forgot .left .email-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-forgot .left .forgot-password-input {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Reset naar login modus */
+.card-container.reset .left .login {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container.reset .left .email-input,
+.card-container.reset .left .forgot-password-input {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Rechter paneel content */
+.card-container .right .default {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container .right .email-side {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-email .right .default {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.show-email .right .email-side {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container.show-forgot .right .default {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container.show-forgot .right .email-side {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-container.reset .right .default {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-container.reset .right .email-side {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Animatie: panelen wisselen */
@@ -189,6 +299,13 @@ button {
     z-index: 2;
 }
 
+/* Bij forgot-password, panelen blijven normaal */
+.card-container.show-forgot .left,
+.card-container.show-forgot .right {
+    transform: translateX(0) scale(1) rotateY(0);
+    z-index: 2;
+}
+
 /* Reset naar originele posities */
 .card-container.reset .left {
     transform: translateX(0) scale(1) rotateY(0);
@@ -197,51 +314,6 @@ button {
 .card-container.reset .right {
     transform: translateX(0) scale(1) rotateY(0);
     z-index: 1;
-}
-
-
-/* Toon juiste content */
-.card-container.show-email .left .login {
-    display: none;
-}
-.card-container.show-email .left .email-input {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-.card-container.show-email .right .default {
-    display: none;
-}
-.card-container.show-email .right .email-side {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Reset naar originele posities */
-.card-container.reset .left {
-    transform: translateX(0) scale(1);
-    z-index: 2;
-}
-.card-container.reset .right {
-    transform: translateX(0) scale(1);
-    z-index: 1;
-}
-.card-container.reset .left .login {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-.card-container.reset .left .email-input {
-    display: none;
-}
-.card-container.reset .right .default {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-.card-container.reset .right .email-side {
-    display: none;
 }
 
 /* Formulier styling */
@@ -249,31 +321,106 @@ button {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.8rem;
     padding-bottom: 1rem;
+    max-height: calc(100% - 60px);
+    overflow-y: auto;
 }
 
 .input-group {
     display: flex;
-    gap: 1rem;
+    gap: 0.8rem;
     flex-wrap: wrap;
+    width: 100%;
 }
 .input-group input {
     flex: 1;
-    min-width: 120px;
+    min-width: calc(50% - 0.4rem);
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    padding: 0.7rem 0.9rem;
+}
+
+/* Password group - LOCK NAAR RECHTS, INPUT BLIJFT OP ZIJN PLEK */
+.password-group {
+    position: relative;
+    display: inline-block; /* Verander dit van flex naar inline-block */
+    width: 100%;
+    max-width: 260px;
+    margin: 0.3rem 0;
+}
+
+.password-group input {
+    width: 100% !important; /* Zorg dat input 100% breedte heeft */
+    padding-right: 40px !important; /* Ruimte voor de lock */
+    height: 42px;
+    line-height: 42px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.7rem 40px 0.7rem 0.9rem !important;
+    margin: 0 !important; /* Zorg dat er geen margin is */
+}
+
+/* TOGGLE HELEMAAL RECHTS IN DE INPUT */
+.password-group .toggle-password {
+    position: absolute !important;
+    right: 8px !important;  /* ← HELEMAAL AAN DE RECHTERKANT VAN DE INPUT */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-size: 1.2rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 100 !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #666 !important;
+}
+
+/* Zorg dat de input genoeg ruimte heeft aan de rechterkant */
+.password-group input {
+    padding-right: 40px !important;  /* Ruimte voor de lock */
+}
+
+/* Optioneel: voeg border toe om de positie te zien */
+.password-group .toggle-password {
+    /* background-color: rgba(255, 0, 0, 0.2) !important; */
+    /* border: 1px solid red !important; */
+}
+
+
+/* FORCEER DE TOGGLE HELEMAAL RECHTS - VOEG DIT TOE */
+.password-group .toggle-password {
+    right: 12px !important;  /* ← VERHOOG DIT TOTDAT HIJ HELEMAAL RECHTS IS */
+}
+
+/* TEST VERSIE - om te zien waar hij is */
+.password-group .toggle-password {
+    background-color: rgba(255, 0, 0, 0.5) !important;
+    border: 2px solid red !important;
 }
 
 /* Kleinere teksten */
 .email-input small {
-    font-size: 0.75rem;
-    color: #555;
+    font-size: 0.7rem;
+    color: #666;
     text-align: center;
     display: block;
-    margin-top: -0.5rem;
+    margin-top: -0.3rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    max-width: 260px;
 }
 
-/* Button styling */
-.email-input button {
+/* Button styling in email-input */
+.email-input button[type="submit"] {
     align-self: center;
     background-color: #5481B7;
     color: white;
@@ -281,21 +428,14 @@ button {
     border-radius: 8px;
     font-size: 1rem;
     font-weight: bold;
+    margin-top: 1rem;
+    min-width: 200px;
 }
-.email-input button:hover {
+.email-input button[type="submit"]:hover {
     background-color: #436c99;
 }
 
 /* Forgot password section styling */
-.forgot-password-input {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    animation: fadeIn 0.3s ease;
-}
-
 .forgot-password-input h2 {
     color: #333;
     margin-bottom: 0.5rem;
@@ -306,6 +446,7 @@ button {
     font-size: 0.9rem;
     margin-bottom: 1.5rem;
     text-align: center;
+    max-width: 260px;
 }
 
 #forgotEmail {
@@ -317,6 +458,7 @@ button {
     background: #5481B7;
     color: white;
     margin-bottom: 0.5rem;
+    min-width: 200px;
 }
 
 #sendResetLink:hover {
@@ -330,40 +472,12 @@ button {
     cursor: pointer;
     font-size: 0.8rem;
     text-decoration: underline;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 #backToLoginFromForgot:hover {
     color: #333;
-}
-
-/* Password group */
-.password-group {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 260px;
-}
-
-.password-group input {
-    flex: 1;
-    padding-right: 2.2rem;
-    height: 42px;
-    line-height: 42px;
-}
-.toggle-password:hover{
-    background: #ffffff;
-}
-.password-group .toggle-password {
-    position: absolute;
-    right: 0.6rem;
-    transform: translateY(-60%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.1rem;
-    line-height: 1;
-    padding: 0;
 }
 
 /* Animation for fade in */
@@ -454,22 +568,25 @@ button {
 @media (max-width: 850px) {
     .card-container {
         flex-direction: column;
-        width: 90%;
+        width: 95%;
         height: auto;
-        max-height: none;
+        max-height: 95vh;
         perspective: none;
+        min-height: 500px;
     }
 
     .panel {
         width: 100%;
         border-radius: 0;
         box-shadow: none;
+        padding: 1.5rem 1rem;
+        min-height: 50vh;
     }
 
     .left, .right {
         transform: none !important;
         z-index: auto !important;
-        max-height: none;
+        max-height: 50vh;
     }
 
     .card-container.show-email .left,
@@ -478,7 +595,9 @@ button {
     }
 
     .email-input, .login, .info, .forgot-password-input {
-        padding-bottom: 2rem;
+        padding: 1.5rem 1rem;
+        justify-content: flex-start;
+        padding-top: 1rem;
     }
 
     .input-group {
@@ -486,8 +605,36 @@ button {
         gap: 0.5rem;
     }
 
+    .input-group input {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
     input {
         max-width: 100%;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+    }
+
+    button {
+        min-width: 150px;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.85rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    h3 {
+        font-size: 1.3rem;
+    }
+
+    .email-input form {
+        max-height: calc(100% - 50px);
+        overflow-y: auto;
+        padding-right: 5px;
     }
 }
 
@@ -503,75 +650,122 @@ button {
     .custom-popup {
         width: 100%;
         margin-bottom: 5px;
+        font-size: 0.8rem;
+        padding: 10px 35px 10px 15px;
+    }
+
+    body {
+        padding: 10px;
+    }
+
+    .card-container {
+        max-height: 90vh;
+    }
+
+    .panel {
+        max-height: 45vh;
     }
 }
 
-/* Voeg dit toe aan je bestaande CSS */
-.left .login,
-.left .email-input,
-.left .forgot-password-input {
+/* Algemene popup container */
+#customPopupContainer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Popups */
+.custom-popup {
+    background: #fff; /* wit */
+    color: #333;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+/* Zichtbaar maken */
+.custom-popup.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade out */
+.custom-popup.fading-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Knop in popup */
+.custom-popup button,
+.custom-popup .close-btn {
+    cursor: pointer;
+    background-color: #0056b3; /* je blauwe thema kleur */
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 8px;
+    transition: background 0.2s ease;
+}
+
+.custom-popup button:hover,
+.custom-popup .close-btn:hover {
+    background-color: #003f7f;
+}
+
+/* Close knop apart rechtsboven */
+.custom-popup .close-btn {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 2.5rem 2rem;
-    transition: opacity 0.3s ease;
+    top: 8px;
+    right: 12px;
+    background: transparent;
+    color: #888;
+    font-size: 18px;
+    font-weight: bold;
 }
 
-/* Standaard: login is zichtbaar */
-.left .login {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
+.custom-popup .close-btn:hover {
+    color: #000;
 }
 
-/* Standaard: email-input en forgot-password zijn verborgen */
-.left .email-input,
-.left .forgot-password-input {
-    display: none;
-    opacity: 0;
-    pointer-events: none;
+/* Titels */
+.custom-popup h3 {
+    color: #0056b3;
+    margin-bottom: 10px;
 }
 
-/* Wanneer we in email-input modus zijn */
-.card-container.show-email .left .login,
-.card-container.show-email .left .forgot-password-input {
-    display: none;
-    opacity: 0;
-    pointer-events: none;
+/* Inputs */
+.custom-popup input {
+    width: 90%;
+    padding: 8px 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
 }
 
-.card-container.show-email .left .email-input {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
+/* Succes/error kleuren */
+.custom-popup.success {
+    border-left: 5px solid #28a745;
 }
 
-/* Wanneer we in forgot-password modus zijn - specifieke CSS klasse */
-.card-container.show-forgot .left .login,
-.card-container.show-forgot .left .email-input {
-    display: none;
-    opacity: 0;
-    pointer-events: none;
+.custom-popup.error {
+    border-left: 5px solid #dc3545;
 }
 
-.card-container.show-forgot .left .forgot-password-input {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Reset naar login modus */
-.card-container.reset .left .login {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.card-container.reset .left .email-input,
-.card-container.reset .left .forgot-password-input {
-    display: none;
-    opacity: 0;
-    pointer-events: none;
+/* Knop reset password */
+.custom-popup #submitResetPassword {
+    width: 95%;
+    margin-top: 10px;
 }

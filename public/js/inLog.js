@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showEmailForm.addEventListener('click', () => {
       cardContainer.classList.add('show-email');
       cardContainer.classList.remove('reset');
+      cardContainer.classList.remove('show-forgot');
     });
   }
 
@@ -67,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     backToLogin.addEventListener('click', () => {
       cardContainer.classList.remove('show-email');
       cardContainer.classList.add('reset');
+      cardContainer.classList.remove('show-forgot');
     });
   }
 
@@ -200,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('registrationForm').reset();
           cardContainer.classList.remove('show-email');
           cardContainer.classList.add('reset');
+          cardContainer.classList.remove('show-forgot');
         } else {
           showCustomPopup("Er is iets misgegaan: " + data.message, 'error');
         }
@@ -247,55 +250,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================== FORGOT PASSWORD FUNCTIONALITY ==================
   const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-  const forgotPasswordSection = document.getElementById('forgotPasswordSection');
-  const loginSection = document.querySelector('.login');
-  const emailInputSection = document.querySelector('.email-input');
   const sendResetLinkBtn = document.getElementById('sendResetLink');
   const backToLoginFromForgot = document.getElementById('backToLoginFromForgot');
 
-// Scherm wisselen naar wachtwoord vergeten
+  // Scherm wisselen naar wachtwoord vergeten
   if (forgotPasswordLink) {
     forgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
-      // Zorg ervoor dat we in de normale login modus zijn (niet in registratie)
+      // Eerst resetten naar login modus, dan naar forgot modus
       cardContainer.classList.remove('show-email');
-      cardContainer.classList.add('reset');
-
-      // Verberg de login en toon de wachtwoord-vergeten sectie
-      if (loginSection) loginSection.style.display = 'none';
-      if (emailInputSection) emailInputSection.style.display = 'none';
-      if (forgotPasswordSection) {
-        forgotPasswordSection.style.display = 'flex';
-        // Zorg ervoor dat de CSS animatie werkt
-        forgotPasswordSection.style.opacity = '1';
-        forgotPasswordSection.style.pointerEvents = 'auto';
-      }
+      cardContainer.classList.remove('reset');
+      cardContainer.classList.add('show-forgot');
     });
   }
 
-// Terug naar login vanuit wachtwoord vergeten
+  // Terug naar login vanuit wachtwoord vergeten
   if (backToLoginFromForgot) {
     backToLoginFromForgot.addEventListener('click', () => {
-      // Terug naar de normale login weergave
+      // ALTIJD terug naar normale login modus (reset)
       cardContainer.classList.remove('show-email');
+      cardContainer.classList.remove('show-forgot');
       cardContainer.classList.add('reset');
 
-      // Toon login, verberg email input en forgot password
-      if (loginSection) {
-        loginSection.style.display = 'flex';
-        loginSection.style.opacity = '1';
-        loginSection.style.pointerEvents = 'auto';
-      }
-      if (emailInputSection) emailInputSection.style.display = 'none';
-      if (forgotPasswordSection) {
-        forgotPasswordSection.style.display = 'none';
-        forgotPasswordSection.style.opacity = '0';
-        forgotPasswordSection.style.pointerEvents = 'none';
-      }
+      // Reset het email veld
+      document.getElementById('forgotEmail').value = '';
     });
   }
 
-// API Request voor wachtwoord herstel
   if (sendResetLinkBtn) {
     sendResetLinkBtn.addEventListener('click', async () => {
       const email = document.getElementById('forgotEmail').value.trim();
@@ -311,22 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email }),
         });
 
-        const data = await response.json();
+        await response.json();
 
-        showCustomPopup("Als dit account bestaat, is er een instructie gestuurd.", 'success');
-
-        // Terug naar login
-        if (loginSection) {
-          loginSection.style.display = 'flex';
-          loginSection.style.opacity = '1';
-          loginSection.style.pointerEvents = 'auto';
-        }
-        if (emailInputSection) emailInputSection.style.display = 'none';
-        if (forgotPasswordSection) {
-          forgotPasswordSection.style.display = 'none';
-          forgotPasswordSection.style.opacity = '0';
-          forgotPasswordSection.style.pointerEvents = 'none';
-        }
+        // Laat popup zien om resetcode + nieuw wachtwoord in te vullen
+        showResetPasswordPopup(email);
 
         // Reset het email veld
         document.getElementById('forgotEmail').value = '';
@@ -337,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
   // ENTER to send reset link
   const forgotEmailInput = document.getElementById('forgotEmail');
   if (forgotEmailInput && sendResetLinkBtn) {
@@ -344,6 +314,292 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'Enter') {
         e.preventDefault();
         sendResetLinkBtn.click();
+      }
+    });
+  }
+  function showResetPasswordPopup(email) {
+    if (!popupContainer) return;
+
+    // 1. Overlay maken (beslaat het hele scherm)
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.6)'; // Iets donkerder voor betere focus
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';     // Verticaal centreren
+    overlay.style.justifyContent = 'center';  // Horizontaal centreren
+    overlay.style.zIndex = '10000';           // Zorg dat dit boven alles staat
+    overlay.style.opacity = '0';              // Voor de fade-in animatie
+    overlay.style.transition = 'opacity 0.3s ease';
+    overlay.classList.add('reset-password-overlay');
+
+    // 2. Popup maken
+    const popup = document.createElement('div');
+    popup.style.background = '#fff';
+    popup.style.borderRadius = '12px';
+    popup.style.padding = '30px 25px';
+    popup.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+    popup.style.maxWidth = '400px';
+    popup.style.width = '90%';
+    popup.style.textAlign = 'center';
+    popup.style.position = 'relative';
+    popup.style.fontFamily = 'Arial, sans-serif';
+    popup.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    popup.style.transform = 'scale(0.8)'; // Start iets kleiner voor 'pop' effect
+    popup.style.opacity = '0';
+
+    popup.innerHTML = `
+    <h3 style="color:#0056b3; margin-bottom:10px; margin-top:0;">Wachtwoord herstellen</h3>
+    <p style="font-size: 0.9rem; margin-bottom:15px; color:#333;">Vul de resetcode uit je e-mail in en kies een nieuw wachtwoord.</p>
+    <input type="email" id="resetEmail" value="${email}" readonly 
+      style="margin-bottom:10px; width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; background:#f9f9f9;">
+    <input type="text" id="resetCode" placeholder="Resetcode" 
+      style="margin-bottom:10px; width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+    <input type="password" id="newPassword" placeholder="Nieuw wachtwoord" 
+      style="margin-bottom:10px; width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+    <input type="password" id="confirmPassword" placeholder="Herhaal wachtwoord" 
+      style="margin-bottom:20px; width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+    <button id="submitResetPassword" 
+      style="width:100%; padding:12px; border:none; border-radius:8px; background:#0056b3; color:#fff; font-weight:bold; cursor:pointer; transition: background 0.2s;">Reset wachtwoord</button>
+    <span class="close-btn" 
+      style="position:absolute; top:10px; right:15px; font-size:24px; cursor:pointer; color:#888;">&times;</span>
+  `;
+
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay); // Direct aan de body toevoegen werkt vaak beter voor centering
+
+    // 3. Animatie starten
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      popup.style.transform = 'scale(1)';
+      popup.style.opacity = '1';
+    });
+
+    // 4. Sluit functionaliteit (met fade-out)
+    const closePopup = () => {
+      overlay.style.opacity = '0';
+      popup.style.transform = 'scale(0.8)';
+      setTimeout(() => overlay.remove(), 300);
+    };
+
+    popup.querySelector('.close-btn').addEventListener('click', closePopup);
+
+    // Sluit ook als je buiten de popup klikt
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePopup();
+    });
+
+    // 5. Submit logica
+    const submitBtn = popup.querySelector('#submitResetPassword');
+    submitBtn.addEventListener('click', async () => {
+      const code = popup.querySelector('#resetCode').value.trim();
+      const newPassword = popup.querySelector('#newPassword').value;
+      const confirmPassword = popup.querySelector('#confirmPassword').value;
+
+      if (!code || !newPassword || !confirmPassword) {
+        showCustomPopup('Vul alle velden in!', 'error');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showCustomPopup('Wachtwoorden komen niet overeen!', 'error');
+        return;
+      }
+
+      const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*]).{12,}$/;
+      if (!pwdRegex.test(newPassword)) {
+        showCustomPopup("Wachtwoord voldoet niet aan de eisen! Minimaal 12 tekens, hoofdletter, kleine letter en speciaal teken.", 'error');
+        return;
+      }
+
+      const lowerPwd = newPassword.toLowerCase();
+      const nameParts = email.split('@')[0].split(/[._-]/);
+      if (nameParts.some(part => part && lowerPwd.includes(part))) {
+        showCustomPopup("Wachtwoord mag geen deel van je e-mail bevatten!", 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/register/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code, password: newPassword }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const msg = data.message || "Fout bij resetten wachtwoord";
+          showCustomPopup(msg, 'error');
+          return;
+        }
+
+        showCustomPopup("Wachtwoord succesvol gereset! Je wordt teruggestuurd naar inloggen.", 'success');
+        closePopup();
+
+        setTimeout(() => {
+          if (typeof cardContainer !== 'undefined') {
+            cardContainer.classList.remove('show-forgot');
+            cardContainer.classList.add('reset');
+          }
+        }, 1500);
+
+      } catch (err) {
+        showCustomPopup("Fout bij resetten wachtwoord. Controleer netwerk of backend.", 'error');
+      }
+    });
+  }function showResetPasswordPopup(email) {
+    if (!popupContainer) return;
+
+    // 1. Overlay maken (volledig scherm & gecentreerd)
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.6)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '10000';
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.3s ease';
+    overlay.classList.add('reset-password-overlay');
+
+    // 2. Popup maken
+    const popup = document.createElement('div');
+    popup.style.background = '#fff';
+    popup.style.borderRadius = '12px';
+    popup.style.padding = '30px 25px';
+    popup.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+    popup.style.maxWidth = '400px';
+    popup.style.width = '90%';
+    popup.style.textAlign = 'center';
+    popup.style.position = 'relative';
+    popup.style.fontFamily = 'Arial, sans-serif';
+    popup.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    popup.style.transform = 'scale(0.8)';
+    popup.style.opacity = '0';
+
+    // Helper voor input styling om herhaling te voorkomen
+    const inputStyle = `width:100%; padding:10px; padding-right:40px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;`;
+    const groupStyle = `position:relative; margin-bottom:10px; width:100%;`;
+    const toggleStyle = `position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; color:#888; font-size:18px; user-select:none;`;
+
+    popup.innerHTML = `
+    <h3 style="color:#0056b3; margin-bottom:10px; margin-top:0;">Wachtwoord herstellen</h3>
+    <p style="font-size: 0.9rem; margin-bottom:15px; color:#333;">Vul de gegevens in om je wachtwoord te wijzigen.</p>
+    
+    <div style="${groupStyle}">
+      <input type="email" id="resetEmail" value="${email}" readonly style="${inputStyle} background:#f9f9f9;">
+    </div>
+
+    <div style="${groupStyle}">
+      <input type="text" id="resetCode" placeholder="Resetcode" style="${inputStyle}">
+    </div>
+
+    <div style="${groupStyle}">
+      <input type="password" id="newPassword" placeholder="Nieuw wachtwoord" style="${inputStyle}">
+      <span class="pw-toggle" data-target="newPassword" style="${toggleStyle}">👁️</span>
+    </div>
+
+    <div style="${groupStyle}">
+      <input type="password" id="confirmPassword" placeholder="Herhaal wachtwoord" style="${inputStyle}">
+      <span class="pw-toggle" data-target="confirmPassword" style="${toggleStyle}">👁️</span>
+    </div>
+
+    <button id="submitResetPassword" 
+      style="width:100%; padding:12px; border:none; border-radius:8px; background:#0056b3; color:#fff; font-weight:bold; cursor:pointer; margin-top:10px;">
+      Reset wachtwoord
+    </button>
+    
+    <span class="close-btn" style="position:absolute; top:10px; right:15px; font-size:24px; cursor:pointer; color:#888;">&times;</span>
+  `;
+
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // 3. Animatie in
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      popup.style.transform = 'scale(1)';
+      popup.style.opacity = '1';
+    });
+
+    // 4. Toggle Logica
+    popup.querySelectorAll('.pw-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const inputId = this.getAttribute('data-target');
+        const input = popup.querySelector(`#${inputId}`);
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.textContent = '🔒'; // Of een ander icoontje
+        } else {
+          input.type = 'password';
+          this.textContent = '👁️';
+        }
+      });
+    });
+
+    // 5. Sluiten & Submit
+    const closePopup = () => {
+      overlay.style.opacity = '0';
+      popup.style.transform = 'scale(0.8)';
+      setTimeout(() => overlay.remove(), 300);
+    };
+
+    popup.querySelector('.close-btn').addEventListener('click', closePopup);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closePopup(); });
+
+    const submitBtn = popup.querySelector('#submitResetPassword');
+    submitBtn.addEventListener('click', async () => {
+      const code = popup.querySelector('#resetCode').value.trim();
+      const newPassword = popup.querySelector('#newPassword').value;
+      const confirmPassword = popup.querySelector('#confirmPassword').value;
+
+      if (!code || !newPassword || !confirmPassword) {
+        showCustomPopup('Vul alle velden in!', 'error');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showCustomPopup('Wachtwoorden komen niet overeen!', 'error');
+        return;
+      }
+
+      // Wachtwoord validatie regex
+      const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*]).{12,}$/;
+      if (!pwdRegex.test(newPassword)) {
+        showCustomPopup("Wachtwoord voldoet niet aan de eisen!", 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/register/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code, password: newPassword }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          showCustomPopup(data.message || "Fout bij resetten", 'error');
+          return;
+        }
+
+        showCustomPopup("Wachtwoord succesvol gereset!", 'success');
+        closePopup();
+        setTimeout(() => {
+          cardContainer.classList.remove('show-forgot');
+          cardContainer.classList.add('reset');
+        }, 1500);
+
+      } catch (err) {
+        showCustomPopup("Netwerkfout.", 'error');
       }
     });
   }
