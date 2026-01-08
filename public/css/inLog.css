@@ -72,12 +72,11 @@ body {
     scrollbar-color: #ccc #f2f2f2;
 }
 
-.left::-webkit-scrollbar,
-.right::-webkit-scrollbar {
+.panel::-webkit-scrollbar {
     width: 6px;
 }
-.left::-webkit-scrollbar-thumb,
-.right::-webkit-scrollbar-thumb {
+
+.panel::-webkit-scrollbar-thumb {
     background-color: #bbb;
     border-radius: 6px;
 }
@@ -106,21 +105,28 @@ h2, h3 {
     margin-bottom: 0.5rem;
     text-align: center;
 }
+
 h2 {
     font-size: 1.8rem;
     color: #333;
 }
+
 h3 {
     font-size: 1.5rem;
     color: white;
 }
+
 p {
     margin-bottom: 1rem;
     text-align: center;
     font-size: 0.9rem;
-    color: #333;
     line-height: 1.4;
 }
+
+.left p {
+    color: #333;
+}
+
 .right p {
     color: white;
 }
@@ -135,6 +141,7 @@ input {
     border: 1px solid #ccc;
     font-size: 0.95rem;
 }
+
 input:focus {
     outline: none;
     border-color: #365d87;
@@ -151,17 +158,21 @@ button {
     font-size: 0.95rem;
     min-width: 180px;
 }
+
 .left button {
     background: #5481B7;
     color: white;
 }
+
 .left button:hover {
     background: #436c99;
 }
+
 .right button {
     background: white;
     color: #5481B7;
 }
+
 .right button:hover {
     background: #f2f2f2;
 }
@@ -176,7 +187,6 @@ button {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
     height: 100%;
     padding: 2rem;
     transition: opacity 0.3s ease;
@@ -294,6 +304,7 @@ button {
     z-index: 1;
     box-shadow: 0 0 40px rgba(0,0,0,0.2);
 }
+
 .card-container.show-email .right {
     transform: translateX(-100%) scale(1.05) rotateY(-5deg);
     z-index: 2;
@@ -311,6 +322,7 @@ button {
     transform: translateX(0) scale(1) rotateY(0);
     z-index: 2;
 }
+
 .card-container.reset .right {
     transform: translateX(0) scale(1) rotateY(0);
     z-index: 1;
@@ -319,8 +331,11 @@ button {
 /* Formulier styling */
 .email-input form {
     width: 100%;
+    max-width: 530px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
     gap: 0.8rem;
     padding-bottom: 1rem;
     max-height: calc(100% - 60px);
@@ -332,79 +347,65 @@ button {
     gap: 0.8rem;
     flex-wrap: wrap;
     width: 100%;
+    margin-bottom: 0.8rem;
 }
+
 .input-group input {
     flex: 1;
     min-width: calc(50% - 0.4rem);
     margin: 0.3rem 0;
     font-size: 0.9rem;
     padding: 0.7rem 0.9rem;
+    box-sizing: border-box;
 }
 
-/* Password group - LOCK NAAR RECHTS, INPUT BLIJFT OP ZIJN PLEK */
+/* --- Wachtwoord Groep Fix --- */
 .password-group {
     position: relative;
-    display: inline-block; /* Verander dit van flex naar inline-block */
+    display: flex;
     width: 100%;
-    max-width: 260px;
-    margin: 0.3rem 0;
+    max-width: 100%; /* Zorgt dat hij even breed is als de rest */
+    margin: 0.5rem 0;
 }
 
 .password-group input {
-    width: 100% !important; /* Zorg dat input 100% breedte heeft */
-    padding-right: 40px !important; /* Ruimte voor de lock */
-    height: 42px;
-    line-height: 42px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 0.7rem 40px 0.7rem 0.9rem !important;
-    margin: 0 !important; /* Zorg dat er geen margin is */
+    flex: 1;
+    width: 100%;
+    padding-right: 40px !important; /* Ruimte binnen de input voor het slotje */
+    margin: 0 !important; /* Voorkom verspringen */
 }
 
-/* TOGGLE HELEMAAL RECHTS IN DE INPUT */
+/* HET SLOTJE: Direct rechts IN de input, zonder blauwe hover */
 .password-group .toggle-password {
     position: absolute !important;
-    right: 8px !important;  /* ← HELEMAAL AAN DE RECHTERKANT VAN DE INPUT */
+    right: 75px !important; /* 10px van de rechterrand van de input */
     top: 50% !important;
     transform: translateY(-50%) !important;
-    background: none !important;
+
+    /* Reset alle standaard button styling */
+    background: transparent !important;
     border: none !important;
-    cursor: pointer !important;
-    font-size: 1.2rem !important;
+    box-shadow: none !important;
+    min-width: auto !important;
+    width: 30px !important;
+    height: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    z-index: 100 !important;
-    width: 24px !important;
-    height: 24px !important;
+
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    color: #666 !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    color: #666;
+    font-size: 1.2rem;
 }
 
-/* Zorg dat de input genoeg ruimte heeft aan de rechterkant */
-.password-group input {
-    padding-right: 40px !important;  /* Ruimte voor de lock */
-}
-
-/* Optioneel: voeg border toe om de positie te zien */
-.password-group .toggle-password {
-    /* background-color: rgba(255, 0, 0, 0.2) !important; */
-    /* border: 1px solid red !important; */
-}
-
-
-/* FORCEER DE TOGGLE HELEMAAL RECHTS - VOEG DIT TOE */
-.password-group .toggle-password {
-    right: 12px !important;  /* ← VERHOOG DIT TOTDAT HIJ HELEMAAL RECHTS IS */
-}
-
-/* TEST VERSIE - om te zien waar hij is */
-.password-group .toggle-password {
-    background-color: rgba(255, 0, 0, 0.5) !important;
-    border: 2px solid red !important;
+/* Verwijder de hover-achtergrond volledig */
+.password-group .toggle-password:hover {
+    background: transparent !important;
+    color: #333 !important;
+    box-shadow: none !important;
 }
 
 /* Kleinere teksten */
@@ -431,6 +432,7 @@ button {
     margin-top: 1rem;
     min-width: 200px;
 }
+
 .email-input button[type="submit"]:hover {
     background-color: #436c99;
 }
@@ -480,88 +482,150 @@ button {
     color: #333;
 }
 
-/* Animation for fade in */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
 /* ================== CUSTOM POPUP STYLES ================== */
 #customPopupContainer {
     position: fixed;
     top: 20px;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 9999;
-    pointer-events: none;
+    width: 90%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .custom-popup {
-    background-color: #333;
-    color: white;
-    padding: 15px 40px 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    color: #333;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    padding: 20px;
     margin-bottom: 10px;
     opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    font-family: Arial, sans-serif;
+    text-align: center;
     min-width: 250px;
     max-width: 90vw;
     position: relative;
     pointer-events: auto;
-    font-size: 0.9rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
 }
 
 /* Status kleuren */
-.custom-popup.error {
-    background-color: #dc3545;
-    border-left: 5px solid #a71d2a;
+.custom-popup.success {
+    border-left: 5px solid #28a745;
 }
+
+.custom-popup.error {
+    border-left: 5px solid #dc3545;
+    background-color: #dc3545;
+    color: white;
+}
+
 .custom-popup.success {
     background-color: #28a745;
-    border-left: 5px solid #1e7e34;
+    color: white;
 }
 
-/* Animatie klassen */
+.custom-popup.error h3,
+.custom-popup.success h3 {
+    color: white;
+}
+
+/* Zichtbaar maken */
 .custom-popup.visible {
     opacity: 1;
-    transform: translateX(0);
-}
-.custom-popup.fading-out {
-    opacity: 0;
-    transform: translateX(100%);
+    transform: translateY(0);
 }
 
-/* Sluitknop */
+/* Fade out */
+.custom-popup.fading-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Knop in popup */
+.custom-popup button,
+.custom-popup .close-btn {
+    cursor: pointer;
+    background-color: #0056b3;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 8px;
+    transition: background 0.2s ease;
+}
+
+.custom-popup button:hover,
+.custom-popup .close-btn:hover {
+    background-color: #003f7f;
+}
+
+/* Close knop apart rechtsboven */
 .custom-popup .close-btn {
     position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 1.5rem;
+    top: 8px;
+    right: 12px;
+    background: transparent;
+    color: #888;
+    font-size: 18px;
     font-weight: bold;
-    line-height: 1;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: color 0.2s;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    height: auto;
 }
 
 .custom-popup .close-btn:hover {
+    color: #000;
+}
+
+.custom-popup.error .close-btn,
+.custom-popup.success .close-btn {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.custom-popup.error .close-btn:hover,
+.custom-popup.success .close-btn:hover {
     color: white;
+}
+
+/* Titels */
+.custom-popup h3 {
+    color: #0056b3;
+    margin-bottom: 10px;
+}
+
+/* Inputs */
+.custom-popup input {
+    width: 90%;
+    padding: 8px 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Knop reset password */
+.custom-popup #submitResetPassword {
+    width: 95%;
+    margin-top: 10px;
 }
 
 .custom-popup p {
     margin: 0;
-    color: white;
     text-align: left;
     flex-grow: 1;
     padding-right: 10px;
+    width: 100%;
 }
 
 /* Responsief gedrag */
@@ -581,20 +645,15 @@ button {
         box-shadow: none;
         padding: 1.5rem 1rem;
         min-height: 50vh;
+        max-height: 50vh;
     }
 
     .left, .right {
         transform: none !important;
         z-index: auto !important;
-        max-height: 50vh;
     }
 
-    .card-container.show-email .left,
-    .card-container.show-email .right {
-        transform: none;
-    }
-
-    .email-input, .login, .info, .forgot-password-input {
+    .email-input, .login, .forgot-password-input {
         padding: 1.5rem 1rem;
         justify-content: flex-start;
         padding-top: 1rem;
@@ -642,16 +701,7 @@ button {
     #customPopupContainer {
         top: auto;
         bottom: 10px;
-        right: 50%;
-        transform: translateX(50%);
-        align-items: center;
         width: 90%;
-    }
-    .custom-popup {
-        width: 100%;
-        margin-bottom: 5px;
-        font-size: 0.8rem;
-        padding: 10px 35px 10px 15px;
     }
 
     body {
@@ -665,107 +715,11 @@ button {
     .panel {
         max-height: 45vh;
     }
-}
 
-/* Algemene popup container */
-#customPopupContainer {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: 90%;
-    max-width: 400px;
-}
-
-/* Popups */
-.custom-popup {
-    background: #fff; /* wit */
-    color: #333;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-    padding: 20px;
-    margin-bottom: 10px;
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.3s ease;
-    font-family: Arial, sans-serif;
-    text-align: center;
-}
-
-/* Zichtbaar maken */
-.custom-popup.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Fade out */
-.custom-popup.fading-out {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-
-/* Knop in popup */
-.custom-popup button,
-.custom-popup .close-btn {
-    cursor: pointer;
-    background-color: #0056b3; /* je blauwe thema kleur */
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-top: 8px;
-    transition: background 0.2s ease;
-}
-
-.custom-popup button:hover,
-.custom-popup .close-btn:hover {
-    background-color: #003f7f;
-}
-
-/* Close knop apart rechtsboven */
-.custom-popup .close-btn {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    background: transparent;
-    color: #888;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.custom-popup .close-btn:hover {
-    color: #000;
-}
-
-/* Titels */
-.custom-popup h3 {
-    color: #0056b3;
-    margin-bottom: 10px;
-}
-
-/* Inputs */
-.custom-popup input {
-    width: 90%;
-    padding: 8px 10px;
-    margin: 5px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-/* Succes/error kleuren */
-.custom-popup.success {
-    border-left: 5px solid #28a745;
-}
-
-.custom-popup.error {
-    border-left: 5px solid #dc3545;
-}
-
-/* Knop reset password */
-.custom-popup #submitResetPassword {
-    width: 95%;
-    margin-top: 10px;
+    .custom-popup {
+        width: 100%;
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+        padding: 10px 35px 10px 15px;
+    }
 }
