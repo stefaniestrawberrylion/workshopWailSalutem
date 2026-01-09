@@ -23,13 +23,9 @@ interface AuthenticatedRequest extends Request {
   user: { id: number; [key: string]: any };
 }
 
-// ✅ Type-safe helper om foutboodschappen veilig te extraheren
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
+// Helper om foutboodschappen veilig te extraheren
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
 @Controller('users')
 export class UserController {
@@ -43,25 +39,41 @@ export class UserController {
   async getApprovedUsers() {
     return this.userService.getUsersByStatus(Status.APPROVED);
   }
+
+  // ================== PROFILE ==================
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getProfile(@Req() req: AuthenticatedRequest) {
+    try {
+      const user = await this.userService.getUserById(req.user.id);
+      if (!user)
+        throw new HttpException(
+          'Gebruiker niet gevonden',
+          HttpStatus.NOT_FOUND,
+        );
+      return user;
+    } catch (err: unknown) {
+      throw new HttpException(
+        { message: getErrorMessage(err) },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  // ================== DELETE OWN ACCOUNT ==================
   @UseGuards(JwtAuthGuard)
   @Delete('me')
   async deleteMe(@Req() req: AuthenticatedRequest) {
     try {
       const userId = req.user.id;
-
-      // 1. Haal gebruiker op voor de mail (optioneel)
       const user = await this.userService.getUserById(userId);
-      if (!user) {
+      if (!user)
         throw new HttpException(
           'Gebruiker niet gevonden',
           HttpStatus.NOT_FOUND,
         );
-      }
 
-      // 2. Verwijder de gebruiker uit de database
       await this.userService.deleteUser(userId);
-
-      // 3. Stuur optioneel een afscheidsmail of notificatie naar admin
       await this.mailService.sendAccountDeletionNotification(
         user.email,
         `${user.firstName} ${user.lastName}`,
@@ -76,50 +88,21 @@ export class UserController {
     }
   }
 
-  // ================== DELETE USER ==================
+  // ================== DELETE USER BY ID ==================
   @Delete(':id')
   async deleteUser(@Param('id') id: number) {
     try {
       await this.userService.deleteUser(id);
       return { success: true };
-    } catch (e: unknown) {
-      throw new HttpException(
-        { success: false, message: getErrorMessage(e) },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async getProfile(@Req() req: any) {
-    try {
-      if (!req.user) {
-        throw new HttpException(
-          'Niet geauthenticeerd',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
-
-      const userId = req.user.id;
-      const user = await this.userService.getUserById(userId);
-
-      if (!user) {
-        throw new HttpException(
-          'Gebruiker niet gevonden',
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      return user;
     } catch (err: unknown) {
       throw new HttpException(
-        { message: getErrorMessage(err) },
+        { success: false, message: getErrorMessage(err) },
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
+  // ================== GET USER BY ID ==================
   @Get(':id')
   async getUserById(@Param('id') id: number) {
     const user = await this.userService.getUserById(id);
@@ -127,6 +110,7 @@ export class UserController {
     return { id: user.id, name: user.firstName, email: user.email };
   }
 
+  // ================== UPLOAD AVATAR ==================
   @UseGuards(JwtAuthGuard)
   @Post('me/avatar')
   @UseInterceptors(
@@ -136,8 +120,7 @@ export class UserController {
         filename: (req, file, cb) => {
           const userId = (req as unknown as AuthenticatedRequest).user.id;
           const fileExt = extname(file.originalname);
-          const filename = `avatar-${userId}-${Date.now()}${fileExt}`;
-          cb(null, filename);
+          cb(null, `avatar-${userId}-${Date.now()}${fileExt}`);
         },
       }),
       fileFilter: (req, file, cb) => {
@@ -158,13 +141,11 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (!file) {
+    if (!file)
       throw new HttpException('Geen bestand geüpload', HttpStatus.BAD_REQUEST);
-    }
 
-    const userId = req.user.id;
     const avatarUrl = `/uploads/${file.filename}`;
-    await this.userService.updateUserAvatar(userId, avatarUrl);
+    await this.userService.updateUserAvatar(req.user.id, avatarUrl);
 
     return { avatarUrl };
   }

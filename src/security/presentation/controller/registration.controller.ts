@@ -14,21 +14,40 @@ import { AdminService } from '../../application/admin.service';
 import { Status } from '../../domain/enums/state.enum';
 import { Role } from '../../domain/enums/role.enum';
 
+// ================== DTOs ==================
+class RegisterUserDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+class RegisterRequestDto extends RegisterUserDto {
+  school: string;
+  phone: string;
+}
+
+class LoginDto {
+  email: string;
+  password: string;
+}
+
+class ResetPasswordDto {
+  email: string;
+  code: string;
+  password: string;
+}
+
+// ================== Helper ==================
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return (error as { message?: unknown }).message as string;
   }
-
-  if (typeof error === 'object' && error !== null) {
-    const maybeError = error as { message?: unknown };
-    if (typeof maybeError.message === 'string') {
-      return maybeError.message;
-    }
-  }
-
   return String(error);
 }
 
+// ================== Controller ==================
 @Controller('register')
 export class RegistrationController {
   constructor(
@@ -36,15 +55,15 @@ export class RegistrationController {
     private readonly adminService: AdminService,
   ) {}
 
-  // ================== REGISTRATIE ==================
+  // ------------------ REGISTER ------------------
   @Post()
-  async registerUser(@Body() body: Record<string, string>) {
+  async registerUser(@Body() dto: RegisterUserDto) {
     try {
       await this.userService.register(
-        body.email,
-        body.password,
-        body.firstName,
-        body.lastName,
+        dto.email,
+        dto.password,
+        dto.firstName,
+        dto.lastName,
         Role.USER,
       );
       return { message: 'Gebruiker geregistreerd' };
@@ -57,13 +76,13 @@ export class RegistrationController {
   }
 
   @Post('admin')
-  async registerAdmin(@Body() body: Record<string, string>) {
+  async registerAdmin(@Body() dto: RegisterUserDto) {
     try {
       await this.adminService.registerAdmin(
-        body.email,
-        body.password,
-        body.firstName,
-        body.lastName,
+        dto.email,
+        dto.password,
+        dto.firstName,
+        dto.lastName,
       );
       return { message: 'Admin geregistreerd' };
     } catch (err: unknown) {
@@ -75,15 +94,15 @@ export class RegistrationController {
   }
 
   @Post('request')
-  async registerRequest(@Body() body: Record<string, string>) {
+  async registerRequest(@Body() dto: RegisterRequestDto) {
     try {
       await this.userService.registerRequest(
-        body.email,
-        body.password,
-        body.firstName,
-        body.lastName,
-        body.school,
-        body.phone,
+        dto.email,
+        dto.password,
+        dto.firstName,
+        dto.lastName,
+        dto.school,
+        dto.phone,
       );
       return { success: true };
     } catch (err: unknown) {
@@ -94,7 +113,7 @@ export class RegistrationController {
     }
   }
 
-  // ================== PENDING USERS ==================
+  // ------------------ PENDING USERS ------------------
   @Get('pending')
   async getPendingUsers() {
     try {
@@ -133,67 +152,57 @@ export class RegistrationController {
     }
   }
 
-  // ================== LOGIN ==================
+  // ------------------ LOGIN ------------------
   @Post('login')
-  async login(@Body() body: Record<string, string>) {
-    const { email, password } = body;
+  async login(@Body() dto: LoginDto) {
+    const { email, password } = dto;
     try {
       const user = await this.userService.findByEmail(email);
-      if (!user) {
+      if (!user)
         throw new HttpException(
-          { message: 'Ongeldige e-mail of wachtwoord' },
+          'Ongeldige e-mail of wachtwoord',
           HttpStatus.UNAUTHORIZED,
         );
-      }
 
-      // Check account status eerst
       if (user.status === Status.DENIED) {
         throw new HttpException(
-          { message: 'Uw account is geweigerd door de administrator.' },
+          'Uw account is geweigerd door de administrator.',
           HttpStatus.FORBIDDEN,
         );
       }
       if (user.status === Status.PENDING) {
         throw new HttpException(
-          {
-            message:
-              'Uw account is nog niet goedgekeurd door de administrator.',
-          },
+          'Uw account is nog niet goedgekeurd door de administrator.',
           HttpStatus.FORBIDDEN,
         );
       }
 
-      // Dan pas het wachtwoord controleren
       const passwordOk = await this.userService.checkPassword(user, password);
-      if (!passwordOk) {
+      if (!passwordOk)
         throw new HttpException(
-          { message: 'Ongeldige e-mail of wachtwoord' },
+          'Ongeldige e-mail of wachtwoord',
           HttpStatus.UNAUTHORIZED,
         );
-      }
 
       const token = await this.userService.login(user);
-      return {
-        message: 'Login succesvol',
-        ...token,
-      };
+      return { message: 'Login succesvol', ...token };
     } catch (err: unknown) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
+      if (err instanceof HttpException) throw err;
       throw new HttpException(
-        { message: 'Interne serverfout' },
+        'Interne serverfout',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // ------------------ DELETE USER ------------------
   @Delete(':email')
   async deleteUser(@Param('email') email: string) {
     await this.userService.deleteUserByEmail(email);
     return { message: `User with email ${email} has been deleted` };
   }
 
+  // ------------------ PASSWORD RESET ------------------
   @Post('forgot-password')
   async forgotPassword(@Body('email') email: string) {
     await this.userService.requestPasswordReset(email);
@@ -201,13 +210,8 @@ export class RegistrationController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() body: any) {
-    await this.userService.resetPassword(
-      body.email,
-      body.code,
-      body.password,
-    );
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.userService.resetPassword(dto.email, dto.code, dto.password);
     return { success: true };
   }
-
 }

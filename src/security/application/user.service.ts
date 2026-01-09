@@ -12,7 +12,7 @@ import { Role } from '../domain/enums/role.enum';
 import { Status } from '../domain/enums/state.enum';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { MailService } from '../../mail/application/mail.service'; // Zorg ervoor dat dit het juiste pad is
+import { MailService } from '../../mail/application/mail.service';
 
 @Injectable()
 export class UserService {
