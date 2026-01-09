@@ -5,7 +5,7 @@ import { Workshop } from '../domain/workshop.entity';
 import { DocumentInfo } from '../domain/document-info.entity';
 import { promises as fs } from 'fs';
 import { ReviewService } from './review.service';
-import { WorkshopFiles} from '../presentation/controller/workshop.controller';
+import { WorkshopFiles } from '../presentation/controller/workshop.controller';
 
 @Injectable()
 export class WorkshopService {
@@ -151,9 +151,7 @@ export class WorkshopService {
       workshop.parentalConsent = String(data.parentalConsent) === 'true';
     if (data.quiz) {
       workshop.quizJson =
-        typeof data.quiz === 'string'
-          ? data.quiz
-          : JSON.stringify(data.quiz);
+        typeof data.quiz === 'string' ? data.quiz : JSON.stringify(data.quiz);
     }
 
     if (image) workshop.imagePath = this.saveFile(image);
@@ -185,6 +183,7 @@ export class WorkshopService {
   private saveFile(file: any): string {
     if (!file) return '';
     const path = file.path || '';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return path.replace(/\\/g, '/').replace(/.*uploads/, '/uploads');
   }
 
@@ -204,8 +203,10 @@ export class WorkshopService {
     try {
       if (files.labelsFile?.[0]) {
         const content = await fs.readFile(files.labelsFile[0].path, 'utf8');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(content);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return typeof body.labels === 'string'
         ? JSON.parse(body.labels)
         : body.labels || [];

@@ -209,22 +209,36 @@ document.addEventListener('DOMContentLoaded', () => {
         detailLabelPreview.appendChild(span);
       });
 
-      // Label toevoeg velden herstellen
       const labelAddContainer = document.createElement('div');
       labelAddContainer.className = 'label-add-container';
       labelAddContainer.innerHTML = `
-      <input type="text" placeholder="Nieuw label" id="detailLabelInput">
-      <input type="color" id="detailLabelColor" value="#5481B7">
-      <button type="button" id="addLabelBtnDetail">+</button>
-    `;
+  <input
+    type="text"
+    id="detailLabelInput"
+    placeholder="Label naam"
+    list="labelSuggestions"
+  >
+  <input
+    type="color"
+    id="detailLabelColor"
+    value="#5481B7"
+  >
+  <button type="button" id="addDetailLabelBtn">➕</button>
+`;
       detailLabelPreview.appendChild(labelAddContainer);
 
-      document.getElementById('addLabelBtnDetail').addEventListener('click', () => {
+
+      document.getElementById('addDetailLabelBtn').addEventListener('click', () => {
         const name = document.getElementById('detailLabelInput').value.trim();
         const color = document.getElementById('detailLabelColor').value;
         if (!name) return showAlert('Voer een naam in');
+        if (window.currentWorkshopLabels.some(l => l.name === name)) {
+          return showAlert('Dit label bestaat al');
+        }
+
         const newLabel = { name, color };
         window.currentWorkshopLabels.push(newLabel);
+
         const span = createLabelSpan(newLabel);
         detailLabelPreview.insertBefore(span, labelAddContainer);
         document.getElementById('detailLabelInput').value = '';
@@ -901,6 +915,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return null;
   }
+
+
+  // ===============================
+// LABELS - UPDATE WORKSHOP
+// ===============================
+
+  document.getElementById('addDetailLabelBtn')?.addEventListener('click', () => {
+    const nameInput = document.getElementById('detailLabelInput');
+    const colorInput = document.getElementById('detailLabelColor');
+
+    const name = nameInput.value.trim();
+    const color = colorInput.value;
+
+    if (!name) return;
+
+    if (!window.currentWorkshopLabels) {
+      window.currentWorkshopLabels = [];
+    }
+
+    // voorkom duplicaten
+    if (window.currentWorkshopLabels.some(l => l.name === name)) return;
+
+    window.currentWorkshopLabels.push({ name, color });
+    renderDetailLabels();
+
+    nameInput.value = '';
+  });
+
+  function renderDetailLabels() {
+    const container = document.getElementById('detailLabelPreview');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    (window.currentWorkshopLabels || []).forEach((label, index) => {
+      const tag = document.createElement('span');
+
+      tag.textContent = label.name;
+      tag.style.backgroundColor = label.color;
+      tag.style.color = '#fff';
+      tag.style.padding = '4px 8px';
+      tag.style.borderRadius = '6px';
+      tag.style.marginRight = '6px';
+      tag.style.display = 'inline-block';
+      tag.style.cursor = 'pointer';
+
+      // klik = verwijderen
+      tag.title = 'Klik om label te verwijderen';
+      tag.onclick = () => {
+        window.currentWorkshopLabels.splice(index, 1);
+        renderDetailLabels();
+      };
+
+      container.appendChild(tag);
+    });
+  }
+
   function getFileIconClass(fileName){
     if(!fileName) return 'fa-file';
     const ext = fileName.split('.').pop().toLowerCase();
