@@ -1,3 +1,12 @@
+/**
+ * HOOFDMODULE: Quiz Creator
+ * Deze module biedt een complete interface voor het maken en beheren van quizvragen
+ * voor workshops. Gebruikers kunnen vragen toevoegen, verwijderen en antwoordopties
+ * configureren, met validatie voor minimaal en maximaal aantal.
+ *
+ * De quiz wordt opgeslagen in window.currentWorkshopData.quiz als array van vragen.
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
   // =======================
   // DOM ELEMENTS
@@ -14,8 +23,22 @@ document.addEventListener("DOMContentLoaded", () => {
     Array.isArray(getWorkshopData().quiz) ? getWorkshopData().quiz : [];
 
   // =======================
+  // CONSTANTEN - CONFIGURATIE
+  // =======================
+  const MIN_QUESTIONS = 5;
+  const MAX_QUESTIONS = 10;
+  const MIN_OPTIONS = 2;
+  const MAX_OPTIONS = 4;
+
+  // =======================
   // CUSTOM ALERTS / CONFIRMS
   // =======================
+
+  /**
+   * Toont een custom alert modal met een bericht
+   * @param {string} message - Het bericht dat getoond moet worden
+   * @returns {Promise} - Resolved wanneer de gebruiker op OK klikt
+   */
   async function showMessage(message) {
     return new Promise((resolve) => {
       const modal = document.getElementById("customAlert");
@@ -30,6 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Toont een custom confirm modal met ja/nee keuze
+   * @param {string} message - Het bericht dat getoond moet worden
+   * @returns {Promise<boolean>} - Resolved met true (ja) of false (nee)
+   */
   async function showConfirm(message) {
     return new Promise((resolve) => {
       const modal = document.getElementById("customConfirm");
@@ -44,13 +72,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =======================
-  // QUIZ CREATOR LOGIC
+  // QUIZ CREATOR LOGICA - HOOFDFUNCTIES
   // =======================
-  const MIN_QUESTIONS = 5;
-  const MAX_QUESTIONS = 10;
-  const MIN_OPTIONS = 2;
-  const MAX_OPTIONS = 4;
 
+  /**
+   * Opent de quiz creator modal en initialiseert de interface
+   * Laadt bestaande quiz of start met lege vragen (minimum aantal)
+   */
   function openQuizCreator() {
     if (!quizPopup) return;
     quizPopup.style.display = "flex";
@@ -58,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const existingQuiz = getQuiz();
     if (existingQuiz.length > 0) {
+      // Laad bestaande quiz
       existingQuiz.forEach((q) => {
         const block = addQuestionBlock(false);
         block.querySelector(".question-text-input").value = q.question;
@@ -66,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
     } else {
-      // Start direct met 5 lege vragen (het minimum)
+      // Nieuwe quiz: start met minimum aantal lege vragen
       for (let i = 0; i < MIN_QUESTIONS; i++) {
         addQuestionBlock(true);
       }
@@ -74,6 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
     reindexQuestions();
   }
 
+  /**
+   * Voegt een nieuw vraag-blok toe aan de quiz container
+   * @param {boolean} addEmptyOptions - Of er standaard lege opties toegevoegd moeten worden
+   * @returns {HTMLElement|null} - Het aangemaakte vraag-blok of null bij fout
+   */
   function addQuestionBlock(addEmptyOptions = true) {
     const currentBlocks = quizContainer.querySelectorAll(".quiz-question-block").length;
     if (currentBlocks >= MAX_QUESTIONS) {
@@ -111,6 +145,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return block;
   }
 
+  /**
+   * Voegt een antwoordoptie toe aan een vraag-blok
+   * @param {HTMLElement} block - Het vraag-blok waaraan de optie toegevoegd moet worden
+   * @param {string} text - De tekst van de optie (optioneel)
+   * @param {boolean} correct - Of dit de correcte optie is (optioneel)
+   */
   function addOption(block, text = "", correct = false) {
     const container = block.querySelector(".answer-options");
     const currentOptions = container.querySelectorAll(".answer-option-row").length;
@@ -140,6 +180,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Verwijdert een vraag-blok na bevestiging van de gebruiker
+   * @param {HTMLElement} block - Het vraag-blok dat verwijderd moet worden
+   */
   async function deleteQuestion(block) {
     const currentBlocks = quizContainer.querySelectorAll(".quiz-question-block").length;
     if (currentBlocks <= MIN_QUESTIONS) {
@@ -154,6 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Update de vraagnummers (Vraag 1, Vraag 2, etc.) in de interface
+   */
   function reindexQuestions() {
     const blocks = quizContainer.querySelectorAll(".quiz-question-block");
     blocks.forEach((block, index) => {
@@ -161,6 +208,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Slaat de volledige quiz op in window.currentWorkshopData
+   * Voert uitgebreide validatie uit en toont foutmeldingen
+   */
   async function saveQuizToForm() {
     try {
       const quiz = [];
@@ -198,11 +249,10 @@ document.addEventListener("DOMContentLoaded", () => {
           quiz.push({ question: questionText, options });
         } catch (errQ) {
           console.error(`Error in question ${idx + 1}:`, errQ);
-          throw errQ; // stop de loop en laat zien wat er mis is
+          throw errQ;
         }
       });
 
-      // Sla quiz op in window.currentWorkshopData
       if (!window.currentWorkshopData) window.currentWorkshopData = {};
       window.currentWorkshopData.quiz = quiz;
       window.currentWorkshopData.quizUpdated = true;
@@ -223,18 +273,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
+  /**
+   * Sluit de quiz creator modal
+   */
   function closeQuizModals() {
     quizPopup.style.display = "none";
   }
 
   // =======================
-  // BINDING
+  // EVENT BINDING
   // =======================
   const btnOpenCreator = document.getElementById("btnOpenQuizCreator");
   if (btnOpenCreator) btnOpenCreator.addEventListener("click", openQuizCreator);
   if (btnStartQuiz) btnStartQuiz.addEventListener("click", openQuizCreator);
 
+  // Exporteer functies naar global scope voor gebruik in HTML
   window.addQuestionBlock = () => addQuestionBlock(true);
   window.openQuizCreator = openQuizCreator;
   window.closeQuizModals = closeQuizModals;

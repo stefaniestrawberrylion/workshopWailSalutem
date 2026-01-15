@@ -1,8 +1,16 @@
 // workshop-viewer.js
+/**
+ * HOOFDMODULE: Workshop Viewer & Editor
+ * Deze module biedt een interface voor het bekijken en bewerken van workshops.
+ * Gebruikers kunnen workshops in een grid bekijken, details openen, reviews zien,
+ * en workshopgegevens bijwerken inclusief media, documenten en labels.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById("global-modal-root");
+
   // =======================
-  // Elementen ophalen voor viewer
+  // ELEMENTEN OPHALEN VOOR VIEWER
   // =======================
   const grid = document.getElementById('workshopGrid');
   const detailsPopup = document.getElementById('workshopDetailsPopup');
@@ -24,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentWorkshopId = null;
 
   // =======================
-  // API Base URL
+  // API CONFIGURATIE
   // =======================
   const API_URL =
     window.location.hostname === "localhost"
@@ -32,8 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
       : "https://workshoptest.wailsalutem-foundation.com";
 
   // =======================
-  // Helper: Authorization header
+  // HELPERFUNCTIES
   // =======================
+
+  /**
+   * Geeft de Authorization header met JWT token terug
+   * @returns {Object} Headers object met Authorization token
+   * @throws {Error} Als er geen JWT token gevonden is
+   */
   function getAuthHeaders() {
     const token = localStorage.getItem("jwt");
     if (!token) throw new Error("Geen JWT token gevonden!");
@@ -42,364 +56,125 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  //helper popup
+  /**
+   * Forceert een element naar de top van het DOM voor modals
+   * @param {HTMLElement} el - Het element dat naar de top verplaatst moet worden
+   */
   function forceToTop(el) {
     document.body.appendChild(el);
   }
 
+  /**
+   * Toont een succesbericht in een alert modal
+   * @param {string} message - Het bericht dat getoond moet worden
+   * @returns {Promise} - Resolved wanneer de gebruiker op OK klikt
+   */
+  function showAlert(message) {
+    return new Promise(resolve => {
+      const alertModal = document.getElementById('customAlert');
+      const alertMsg = document.getElementById('customAlertMessage');
+      const okBtn = document.getElementById('customAlertOk');
+      forceToTop(alertModal);
+      alertMsg.textContent = message;
+      alertModal.style.display = 'flex';
 
-  // =======================
-  // Close details popup
-  // =======================
-  if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', () => {
-    detailsPopup.style.display = 'none';
-    clearDetailsPopup();
-  });
+      // Timer voor automatisch sluiten na 2 seconden
+      const timer = setTimeout(() => {
+        alertModal.style.display = 'none';
+        resolve();
+      }, 2000);
 
-  window.addEventListener('click', (e) => {
-    if (e.target === detailsPopup) {
-      detailsPopup.style.display = 'none';
-      clearDetailsPopup();
-    }
-  });
-
-
-  // Luister naar workshop updates van management.js
-  window.addEventListener('workshopsUpdated', () => {
-    loadWorkshops();
-  });
-
-  // =======================
-  // Workshops ophalen en renderen
-  // =======================
-  async function loadWorkshops() {
-    try {
-      const response = await fetch(`${API_URL}/workshops`, {
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      // Render de workshops in de grid
-      renderWorkshops(data);
-
-    } catch (err) {
-      showAlert("Fout bij laden van workshops: " + err.message);
-    }
-  }
-
-  // =======================
-  // Render workshops (grid)
-  // =======================
-  function renderWorkshops(workshops) {
-    grid.innerHTML = '';
-
-    workshops.forEach(w => {
-      const card = document.createElement('div');
-      card.classList.add('workshop-card');
-
-      // Pak de eerste afbeelding, fallback naar default
-      let firstImage = w.files?.find(f => f.type?.includes('image'));
-      let imageUrl = '/image/default-workshop.jpeg';
-      if (firstImage) {
-        const rawUrl = firstImage.url || firstImage.name || firstImage.path;
-        if (rawUrl) {
-          imageUrl = rawUrl.startsWith('http')
-            ? rawUrl
-            : `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
-        }
-      }
-
-      let durationStr = formatDuration(w.duration) + " uur";
-
-      // Review gemiddelde van de workshop
-      let reviewCount = (w.reviews && Array.isArray(w.reviews)) ? w.reviews.length : 0;
-      let averageStars = 0;
-      let reviewContent = 'Nog geen review';
-
-      if (reviewCount > 0) {
-        averageStars = w.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviewCount;
-        const rounded = Math.round(averageStars);
-        const filledStars = Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('');
-        const emptyStars = Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
-        reviewContent = `<div class="stars-summary">${filledStars}${emptyStars} (${reviewCount})</div>`;
-      }
-
-      card.innerHTML = `
-                <div class="workshop-image" style="background-image: url('${imageUrl}')">
-                    <div class="workshop-top">
-                        <div class="workshop-badge time">${durationStr}</div>
-                        <div class="like">♡</div>
-                    </div>
-                    <div class="workshop-bottom">
-                        <div class="workshop-info">
-                            <h3>${w.name}</h3>
-                            <div class="workshop-rating">
-                                ${reviewContent}
-                            </div>
-                        </div>
-                        <button class="workshop-btn">Bekijk workshop</button>
-                    </div>
-                </div>
-            `;
-
-      // Like knop
-      const likeBadge = card.querySelector('.like');
-      if (likeBadge) {
-        likeBadge.addEventListener('click', () => {
-          likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
-        });
-      }
-
-      // Open details popup
-      const btn = card.querySelector('.workshop-btn');
-      if (btn) {
-        btn.addEventListener('click', () => viewWorkshopDetails(w.id));
-      }
-
-      grid.appendChild(card);
-    });
-  }
-
-  async function viewWorkshopDetails(id) {
-    try {
-      currentWorkshopId = id;
-
-      const res = await fetch(`${API_URL}/workshops/${id}`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Workshop niet gevonden');
-      const w = await res.json();
-
-      window.currentWorkshopData = {
-        ...w,
-        quiz: (() => {
-          if (Array.isArray(w.quiz)) return w.quiz;
-          if (typeof w.quizJson === 'string') {
-            try {
-              return JSON.parse(w.quizJson);
-            } catch {
-              return [];
-            }
-          }
-          return [];
-        })()
+      // Sluiten via knop annuleert timer
+      okBtn.onclick = () => {
+        clearTimeout(timer);
+        alertModal.style.display = 'none';
+        resolve();
       };
+    });
+  }
 
-      // Basis info
-      const nameInput = document.getElementById('detailName');
-      const descInput = document.getElementById('detailDesc');
-      const durationInput = document.getElementById('detailDuration');
-      nameInput.value = w.name;
-      descInput.value = w.description;
-      durationInput.value = formatDurationForTimeInput(w.duration);
+  /**
+   * Toont een bevestigingsdialoog met ja/nee opties
+   * @param {string} message - Het bericht dat getoond moet worden
+   * @returns {Promise<boolean>} Promise die resolved met true (ja) of false (nee)
+   */
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const confirmModal = document.getElementById('customConfirm');
+      const confirmMsg = document.getElementById('customConfirmMessage');
+      const yesBtn = document.getElementById('customConfirmYes');
+      const noBtn = document.getElementById('customConfirmNo');
+      forceToTop(confirmModal);
+      confirmMsg.textContent = message;
+      confirmModal.style.display = 'flex';
 
-      const parentalConsentEl = document.getElementById('detailParentalConsent');
-      parentalConsentEl.checked = w.parentalConsent || false;
+      yesBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(false);
+      };
+    });
+  }
 
-      // Labels
-      detailLabelPreview.innerHTML = '';
-      const labelsArray = w.labels ? (typeof w.labels === 'string' ? JSON.parse(w.labels) : w.labels) : [];
-      window.currentWorkshopLabels = labelsArray.slice();
-
-      labelsArray.forEach(label => {
-        const span = createLabelSpan(label);
-        detailLabelPreview.appendChild(span);
-      });
-
-      const labelAddContainer = document.createElement('div');
-      labelAddContainer.className = 'label-add-container';
-      labelAddContainer.innerHTML = `
-  <input
-    type="text"
-    id="detailLabelInput"
-    placeholder="Label naam"
-    list="labelSuggestions"
-  >
-  <input
-    type="color"
-    id="detailLabelColor"
-    value="#5481B7"
-  >
-  <button type="button" id="addDetailLabelBtn">➕</button>
-`;
-      detailLabelPreview.appendChild(labelAddContainer);
-
-
-      document.getElementById('addDetailLabelBtn').addEventListener('click', () => {
-        const name = document.getElementById('detailLabelInput').value.trim();
-        const color = document.getElementById('detailLabelColor').value;
-        if (!name) return showAlert('Voer een naam in');
-        if (window.currentWorkshopLabels.some(l => l.name === name)) {
-          return showAlert('Dit label bestaat al');
-        }
-
-        const newLabel = { name, color };
-        window.currentWorkshopLabels.push(newLabel);
-
-        const span = createLabelSpan(newLabel);
-        detailLabelPreview.insertBefore(span, labelAddContainer);
-        document.getElementById('detailLabelInput').value = '';
-      });
-
-      // Documenten
-      detailInstructionsList.innerHTML = '';
-      detailManualsList.innerHTML = '';
-      detailDemoList.innerHTML = '';
-      detailWorksheetsList.innerHTML = '';
-      window.currentWorkshopDocuments = { instructions: [], manuals: [], demo: [], worksheets: [] };
-
-      if (w.documents && Array.isArray(w.documents)) {
-        w.documents.forEach(f => {
-          const cat = (f.category || 'worksheets').toLowerCase();
-          let category = 'worksheets';
-          if (cat.includes('instruct')) category = 'instructions';
-          else if (cat.includes('manual') || cat.includes('handleiding')) category = 'manuals';
-          else if (cat.includes('demo')) category = 'demo';
-
-          window.currentWorkshopDocuments[category].push({ name: f.name, url: f.url || f.path, existing: true, category });
-          const li = createDocumentListItem(f, category, true);
-          if (category === 'instructions') detailInstructionsList.appendChild(li);
-          else if (category === 'manuals') detailManualsList.appendChild(li);
-          else if (category === 'demo') detailDemoList.appendChild(li);
-          else detailWorksheetsList.appendChild(li);
-        });
-      }
-
-      addFileUploadToCategory('instructions', detailInstructionsList);
-      addFileUploadToCategory('manuals', detailManualsList);
-      addFileUploadToCategory('demo', detailDemoList);
-      addFileUploadToCategory('worksheets', detailWorksheetsList);
-
-      // --- MEDIA SECTIE ---
-      const container = document.getElementById('detailMediaContainer');
-      container.innerHTML = '';
-
-      // BELANGRIJK: Initialiseer de array alleen als deze nog niet bestaat
-      // (dit voorkomt dat we de bestaande media verliezen bij het openen van de popup)
-      if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
-        window.currentWorkshopMedia = [];
-      } else {
-        // Als er al media in de array zit, render deze opnieuw
-        window.currentWorkshopMedia.forEach((media, index) => {
-          media.element.style.display = index === 0 ? 'flex' : 'none';
-          container.appendChild(media.element);
-        });
-      }
-
-      // Voeg bestaande media toe (maar alleen als ze nog niet in de array zitten)
-      const mediaFiles = w.files || [];
-      mediaFiles.forEach((file, i) => {
-        // Check of deze file al in de array zit
-        const exists = window.currentWorkshopMedia.some(m =>
-          m.existing && (m.url === file.url || m.file?.name === file.name)
-        );
-
-        if (!exists) {
-          const mediaItem = document.createElement('div');
-          mediaItem.style.display = i === 0 && window.currentWorkshopMedia.length === 0 ? 'flex' : 'none';
-          mediaItem.style.justifyContent = 'center';
-          mediaItem.style.alignItems = 'center';
-          mediaItem.style.width = '100%';
-          mediaItem.style.height = '250px';
-          mediaItem.style.position = 'relative';
-
-          const mediaElement = getMediaElement(file);
-          if (mediaElement) {
-            mediaElement.style.maxWidth = '100%';
-            mediaElement.style.maxHeight = '100%';
-            mediaElement.style.objectFit = 'contain';
-
-            const removeBtn = createRemoveBtn(mediaItem);
-            mediaItem.appendChild(mediaElement);
-            mediaItem.appendChild(removeBtn);
-            container.appendChild(mediaItem);
-
-            // Voeg toe aan de array
-            window.currentWorkshopMedia.push({
-              element: mediaItem,
-              file: file,
-              existing: true,
-              url: file.url || file.path
-            });
-          }
-        }
-      });
-
-      // Upload knop wrapper
-      const mediaUploadWrapper = document.createElement('div');
-      mediaUploadWrapper.className = 'media-upload-wrapper';
-      mediaUploadWrapper.style.textAlign = 'center';
-      mediaUploadWrapper.style.marginTop = '15px';
-      mediaUploadWrapper.innerHTML = `
-      <label style="cursor:pointer; padding:10px 16px; background:#5481B7; color:white; border-radius:6px; display:inline-flex; align-items:center; gap:8px;">
-        <i class="fa fa-plus"></i> Media toevoegen
-        <input type="file" id="detailMediaInput" accept="image/*, video/*" multiple style="display:none;">
-      </label>
-    `;
-      container.appendChild(mediaUploadWrapper);
-
-      document.getElementById('detailMediaInput').addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        const { currentImageCount, currentVideoCount } = validateMediaLimits();
-        // Simpele check
-        if (currentImageCount + files.length > 6) return showAlert("Te veel afbeeldingen");
-
-        files.forEach(file => addNewMediaFile(file));
-        e.target.value = '';
-      });
-
-      window.detailMediaCurrentIndex = 0;
-      updateMediaNavigation();
-      setupReviews(w);
-
-      document.getElementById('updateWorkshopBtn').style.display = 'block';
-      detailsPopup.style.display = 'flex';
-      loadWorkshops();
-    } catch (e) {
-      showAlert("Fout: " + e.message);
+  /**
+   * Bepaalt het FontAwesome icoon voor een bestand op basis van extensie
+   * @param {string} fileName - De bestandsnaam
+   * @returns {string} FontAwesome CSS klasse
+   */
+  function getFileIconClass(fileName) {
+    if (!fileName) return 'fa-file';
+    const ext = fileName.split('.').pop().toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'fa-file-pdf';
+      case 'doc': case 'docx': return 'fa-file-word';
+      case 'xls': case 'xlsx': return 'fa-file-excel';
+      case 'ppt': case 'pptx': return 'fa-file-powerpoint';
+      case 'zip': return 'fa-file-archive';
+      case 'txt': return 'fa-file-lines';
+      default: return 'fa-file';
     }
   }
 
-  // Helper: maakt de rode X knop
-  function createRemoveBtn(mediaItem) {
-    const btn = document.createElement('button');
-    btn.textContent = '✖';
-    btn.style.cssText = 'position:absolute; top:10px; right:10px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;';
-
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const index = window.currentWorkshopMedia.findIndex(m => m.element === mediaItem);
-      if (index > -1) {
-        window.currentWorkshopMedia.splice(index, 1);
-        mediaItem.remove();
-        window.detailMediaCurrentIndex = Math.max(0, window.detailMediaCurrentIndex - 1);
-        updateMediaNavigation();
-      }
-    });
-    return btn;
+  /**
+   * Bepaalt de tekstkleur voor een label op basis van achtergrondkleur
+   * @param {string} hexcolor - HEX kleurcode
+   * @returns {string} 'black' of 'white' afhankelijk van contrast
+   */
+  function getContrastYIQ(hexcolor) {
+    hexcolor = hexcolor.replace('#', '');
+    const r = parseInt(hexcolor.substr(0, 2), 16);
+    const g = parseInt(hexcolor.substr(2, 2), 16);
+    const b = parseInt(hexcolor.substr(4, 2), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? 'black' : 'white';
   }
 
-// Helper: maakt label span
-  function createLabelSpan(label) {
-    const span = document.createElement('span');
-    span.textContent = label.name;
-    span.style.cssText = `background:${label.color}; color:${getContrastYIQ(label.color)}; cursor:pointer; padding:6px 12px; margin:3px; border-radius:15px; display:inline-flex; align-items:center; font-size:14px; font-weight:500;`;
+  /**
+   * Formateert duur in minuten naar leesbaar formaat
+   * @param {number|string} minutes - Duur in minuten of tijdstring
+   * @returns {string} Geformatteerde duur (bijv. "1u 30m")
+   */
+  function formatDuration(minutes) {
+    // als input al een string is, gewoon teruggeven
+    if (typeof minutes === 'string') return minutes;
 
-    span.addEventListener('click', () => {
-      const idx = window.currentWorkshopLabels.findIndex(l => l.name === label.name);
-      if (idx > -1) {
-        window.currentWorkshopLabels.splice(idx, 1);
-        span.remove();
-      }
-    });
-    return span;
+    const m = Number(minutes);
+    if (isNaN(m)) return '0';
+
+    const hours = Math.floor(m / 60);
+    const mins = m % 60;
+    if (hours > 0) return `${hours}u ${mins}m`;
+    return `${mins}m`;
   }
 
-
-// Helper functie om duration te formatteren voor time input
+  /**
+   * Formateert duur voor time input veld (HH:MM)
+   * @param {number|string} duration - Duur in minuten of tijdstring
+   * @returns {string} Geformatteerde tijd (bijv. "01:30")
+   */
   function formatDurationForTimeInput(duration) {
     if (typeof duration === 'string') {
       // Als het al een tijdstring is zoals "01:15"
@@ -421,7 +196,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return '01:00'; // Default
   }
-// Voeg deze hulpfunctie toe bovenaan (bij de andere helper functies)
+
+  /**
+   * Maakt een veilige bestandsnaam door speciale tekens te verwijderen
+   * @param {string} fileName - De originele bestandsnaam
+   * @returns {string} Veilige bestandsnaam
+   */
+  function makeSafeFileName(fileName) {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9._-]/g, '');
+  }
+
+  /**
+   * Controleert en retourneert huidige aantallen media per type
+   * @returns {Object} Object met imageCount en videoCount
+   */
   function validateMediaLimits() {
     if (!window.currentWorkshopMedia) {
       return { currentImageCount: 0, currentVideoCount: 0 };
@@ -450,165 +242,99 @@ document.addEventListener('DOMContentLoaded', () => {
     return { currentImageCount, currentVideoCount };
   }
 
-  function addNewMediaFile(file) {
-    const container = document.getElementById('detailMediaContainer');
+  /**
+   * Creëert een media element (img of video) voor weergave
+   * @param {Object} file - Media file object met url/path
+   * @returns {HTMLElement|null} Media element of null bij ongeldig type
+   */
+  function getMediaElement(file) {
+    let rawUrl = file.url || file.name || file.path;
+    if (!rawUrl) return null;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const mediaItem = document.createElement('div');
-      mediaItem.className = 'workshop-media-item';
-      mediaItem.style.display = 'none'; // Wordt beheerd door updateMediaNavigation
-      mediaItem.style.justifyContent = 'center';
-      mediaItem.style.alignItems = 'center';
-      mediaItem.style.width = '100%';
-      mediaItem.style.height = '250px';
-      mediaItem.style.position = 'relative';
+    let fileUrl;
 
-      let mediaElement;
-      if (file.type.startsWith('image/')) {
-        mediaElement = document.createElement('img');
-        mediaElement.src = e.target.result;
-      } else if (file.type.startsWith('video/')) {
-        mediaElement = document.createElement('video');
-        mediaElement.src = e.target.result;
-        mediaElement.controls = true;
-      }
-
-      mediaElement.style.maxWidth = '100%';
-      mediaElement.style.maxHeight = '100%';
-      mediaElement.style.objectFit = 'contain';
-
-      // Verwijderknop hergebruiken
-      const removeBtn = createRemoveBtn(mediaItem);
-
-      mediaItem.appendChild(mediaElement);
-      mediaItem.appendChild(removeBtn);
-
-      // Zoek de upload wrapper om het nieuwe item DAARBOVEN te zetten
-      const uploadWrapper = container.querySelector('.media-upload-wrapper');
-      container.insertBefore(mediaItem, uploadWrapper);
-
-      // TOEVEOGEN aan de bestaande globale array
-      window.currentWorkshopMedia.push({
-        element: mediaItem,
-        file: file,
-        existing: false,
-        url: e.target.result
-      });
-
-      // Verspring direct naar de nieuwe afbeelding
-      window.detailMediaCurrentIndex = window.currentWorkshopMedia.length - 1;
-      updateMediaNavigation();
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-
-  function updateMediaNavigation() {
-    if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
-      document.getElementById('prevDetailMedia').style.display = 'none';
-      document.getElementById('nextDetailMedia').style.display = 'none';
-      return;
-    }
-
-    // Zorg dat de index altijd geldig is
-    if (window.detailMediaCurrentIndex >= window.currentWorkshopMedia.length || window.detailMediaCurrentIndex < 0) {
-      window.detailMediaCurrentIndex = 0;
-    }
-
-    // Toon alleen het huidige item
-    window.currentWorkshopMedia.forEach((m, i) => {
-      m.element.style.display = i === window.detailMediaCurrentIndex ? 'flex' : 'none';
-    });
-
-    const prevBtn = document.getElementById('prevDetailMedia');
-    const nextBtn = document.getElementById('nextDetailMedia');
-
-    if (window.currentWorkshopMedia.length > 1) {
-      prevBtn.style.display = 'block';
-      nextBtn.style.display = 'block';
-
-      prevBtn.onclick = (e) => {
-        e.stopPropagation();
-        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex - 1 + window.currentWorkshopMedia.length) % window.currentWorkshopMedia.length;
-        updateMediaNavigation();
-      };
-
-      nextBtn.onclick = (e) => {
-        e.stopPropagation();
-        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex + 1) % window.currentWorkshopMedia.length;
-        updateMediaNavigation();
-      };
+    // Bepaal URL - zelfde logica als in renderWorkshops
+    if (rawUrl.startsWith('http')) {
+      fileUrl = rawUrl;
+    } else if (rawUrl.startsWith('/uploads/') || rawUrl.startsWith('uploads/')) {
+      const cleanPath = rawUrl.replace(/^\/+/, '').replace(/^uploads\/?/, '');
+      fileUrl = `${API_URL}/uploads/${encodeURIComponent(cleanPath.split('/').pop())}`;
     } else {
-      prevBtn.style.display = 'none';
-      nextBtn.style.display = 'none';
+      fileUrl = `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
     }
+
+    const ext = rawUrl.split('.').pop()?.toLowerCase();
+
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+      const img = document.createElement('img');
+      img.src = fileUrl;
+      img.alt = 'Workshop media';
+      img.onerror = () => {
+        console.error('Failed to load image:', fileUrl);
+        img.src = '/image/default-workshop.jpeg';
+      };
+      return img;
+    } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+      const video = document.createElement('video');
+      video.src = fileUrl;
+      video.controls = true;
+      video.preload = 'metadata';
+      return video;
+    }
+
+    return null;
   }
 
+  /**
+   * Creëert een verwijderknop voor media items
+   * @param {HTMLElement} mediaItem - Het media container element
+   * @returns {HTMLButtonElement} Verwijderknop
+   */
+  function createRemoveBtn(mediaItem) {
+    const btn = document.createElement('button');
+    btn.textContent = '✖';
+    btn.style.cssText = 'position:absolute; top:10px; right:10px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;';
 
-
-// Helper functie om bestand upload toe te voegen aan categorie
-  function addFileUploadToCategory(category, listElement) {
-    const uploadContainer = document.createElement('div');
-    uploadContainer.style.marginTop = '10px';
-
-    const uploadLabel = document.createElement('label');
-    uploadLabel.style.display = 'inline-block';
-    uploadLabel.style.padding = '6px 12px';
-    uploadLabel.style.background = '#5481B7';
-    uploadLabel.style.color = 'white';
-    uploadLabel.style.borderRadius = '4px';
-    uploadLabel.style.cursor = 'pointer';
-    uploadLabel.style.fontSize = '14px';
-    uploadLabel.textContent = `➕ Bestand toevoegen aan ${category}`;
-
-    const uploadInput = document.createElement('input');
-    uploadInput.type = 'file';
-    uploadInput.multiple = true;
-    uploadInput.style.display = 'none';
-
-    uploadLabel.appendChild(uploadInput);
-    uploadContainer.appendChild(uploadLabel);
-    listElement.appendChild(uploadContainer);
-
-    uploadInput.addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      files.forEach(file => {
-        // Controleer bestandstype
-        const ext = file.name.split('.').pop().toLowerCase();
-        const forbiddenExtensions = ['doc', 'docx'];
-
-        if (forbiddenExtensions.includes(ext)) {
-          showAlert(`Bestandstype .${ext} is niet toegestaan. Gebruik PDF of TXT.`);
-          return;
-        }
-
-        // Voeg toe aan huidige documenten
-        if (!window.currentWorkshopDocuments[category]) {
-          window.currentWorkshopDocuments[category] = [];
-        }
-
-        window.currentWorkshopDocuments[category].push({
-          file: file,
-          existing: false
-        });
-
-        // Toon in lijst
-        const tempDoc = {
-          name: file.name,
-          url: URL.createObjectURL(file)
-        };
-
-        const li = createDocumentListItem(tempDoc, category, false);
-        listElement.insertBefore(li, uploadContainer);
-      });
-
-      uploadInput.value = '';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = window.currentWorkshopMedia.findIndex(m => m.element === mediaItem);
+      if (index > -1) {
+        window.currentWorkshopMedia.splice(index, 1);
+        mediaItem.remove();
+        window.detailMediaCurrentIndex = Math.max(0, window.detailMediaCurrentIndex - 1);
+        updateMediaNavigation();
+      }
     });
+    return btn;
   }
 
-// Pas createDocumentListItem aan om verwijder functionaliteit te hebben
+  /**
+   * Creëert een visueel label element met verwijderfunctionaliteit
+   * @param {Object} label - Label object met name en color
+   * @returns {HTMLSpanElement} Label span element
+   */
+  function createLabelSpan(label) {
+    const span = document.createElement('span');
+    span.textContent = label.name;
+    span.style.cssText = `background:${label.color}; color:${getContrastYIQ(label.color)}; cursor:pointer; padding:6px 12px; margin:3px; border-radius:15px; display:inline-flex; align-items:center; font-size:14px; font-weight:500;`;
+
+    span.addEventListener('click', () => {
+      const idx = window.currentWorkshopLabels.findIndex(l => l.name === label.name);
+      if (idx > -1) {
+        window.currentWorkshopLabels.splice(idx, 1);
+        span.remove();
+      }
+    });
+    return span;
+  }
+
+  /**
+   * Creëert een document list item met verwijder- en downloadknoppen
+   * @param {Object} f - Document object
+   * @param {string} category - Document categorie
+   * @param {boolean} isExisting - Of het een bestaand document is
+   * @returns {HTMLLIElement} List item voor document
+   */
   function createDocumentListItem(f, category, isExisting) {
     const li = document.createElement('li');
     li.style.display = 'flex';
@@ -728,8 +454,488 @@ document.addEventListener('DOMContentLoaded', () => {
     return li;
   }
 
+  // =======================
+  // POPUP BEHEER
+  // =======================
 
-// Update workshop functionaliteit
+  /**
+   * Sluit de details popup en reset alle velden
+   */
+  if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', () => {
+    detailsPopup.style.display = 'none';
+    clearDetailsPopup();
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === detailsPopup) {
+      detailsPopup.style.display = 'none';
+      clearDetailsPopup();
+    }
+  });
+
+  // =======================
+  // WORKSHOPS BEHEER
+  // =======================
+
+  /**
+   * Haalt alle workshops op van de API en rendert ze in de grid
+   */
+  async function loadWorkshops() {
+    try {
+      const response = await fetch(`${API_URL}/workshops`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      renderWorkshops(data);
+    } catch (err) {
+      showAlert("Fout bij laden van workshops: " + err.message);
+    }
+  }
+
+  /**
+   * Rendert workshops in een grid met kaarten
+   * @param {Array} workshops - Array van workshop objecten
+   */
+  function renderWorkshops(workshops) {
+    grid.innerHTML = '';
+
+    workshops.forEach(w => {
+      const card = document.createElement('div');
+      card.classList.add('workshop-card');
+
+      // Pak de eerste afbeelding, fallback naar default
+      let firstImage = w.files?.find(f => f.type?.includes('image'));
+      let imageUrl = '/image/default-workshop.jpeg';
+      if (firstImage) {
+        const rawUrl = firstImage.url || firstImage.name || firstImage.path;
+        if (rawUrl) {
+          imageUrl = rawUrl.startsWith('http')
+            ? rawUrl
+            : `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
+        }
+      }
+
+      let durationStr = formatDuration(w.duration) + " uur";
+
+      // Review gemiddelde van de workshop
+      let reviewCount = (w.reviews && Array.isArray(w.reviews)) ? w.reviews.length : 0;
+      let averageStars = 0;
+      let reviewContent = 'Nog geen review';
+
+      if (reviewCount > 0) {
+        averageStars = w.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviewCount;
+        const rounded = Math.round(averageStars);
+        const filledStars = Array(rounded).fill('<i class="fa-solid fa-star filled-star"></i>').join('');
+        const emptyStars = Array(5 - rounded).fill('<i class="fa-regular fa-star"></i>').join('');
+        reviewContent = `<div class="stars-summary">${filledStars}${emptyStars} (${reviewCount})</div>`;
+      }
+
+      card.innerHTML = `
+                <div class="workshop-image" style="background-image: url('${imageUrl}')">
+                    <div class="workshop-top">
+                        <div class="workshop-badge time">${durationStr}</div>
+                        <div class="like">♡</div>
+                    </div>
+                    <div class="workshop-bottom">
+                        <div class="workshop-info">
+                            <h3>${w.name}</h3>
+                            <div class="workshop-rating">
+                                ${reviewContent}
+                            </div>
+                        </div>
+                        <button class="workshop-btn">Bekijk workshop</button>
+                    </div>
+                </div>
+            `;
+
+      // Like knop
+      const likeBadge = card.querySelector('.like');
+      if (likeBadge) {
+        likeBadge.addEventListener('click', () => {
+          likeBadge.textContent = likeBadge.textContent === '♡' ? '❤️' : '♡';
+        });
+      }
+
+      // Open details popup
+      const btn = card.querySelector('.workshop-btn');
+      if (btn) {
+        btn.addEventListener('click', () => viewWorkshopDetails(w.id));
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  /**
+   * Toont details van een specifieke workshop in de popup
+   * @param {string} id - Workshop ID
+   */
+  async function viewWorkshopDetails(id) {
+    try {
+      currentWorkshopId = id;
+
+      const res = await fetch(`${API_URL}/workshops/${id}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Workshop niet gevonden');
+      const w = await res.json();
+
+      window.currentWorkshopData = {
+        ...w,
+        quiz: (() => {
+          if (Array.isArray(w.quiz)) return w.quiz;
+          if (typeof w.quizJson === 'string') {
+            try {
+              return JSON.parse(w.quizJson);
+            } catch {
+              return [];
+            }
+          }
+          return [];
+        })()
+      };
+
+      // Basis info
+      const nameInput = document.getElementById('detailName');
+      const descInput = document.getElementById('detailDesc');
+      const durationInput = document.getElementById('detailDuration');
+      nameInput.value = w.name;
+      descInput.value = w.description;
+      durationInput.value = formatDurationForTimeInput(w.duration);
+
+      const parentalConsentEl = document.getElementById('detailParentalConsent');
+      parentalConsentEl.checked = w.parentalConsent || false;
+
+      // Labels
+      detailLabelPreview.innerHTML = '';
+      const labelsArray = w.labels ? (typeof w.labels === 'string' ? JSON.parse(w.labels) : w.labels) : [];
+      window.currentWorkshopLabels = labelsArray.slice();
+
+      labelsArray.forEach(label => {
+        const span = createLabelSpan(label);
+        detailLabelPreview.appendChild(span);
+      });
+
+      const labelAddContainer = document.createElement('div');
+      labelAddContainer.className = 'label-add-container';
+      labelAddContainer.innerHTML = `
+  <input
+    type="text"
+    id="detailLabelInput"
+    placeholder="Label naam"
+    list="labelSuggestions"
+  >
+  <input
+    type="color"
+    id="detailLabelColor"
+    value="#5481B7"
+  >
+  <button type="button" id="addDetailLabelBtn">➕</button>
+`;
+      detailLabelPreview.appendChild(labelAddContainer);
+
+      document.getElementById('addDetailLabelBtn').addEventListener('click', () => {
+        const name = document.getElementById('detailLabelInput').value.trim();
+        const color = document.getElementById('detailLabelColor').value;
+        if (!name) return showAlert('Voer een naam in');
+        if (window.currentWorkshopLabels.some(l => l.name === name)) {
+          return showAlert('Dit label bestaat al');
+        }
+
+        const newLabel = { name, color };
+        window.currentWorkshopLabels.push(newLabel);
+
+        const span = createLabelSpan(newLabel);
+        detailLabelPreview.insertBefore(span, labelAddContainer);
+        document.getElementById('detailLabelInput').value = '';
+      });
+
+      // Documenten
+      detailInstructionsList.innerHTML = '';
+      detailManualsList.innerHTML = '';
+      detailDemoList.innerHTML = '';
+      detailWorksheetsList.innerHTML = '';
+      window.currentWorkshopDocuments = { instructions: [], manuals: [], demo: [], worksheets: [] };
+
+      if (w.documents && Array.isArray(w.documents)) {
+        w.documents.forEach(f => {
+          const cat = (f.category || 'worksheets').toLowerCase();
+          let category = 'worksheets';
+          if (cat.includes('instruct')) category = 'instructions';
+          else if (cat.includes('manual') || cat.includes('handleiding')) category = 'manuals';
+          else if (cat.includes('demo')) category = 'demo';
+
+          window.currentWorkshopDocuments[category].push({ name: f.name, url: f.url || f.path, existing: true, category });
+          const li = createDocumentListItem(f, category, true);
+          if (category === 'instructions') detailInstructionsList.appendChild(li);
+          else if (category === 'manuals') detailManualsList.appendChild(li);
+          else if (category === 'demo') detailDemoList.appendChild(li);
+          else detailWorksheetsList.appendChild(li);
+        });
+      }
+
+      addFileUploadToCategory('instructions', detailInstructionsList);
+      addFileUploadToCategory('manuals', detailManualsList);
+      addFileUploadToCategory('demo', detailDemoList);
+      addFileUploadToCategory('worksheets', detailWorksheetsList);
+
+      // --- MEDIA SECTIE ---
+      const container = document.getElementById('detailMediaContainer');
+      container.innerHTML = '';
+
+      // BELANGRIJK: Initialiseer de array alleen als deze nog niet bestaat
+      if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
+        window.currentWorkshopMedia = [];
+      } else {
+        // Als er al media in de array zit, render deze opnieuw
+        window.currentWorkshopMedia.forEach((media, index) => {
+          media.element.style.display = index === 0 ? 'flex' : 'none';
+          container.appendChild(media.element);
+        });
+      }
+
+      // Voeg bestaande media toe (maar alleen als ze nog niet in de array zitten)
+      const mediaFiles = w.files || [];
+      mediaFiles.forEach((file, i) => {
+        // Check of deze file al in de array zit
+        const exists = window.currentWorkshopMedia.some(m =>
+          m.existing && (m.url === file.url || m.file?.name === file.name)
+        );
+
+        if (!exists) {
+          const mediaItem = document.createElement('div');
+          mediaItem.style.display = i === 0 && window.currentWorkshopMedia.length === 0 ? 'flex' : 'none';
+          mediaItem.style.justifyContent = 'center';
+          mediaItem.style.alignItems = 'center';
+          mediaItem.style.width = '100%';
+          mediaItem.style.height = '250px';
+          mediaItem.style.position = 'relative';
+
+          const mediaElement = getMediaElement(file);
+          if (mediaElement) {
+            mediaElement.style.maxWidth = '100%';
+            mediaElement.style.maxHeight = '100%';
+            mediaElement.style.objectFit = 'contain';
+
+            const removeBtn = createRemoveBtn(mediaItem);
+            mediaItem.appendChild(mediaElement);
+            mediaItem.appendChild(removeBtn);
+            container.appendChild(mediaItem);
+
+            // Voeg toe aan de array
+            window.currentWorkshopMedia.push({
+              element: mediaItem,
+              file: file,
+              existing: true,
+              url: file.url || file.path
+            });
+          }
+        }
+      });
+
+      // Upload knop wrapper
+      const mediaUploadWrapper = document.createElement('div');
+      mediaUploadWrapper.className = 'media-upload-wrapper';
+      mediaUploadWrapper.style.textAlign = 'center';
+      mediaUploadWrapper.style.marginTop = '15px';
+      mediaUploadWrapper.innerHTML = `
+      <label style="cursor:pointer; padding:10px 16px; background:#5481B7; color:white; border-radius:6px; display:inline-flex; align-items:center; gap:8px;">
+        <i class="fa fa-plus"></i> Media toevoegen
+        <input type="file" id="detailMediaInput" accept="image/*, video/*" multiple style="display:none;">
+      </label>
+    `;
+      container.appendChild(mediaUploadWrapper);
+
+      document.getElementById('detailMediaInput').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        const { currentImageCount, currentVideoCount } = validateMediaLimits();
+        // Simpele check
+        if (currentImageCount + files.length > 6) return showAlert("Te veel afbeeldingen");
+
+        files.forEach(file => addNewMediaFile(file));
+        e.target.value = '';
+      });
+
+      window.detailMediaCurrentIndex = 0;
+      updateMediaNavigation();
+      setupReviews(w);
+
+      document.getElementById('updateWorkshopBtn').style.display = 'block';
+      detailsPopup.style.display = 'flex';
+      loadWorkshops();
+    } catch (e) {
+      showAlert("Fout: " + e.message);
+    }
+  }
+
+  /**
+   * Voegt een nieuw media bestand toe aan de workshop
+   * @param {File} file - Het media bestand
+   */
+  function addNewMediaFile(file) {
+    const container = document.getElementById('detailMediaContainer');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'workshop-media-item';
+      mediaItem.style.display = 'none';
+      mediaItem.style.justifyContent = 'center';
+      mediaItem.style.alignItems = 'center';
+      mediaItem.style.width = '100%';
+      mediaItem.style.height = '250px';
+      mediaItem.style.position = 'relative';
+
+      let mediaElement;
+      if (file.type.startsWith('image/')) {
+        mediaElement = document.createElement('img');
+        mediaElement.src = e.target.result;
+      } else if (file.type.startsWith('video/')) {
+        mediaElement = document.createElement('video');
+        mediaElement.src = e.target.result;
+        mediaElement.controls = true;
+      }
+
+      mediaElement.style.maxWidth = '100%';
+      mediaElement.style.maxHeight = '100%';
+      mediaElement.style.objectFit = 'contain';
+
+      const removeBtn = createRemoveBtn(mediaItem);
+
+      mediaItem.appendChild(mediaElement);
+      mediaItem.appendChild(removeBtn);
+
+      const uploadWrapper = container.querySelector('.media-upload-wrapper');
+      container.insertBefore(mediaItem, uploadWrapper);
+
+      window.currentWorkshopMedia.push({
+        element: mediaItem,
+        file: file,
+        existing: false,
+        url: e.target.result
+      });
+
+      window.detailMediaCurrentIndex = window.currentWorkshopMedia.length - 1;
+      updateMediaNavigation();
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Update de media navigatie (vorige/volgende knoppen)
+   */
+  function updateMediaNavigation() {
+    if (!window.currentWorkshopMedia || window.currentWorkshopMedia.length === 0) {
+      document.getElementById('prevDetailMedia').style.display = 'none';
+      document.getElementById('nextDetailMedia').style.display = 'none';
+      return;
+    }
+
+    // Zorg dat de index altijd geldig is
+    if (window.detailMediaCurrentIndex >= window.currentWorkshopMedia.length || window.detailMediaCurrentIndex < 0) {
+      window.detailMediaCurrentIndex = 0;
+    }
+
+    // Toon alleen het huidige item
+    window.currentWorkshopMedia.forEach((m, i) => {
+      m.element.style.display = i === window.detailMediaCurrentIndex ? 'flex' : 'none';
+    });
+
+    const prevBtn = document.getElementById('prevDetailMedia');
+    const nextBtn = document.getElementById('nextDetailMedia');
+
+    if (window.currentWorkshopMedia.length > 1) {
+      prevBtn.style.display = 'block';
+      nextBtn.style.display = 'block';
+
+      prevBtn.onclick = (e) => {
+        e.stopPropagation();
+        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex - 1 + window.currentWorkshopMedia.length) % window.currentWorkshopMedia.length;
+        updateMediaNavigation();
+      };
+
+      nextBtn.onclick = (e) => {
+        e.stopPropagation();
+        window.detailMediaCurrentIndex = (window.detailMediaCurrentIndex + 1) % window.currentWorkshopMedia.length;
+        updateMediaNavigation();
+      };
+    } else {
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+    }
+  }
+
+  /**
+   * Voegt bestandsupload toe aan een categorie lijst
+   * @param {string} category - Categorie naam
+   * @param {HTMLElement} listElement - Het lijst element
+   */
+  function addFileUploadToCategory(category, listElement) {
+    const uploadContainer = document.createElement('div');
+    uploadContainer.style.marginTop = '10px';
+
+    const uploadLabel = document.createElement('label');
+    uploadLabel.style.display = 'inline-block';
+    uploadLabel.style.padding = '6px 12px';
+    uploadLabel.style.background = '#5481B7';
+    uploadLabel.style.color = 'white';
+    uploadLabel.style.borderRadius = '4px';
+    uploadLabel.style.cursor = 'pointer';
+    uploadLabel.style.fontSize = '14px';
+    uploadLabel.textContent = `➕ Bestand toevoegen aan ${category}`;
+
+    const uploadInput = document.createElement('input');
+    uploadInput.type = 'file';
+    uploadInput.multiple = true;
+    uploadInput.style.display = 'none';
+
+    uploadLabel.appendChild(uploadInput);
+    uploadContainer.appendChild(uploadLabel);
+    listElement.appendChild(uploadContainer);
+
+    uploadInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        // Controleer bestandstype
+        const ext = file.name.split('.').pop().toLowerCase();
+        const forbiddenExtensions = ['doc', 'docx'];
+
+        if (forbiddenExtensions.includes(ext)) {
+          showAlert(`Bestandstype .${ext} is niet toegestaan. Gebruik PDF of TXT.`);
+          return;
+        }
+
+        // Voeg toe aan huidige documenten
+        if (!window.currentWorkshopDocuments[category]) {
+          window.currentWorkshopDocuments[category] = [];
+        }
+
+        window.currentWorkshopDocuments[category].push({
+          file: file,
+          existing: false
+        });
+
+        // Toon in lijst
+        const tempDoc = {
+          name: file.name,
+          url: URL.createObjectURL(file)
+        };
+
+        const li = createDocumentListItem(tempDoc, category, false);
+        listElement.insertBefore(li, uploadContainer);
+      });
+
+      uploadInput.value = '';
+    });
+  }
+
+  /**
+   * Update de workshop via de API
+   */
   document.getElementById('updateWorkshopBtn').addEventListener('click', async () => {
     if (!currentWorkshopId) return;
 
@@ -860,160 +1066,51 @@ document.addEventListener('DOMContentLoaded', () => {
       clearDetailsPopup();
       await showAlert("Workshop succesvol bijgewerkt!");
       window.dispatchEvent(new CustomEvent('workshopsUpdated'));
-
     } catch (e) {
       console.error("Update Workshop Error:", e);
       showAlert("Fout bij updaten workshop: " + e.message);
     }
   });
 
+  /**
+   * Verwijdert een workshop via de API
+   */
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      if (!currentWorkshopId) return;
+      const confirmDelete = await showConfirm('Weet je zeker dat je deze workshop wilt verwijderen?');
+      if (!confirmDelete) return;
 
-  // Helper functie voor veilige bestandsnamen (dezelfde als in management.js)
-  function makeSafeFileName(fileName) {
-    return fileName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '_')
-      .replace(/[^a-zA-Z0-9._-]/g, '');
-  }
+      try {
+        const res = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
 
+        if (!res.ok) throw new Error('Fout bij verwijderen workshop');
 
-  function getMediaElement(file) {
-    let rawUrl = file.url || file.name || file.path;
-    if (!rawUrl) return null;
-
-    let fileUrl;
-
-    // Bepaal URL - zelfde logica als in renderWorkshops
-    if (rawUrl.startsWith('http')) {
-      fileUrl = rawUrl;
-    } else if (rawUrl.startsWith('/uploads/') || rawUrl.startsWith('uploads/')) {
-      const cleanPath = rawUrl.replace(/^\/+/, '').replace(/^uploads\/?/, '');
-      fileUrl = `${API_URL}/uploads/${encodeURIComponent(cleanPath.split('/').pop())}`;
-    } else {
-      fileUrl = `${API_URL}/uploads/${encodeURIComponent(rawUrl.split(/[/\\]/).pop())}`;
-    }
-
-    const ext = rawUrl.split('.').pop()?.toLowerCase();
-
-    if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
-      const img = document.createElement('img');
-      img.src = fileUrl;
-      img.alt = 'Workshop media';
-      img.onerror = () => {
-        console.error('Failed to load image:', fileUrl);
-        img.src = '/image/default-workshop.jpeg';
-      };
-      return img;
-    } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
-      const video = document.createElement('video');
-      video.src = fileUrl;
-      video.controls = true;
-      video.preload = 'metadata';
-      return video;
-    }
-
-    return null;
-  }
-
-
-  // ===============================
-// LABELS - UPDATE WORKSHOP
-// ===============================
-
-  document.getElementById('addDetailLabelBtn')?.addEventListener('click', () => {
-    const nameInput = document.getElementById('detailLabelInput');
-    const colorInput = document.getElementById('detailLabelColor');
-
-    const name = nameInput.value.trim();
-    const color = colorInput.value;
-
-    if (!name) return;
-
-    if (!window.currentWorkshopLabels) {
-      window.currentWorkshopLabels = [];
-    }
-
-    // voorkom duplicaten
-    if (window.currentWorkshopLabels.some(l => l.name === name)) return;
-
-    window.currentWorkshopLabels.push({ name, color });
-    renderDetailLabels();
-
-    nameInput.value = '';
-  });
-
-  function renderDetailLabels() {
-    const container = document.getElementById('detailLabelPreview');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    (window.currentWorkshopLabels || []).forEach((label, index) => {
-      const tag = document.createElement('span');
-
-      tag.textContent = label.name;
-      tag.style.backgroundColor = label.color;
-      tag.style.color = '#fff';
-      tag.style.padding = '4px 8px';
-      tag.style.borderRadius = '6px';
-      tag.style.marginRight = '6px';
-      tag.style.display = 'inline-block';
-      tag.style.cursor = 'pointer';
-
-      // klik = verwijderen
-      tag.title = 'Klik om label te verwijderen';
-      tag.onclick = () => {
-        window.currentWorkshopLabels.splice(index, 1);
-        renderDetailLabels();
-      };
-
-      container.appendChild(tag);
+        detailsPopup.style.display = 'none';
+        clearDetailsPopup();
+        await loadWorkshops();
+      } catch (e) {
+        showAlert("fout")
+      }
     });
   }
 
-  function getFileIconClass(fileName){
-    if(!fileName) return 'fa-file';
-    const ext = fileName.split('.').pop().toLowerCase();
-    switch(ext){
-      case 'pdf': return 'fa-file-pdf';
-      case 'doc': case 'docx': return 'fa-file-word';
-      case 'xls': case 'xlsx': return 'fa-file-excel';
-      case 'ppt': case 'pptx': return 'fa-file-powerpoint';
-      case 'zip': return 'fa-file-archive';
-      case 'txt': return 'fa-file-lines';
-      default: return 'fa-file';
-    }
-  }
+  // =======================
+  // REVIEWS BEHEER
+  // =======================
 
-  function getContrastYIQ(hexcolor){
-    hexcolor = hexcolor.replace('#','');
-    const r = parseInt(hexcolor.substr(0,2),16);
-    const g = parseInt(hexcolor.substr(2,2),16);
-    const b = parseInt(hexcolor.substr(4,2),16);
-    const yiq = ((r*299)+(g*587)+(b*114))/1000;
-    return (yiq >= 128) ? 'black' : 'white';
-  }
-
-  function formatDuration(minutes) {
-    // als input al een string is, gewoon teruggeven
-    if (typeof minutes === 'string') return minutes;
-
-    const m = Number(minutes);
-    if (isNaN(m)) return '0';
-
-    const hours = Math.floor(m / 60);
-    const mins = m % 60;
-    if (hours > 0) return `${hours}u ${mins}m`;
-    return `${mins}m`;
-  }
-
+  /**
+   * Configureert de reviews sectie voor een workshop
+   * @param {Object} w - Workshop object
+   */
   function setupReviews(w) {
     const reviewBox = document.getElementById('detailReviewBox');
     const reviewsPopup = document.getElementById('reviewsPopup');
     const reviewsList = document.getElementById('reviewsList');
 
-    // Haal de nieuwe elementen op
     const respondPopup = document.getElementById('respondPopup');
     const respondForm = document.getElementById('respondForm');
 
@@ -1023,7 +1120,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Klik om de algemene reviews popup te openen
     reviewBox.onclick = () => { reviewsPopup.style.display = 'flex'; };
 
-    // --- Functie om de reageer-popup te openen ---
+    /**
+     * Opent de reageer-popup voor een specifieke review
+     * @param {string} reviewId - Review ID
+     * @param {string} userEmail - E-mail van de gebruiker
+     * @param {string} workshopTitle - Titel van de workshop
+     */
     function openRespondPopup(reviewId, userEmail, workshopTitle) {
       if (!respondPopup || !respondForm) {
         showAlert("Niet gevonden")
@@ -1047,12 +1149,11 @@ Het team
 
       respondPopup.style.display = 'flex';
     }
-    // Maak de functie globaal bereikbaar, zodat deze in de inline onclick gebruikt kan worden
+
+    // Maak de functie globaal bereikbaar
     window.openRespondPopup = openRespondPopup;
-    // ---------------------------------------------
 
-
-    // --- Event Listener voor het versturen van het reactieformulier ---
+    // Event Listener voor het versturen van het reactieformulier
     if (respondForm) {
       respondForm.onsubmit = async (event) => {
         event.preventDefault();
@@ -1070,36 +1171,30 @@ Het team
           return;
         }
 
+        const token = localStorage.getItem('jwt');
+        try {
+          const response = await fetch(`${API_URL}/reviews/${reviewId}/respond`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userEmail, workshopTitle, adminResponse })
+          });
 
-        const token = localStorage.getItem('jwt'); // of hoe jij hem opslaat
-      try{
-        const response = await fetch(`${API_URL}/reviews/${reviewId}/respond`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userEmail, workshopTitle, adminResponse })
-        });
-
-
-        if (response.ok) {
-          await showAlert('Reactie succesvol verstuurd naar de gebruiker!');
-          respondPopup.style.display = 'none';
-          respondForm.reset();
-        } else {
-          const error = await response.json();
-          await showAlert(`Fout bij versturen: ${error.message || response.statusText}`);
+          if (response.ok) {
+            await showAlert('Reactie succesvol verstuurd naar de gebruiker!');
+            respondPopup.style.display = 'none';
+            respondForm.reset();
+          } else {
+            const error = await response.json();
+            await showAlert(`Fout bij versturen: ${error.message || response.statusText}`);
+          }
+        } catch (error) {
+          await showAlert('Er is een netwerkfout opgetreden.');
         }
-
-      } catch (error) {
-        await showAlert('Er is een netwerkfout opgetreden.');
-      }
-
       };
     }
-    // ----------------------------------------------------
-
 
     if (w.reviews && w.reviews.length > 0) {
       // Gemiddelde sterren
@@ -1118,14 +1213,10 @@ Het team
 
       // Reviews in popup
       w.reviews.forEach(async r => {
-        // ⚠️ BELANGRIJKE AANNAMES:
-        // 1. De review heeft een unieke ID: r.id
-        // 2. De workshop heeft een titel: w.title
         const reviewId = r.id;
-
         const user = r.userId ? await getUserMail(r.userId) : { email: 'unknown@example.com' };
         const displayName = user.email || 'Onbekend';
-        const userEmail = user.email || 'unknown@example.com'; // Gebruik 'unknown' als fallback
+        const userEmail = user.email || 'unknown@example.com';
 
         const li = document.createElement('li');
         li.className = "review-item";
@@ -1160,7 +1251,12 @@ Het team
       reviewBox.innerHTML = '<p>Nog geen reviews</p>';
     }
   }
-  // Fetch user info (email)
+
+  /**
+   * Haalt e-mail van een gebruiker op via de API
+   * @param {string} userId - Gebruiker ID
+   * @returns {Promise<Object>} Object met e-mail
+   */
   async function getUserMail(userId) {
     try {
       const res = await fetch(`${API_URL}/users/${userId}`, { headers: getAuthHeaders() });
@@ -1173,35 +1269,12 @@ Het team
   }
 
   // =======================
-  // Delete workshop
+  // ZOEKFUNCTIE
   // =======================
-  if (deleteBtn) {
-    deleteBtn.addEventListener('click', async () => {
-      if (!currentWorkshopId) return;
-      const confirmDelete = await showConfirm('Weet je zeker dat je deze workshop wilt verwijderen?');
-      if (!confirmDelete) return;
 
-
-      try {
-        const res = await fetch(`${API_URL}/workshops/${currentWorkshopId}`, {
-          method: 'DELETE',
-          headers: getAuthHeaders()
-        });
-
-        if (!res.ok) throw new Error('Fout bij verwijderen workshop');
-
-        detailsPopup.style.display = 'none';
-        clearDetailsPopup();
-        await loadWorkshops();
-     } catch (e) {
-        showAlert("fout")
-      }
-    });
-  }
-
-  // =======================
-  // Search functionaliteit
-  // =======================
+  /**
+   * Filtert workshops op basis van zoekterm
+   */
   if (searchInput) {
     const noResultsMsg = document.getElementById('no-results');
 
@@ -1227,13 +1300,82 @@ Het team
   }
 
   // =======================
-  // Clear details popup
+  // CATEGORIE TOGGLE
   // =======================
+
+  /**
+   * Toggle functionaliteit voor categorie secties
+   */
+  document.querySelectorAll('.file-category-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const allContents = document.querySelectorAll('.file-category-content');
+      const currentContent = header.nextElementSibling;
+
+      // Sluit alle andere categorieën
+      allContents.forEach(content => {
+        if (content !== currentContent) {
+          content.style.display = 'none';
+        }
+      });
+
+      // Toggle de aangeklikte categorie
+      currentContent.style.display = currentContent.style.display === 'flex' ? 'none' : 'flex';
+    });
+  });
+
+  // =======================
+  // LIGHTBOX FUNCTIONALITEIT
+  // =======================
+
+  /**
+   * Lightbox voor het vergroten van media
+   */
+  const lightbox = document.getElementById('mediaLightbox');
+  const lightboxImg = document.getElementById('lightboxImage');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const closeLightbox = document.querySelector('.close-lightbox');
+
+  // Klik op media in detailweergave → toon groter
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#detailMediaContainer img')) {
+      const src = e.target.src;
+      lightboxImg.src = src;
+      lightboxImg.style.display = 'block';
+      lightboxVideo.style.display = 'none';
+      lightbox.style.display = 'flex';
+    } else if (e.target.closest('#detailMediaContainer video')) {
+      const src = e.target.querySelector('source')?.src || e.target.src;
+      lightboxVideo.src = src;
+      lightboxVideo.style.display = 'block';
+      lightboxImg.style.display = 'none';
+      lightbox.style.display = 'flex';
+    }
+  });
+
+  // Klik op sluitknop of buiten beeld → sluit
+  closeLightbox.addEventListener('click', () => {
+    lightbox.style.display = 'none';
+    lightboxImg.src = '';
+    lightboxVideo.src = '';
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      lightbox.style.display = 'none';
+      lightboxImg.src = '';
+      lightboxVideo.src = '';
+    }
+  });
+
+  // =======================
+  // CLEAR FUNCTIES
+  // =======================
+
+  /**
+   * Reset alle velden in de details popup
+   */
   function clearDetailsPopup() {
     currentWorkshopId = null;
-
-    // ❌ NIET wissen:
-    // window.currentWorkshopData = null;
 
     window.currentWorkshopLabels = [];
     window.currentWorkshopMedia = [];
@@ -1279,69 +1421,14 @@ Het team
     const reviewBox = document.getElementById('detailReviewBox');
     if (reviewBox) reviewBox.innerHTML = '';
   }
-  // =======================
-  // Categorie toggle
-  // =======================
-  document.querySelectorAll('.file-category-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const allContents = document.querySelectorAll('.file-category-content');
-      const currentContent = header.nextElementSibling;
-
-      // Sluit alle andere categorieën
-      allContents.forEach(content => {
-        if (content !== currentContent) {
-          content.style.display = 'none';
-        }
-      });
-
-      // Toggle de aangeklikte categorie
-      currentContent.style.display = currentContent.style.display === 'flex' ? 'none' : 'flex';
-    });
-  });
 
   // =======================
-  // Lightbox functionaliteit
+  // NAVIGATIE
   // =======================
-  const lightbox = document.getElementById('mediaLightbox');
-  const lightboxImg = document.getElementById('lightboxImage');
-  const lightboxVideo = document.getElementById('lightboxVideo');
-  const closeLightbox = document.querySelector('.close-lightbox');
 
-  // Klik op media in detailweergave → toon groter
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('#detailMediaContainer img')) {
-      const src = e.target.src;
-      lightboxImg.src = src;
-      lightboxImg.style.display = 'block';
-      lightboxVideo.style.display = 'none';
-      lightbox.style.display = 'flex';
-    } else if (e.target.closest('#detailMediaContainer video')) {
-      const src = e.target.querySelector('source')?.src || e.target.src;
-      lightboxVideo.src = src;
-      lightboxVideo.style.display = 'block';
-      lightboxImg.style.display = 'none';
-      lightbox.style.display = 'flex';
-    }
-  });
-
-  // Klik op sluitknop of buiten beeld → sluit
-  closeLightbox.addEventListener('click', () => {
-    lightbox.style.display = 'none';
-    lightboxImg.src = '';
-    lightboxVideo.src = '';
-  });
-
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) {
-      lightbox.style.display = 'none';
-      lightboxImg.src = '';
-      lightboxVideo.src = '';
-    }
-  });
-
-  // =======================
-  // Terug naar dashboard
-  // =======================
+  /**
+   * Terug naar dashboard knop
+   */
   const backBtn = document.getElementById("backToDashboardBtn");
   if (backBtn) {
     backBtn.addEventListener("click", (e) => {
@@ -1350,78 +1437,46 @@ Het team
     });
   }
 
+  /**
+   * Sluit de reviews popup
+   */
   var reviewsPopup = document.getElementById("reviewsPopup");
   var closeButton = document.getElementById("closeReviewsPopup");
 
-  closeButton.onclick = function() {
+  closeButton.onclick = function () {
     reviewsPopup.style.display = "none";
   }
-  window.onclick = function(event) {
+  window.onclick = function (event) {
     if (event.target == reviewsPopup) {
       reviewsPopup.style.display = "none";
     }
   }
 
+  // =======================
+  // EVENT LISTENERS
+  // =======================
 
-  // =======================
-  // Luister naar workshop updates
-  // =======================
+  /**
+   * Luistert naar workshop updates
+   */
   window.addEventListener('workshopsUpdated', () => {
     loadWorkshops();
   });
 
-
-
-  function showAlert(message) {
-    return new Promise(resolve => {
-      const alertModal = document.getElementById('customAlert');
-      const alertMsg = document.getElementById('customAlertMessage');
-      const okBtn = document.getElementById('customAlertOk');
-      forceToTop(alertModal);
-      alertMsg.textContent = message;
-      alertModal.style.display = 'flex';
-
-      // Timer voor automatisch sluiten na 2 seconden
-      const timer = setTimeout(() => {
-        alertModal.style.display = 'none';
-        resolve();
-      }, 2000);
-
-      // Sluiten via knop annuleert timer
-      okBtn.onclick = () => {
-        clearTimeout(timer);
-        alertModal.style.display = 'none';
-        resolve();
-      };
-    });
-  }
-
-
-  function showConfirm(message) {
-    return new Promise(resolve => {
-      const confirmModal = document.getElementById('customConfirm');
-      const confirmMsg = document.getElementById('customConfirmMessage');
-      const yesBtn = document.getElementById('customConfirmYes');
-      const noBtn = document.getElementById('customConfirmNo');
-      forceToTop(confirmModal);
-      confirmMsg.textContent = message;
-      confirmModal.style.display = 'flex';
-
-      yesBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        resolve(true);
-      };
-      noBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        resolve(false);
-      };
-    });
-  }
-
+  /**
+   * Luistert naar workshop updates van management.js
+   */
+  window.addEventListener('workshopsUpdated', () => {
+    loadWorkshops();
+  });
 
   // =======================
-  // Init
+  // INITIALISATIE
   // =======================
+
+  /**
+   * Initialiseert de viewer
+   */
   loadWorkshops();
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {

@@ -1,7 +1,15 @@
 // workshop-management.js
+/**
+ * HOOFDMODULE: Workshop Management
+ * Deze module biedt een complete interface voor het beheren van workshops.
+ * Gebruikers kunnen workshops aanmaken, bewerken, afbeeldingen uploaden,
+ * labels toewijzen en bestanden koppelen aan verschillende categorieën.
+ * Alle data wordt via de API naar de server gestuurd met JWT authenticatie.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
   // =======================
-  // Elementen ophalen voor management
+  // ELEMENTEN OPHALEN VOOR MANAGEMENT
   // =======================
   const addBtn = document.getElementById('addWorkshopBtn');
   const popup = document.getElementById('workshopPopup');
@@ -39,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedWorksheets = [];
 
   // =======================
-  // API Base URL
+  // API CONFIGURATIE
   // =======================
   const API_URL =
     window.location.hostname === "localhost"
@@ -47,8 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
       : "https://workshoptest.wailsalutem-foundation.com";
 
   // =======================
-  // Helper: Authorization header
+  // HELPERFUNCTIES
   // =======================
+
+  /**
+   * Geeft de Authorization header met JWT token terug
+   * @returns {Object} Headers object met Authorization token
+   * @throws {Error} Als er geen JWT token gevonden is
+   */
   function getAuthHeaders() {
     const token = localStorage.getItem("jwt");
     if (!token) throw new Error("Geen JWT token gevonden!");
@@ -57,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  /**
+   * Toont een foutmelding in de juiste container (popup of hoofdscherm)
+   * @param {string} message - De foutmelding die getoond moet worden
+   */
   function showError(message) {
     const popup = document.getElementById('workshopPopup');
     const popupVisible = popup && popup.style.display === 'flex';
@@ -92,12 +110,129 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
   }
 
+  /**
+   * Toont een bevestigingsdialoog met ja/nee opties
+   * @param {string} message - Het bericht dat getoond moet worden
+   * @returns {Promise<boolean>} Promise die resolved met true (ja) of false (nee)
+   */
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const confirmModal = document.getElementById('customConfirm');
+      const confirmMsg = document.getElementById('customConfirmMessage');
+      const yesBtn = document.getElementById('customConfirmYes');
+      const noBtn = document.getElementById('customConfirmNo');
 
+      if (!confirmModal || !confirmMsg || !yesBtn || !noBtn) {
+        console.error('Confirm modal elementen niet gevonden');
+        resolve(false);
+        return;
+      }
+
+      // Forceer naar top
+      const root = document.getElementById('global-modal-root');
+      if (root && confirmModal.parentNode !== root) {
+        root.appendChild(confirmModal);
+      }
+
+      confirmMsg.textContent = message;
+      confirmModal.style.display = 'flex';
+
+      yesBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(true);
+      };
+      noBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        resolve(false);
+      };
+    });
+  }
+
+  /**
+   * Toont een succesbericht in een alert modal
+   * @param {string} message - Het succesbericht
+   * @returns {Promise} Promise die resolved wanneer de alert gesloten wordt
+   */
+  function showAlert(message) {
+    return new Promise(resolve => {
+      const alertModal = document.getElementById('customAlert');
+      const alertMsg = document.getElementById('customAlertMessage');
+      const okBtn = document.getElementById('customAlertOk');
+
+      if (!alertModal || !alertMsg || !okBtn) {
+        console.error('Alert modal elementen niet gevonden');
+        resolve();
+        return;
+      }
+
+      // Forceer naar top
+      const root = document.getElementById('global-modal-root');
+      if (root && alertModal.parentNode !== root) {
+        root.appendChild(alertModal);
+      }
+
+      alertMsg.textContent = message;
+      alertModal.style.display = 'flex';
+
+      // Timer voor automatisch sluiten na 2 seconden
+      const timer = setTimeout(() => {
+        alertModal.style.display = 'none';
+        resolve();
+      }, 2000);
+
+      // Sluiten via knop annuleert timer
+      okBtn.onclick = () => {
+        clearTimeout(timer);
+        alertModal.style.display = 'none';
+        resolve();
+      };
+    });
+  }
+
+  /**
+   * Maakt een veilige bestandsnaam door speciale tekens te verwijderen
+   * @param {string} fileName - De originele bestandsnaam
+   * @returns {string} Veilige bestandsnaam
+   */
+  function makeSafeFileName(fileName) {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // verwijder accenten
+      .replace(/\s+/g, '_') // vervang spaties
+      .replace(/[^a-zA-Z0-9._-]/g, ''); // verwijder vreemde tekens
+  }
+
+  /**
+   * Bepaalt het FontAwesome icoon voor een bestand op basis van extensie
+   * @param {string} fileName - De bestandsnaam
+   * @returns {string} FontAwesome CSS klasse
+   */
+  function getFileIconClass(fileName) {
+    if (!fileName) return 'fa-file';
+    const ext = fileName.split('.').pop().toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'fa-file-pdf';
+      case 'doc': case 'docx': return 'fa-file-word';
+      case 'xls': case 'xlsx': return 'fa-file-excel';
+      case 'ppt': case 'pptx': return 'fa-file-powerpoint';
+      case 'zip': return 'fa-file-archive';
+      case 'txt': return 'fa-file-lines';
+      default: return 'fa-file';
+    }
+  }
 
   // =======================
-  // Open/Close popup
+  // POPUP BEHEER
   // =======================
+
+  /**
+   * Opent de workshop popup voor het toevoegen van een nieuwe workshop
+   */
   if (addBtn) addBtn.addEventListener('click', () => popup.style.display = 'flex');
+
+  /**
+   * Sluit de workshop popup en reset alle velden
+   */
   if (closeBtn) closeBtn.addEventListener('click', () => { popup.style.display = 'none'; clearPopup(); });
   if (closeDetailsBtnCancel) closeDetailsBtnCancel.addEventListener('click', () => { popup.style.display = 'none'; clearPopup(); });
   window.addEventListener('click', (e) => {
@@ -105,19 +240,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =======================
-  // Hoofdafbeelding selecteren
+  // AFBEELDINGEN & MEDIA BEHEER
   // =======================
-  if(mainImageInput){
+
+  /**
+   * Handelt het selecteren van de hoofdafbeelding voor de workshop
+   */
+  if (mainImageInput) {
     mainImageInput.addEventListener('change', e => {
       const file = e.target.files[0];
-      if(file) mainImage = file;
+      if (file) mainImage = file;
       mainImageInput.value = '';
     });
   }
 
-  // =======================
-  // Media selecteren (afbeeldingen + video) met betere validatie
-  // =======================
+  /**
+   * Handelt het selecteren van media bestanden (afbeeldingen en video)
+   * Met validatie voor maximum aantal en bestandstypes
+   */
   if (workshopImagesInput) {
     workshopImagesInput.addEventListener('change', e => {
       const files = Array.from(e.target.files);
@@ -166,8 +306,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-  // Category file handling
+  // CATEGORIE BESTANDEN BEHEER
   // =======================
+
+  /**
+   * Handelt het uploaden van bestanden voor een specifieke categorie
+   * @param {HTMLElement} input - Het file input element
+   * @param {Array} array - De array waarin bestanden worden opgeslagen
+   */
   function handleCategoryFiles(input, array) {
     if (!input) return;
     input.addEventListener('change', e => {
@@ -193,9 +339,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /**
+   * Update de preview van bestanden in een categorie
+   * @param {Array} array - Array met bestanden
+   * @param {string} previewId - ID van het preview element
+   */
   function updateCategoryPreview(array, previewId) {
     const container = document.getElementById(previewId);
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
 
     array.forEach((file, idx) => {
@@ -214,20 +365,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Initialiseer categorie bestand handlers
   handleCategoryFiles(instructionsInput, selectedInstructions);
   handleCategoryFiles(manualsInput, selectedManuals);
   handleCategoryFiles(demoInput, selectedDemo);
   handleCategoryFiles(worksheetsInput, selectedWorksheets);
 
   // =======================
-  // Labels toevoegen
+  // LABELS BEHEER
   // =======================
+
+  /**
+   * Voegt een nieuwe label toe aan de workshop
+   * Labels hebben een naam en kleur en worden visueel weergegeven
+   */
   addLabelBtn.addEventListener('click', () => {
     const name = labelInput.value.trim();
     const color = labelColor.value;
-    if(!name) return;
+    if (!name) return;
 
-    labels.push({name, color});
+    labels.push({ name, color });
 
     const span = document.createElement('span');
     span.textContent = name;
@@ -243,10 +400,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =======================
-  // Preview functies
+  // PREVIEW FUNCTIES
   // =======================
-  function updateMediaPreview(){
-    if(!workshopPreview) return;
+
+  /**
+   * Update de preview van geselecteerde media (afbeeldingen en video)
+   * Toont thumbnails met verwijderknoppen
+   */
+  function updateMediaPreview() {
+    if (!workshopPreview) return;
     workshopPreview.innerHTML = '';
     selectedMedia.forEach(file => {
       const reader = new FileReader();
@@ -254,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.createElement('div');
         el.classList.add('preview-thumb');
 
-        if(file.type.startsWith('image/')){
+        if (file.type.startsWith('image/')) {
           const img = document.createElement('img');
           img.src = e.target.result;
           img.style.width = '100px';
@@ -262,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
           img.style.objectFit = 'cover';
           img.style.borderRadius = '8px';
           el.appendChild(img);
-        } else if(file.type.startsWith('video/')){
+        } else if (file.type.startsWith('video/')) {
           const video = document.createElement('video');
           video.src = e.target.result;
           video.controls = true;
@@ -297,8 +459,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function updateFilesPreview(){
-    if(!workshopFilePreview) return;
+  /**
+   * Update de preview van geselecteerde bestanden
+   * Toont bestandsnamen met iconen en verwijderknoppen
+   */
+  function updateFilesPreview() {
+    if (!workshopFilePreview) return;
     workshopFilePreview.innerHTML = '';
 
     selectedFiles.forEach(file => {
@@ -329,32 +495,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function getFileIconClass(fileName){
-    if(!fileName) return 'fa-file';
-    const ext = fileName.split('.').pop().toLowerCase();
-    switch(ext){
-      case 'pdf': return 'fa-file-pdf';
-      case 'doc': case 'docx': return 'fa-file-word';
-      case 'xls': case 'xlsx': return 'fa-file-excel';
-      case 'ppt': case 'pptx': return 'fa-file-powerpoint';
-      case 'zip': return 'fa-file-archive';
-      case 'txt': return 'fa-file-lines';
-      default: return 'fa-file';
-    }
-  }
-
-  // Helperfunctie om veilige bestandsnamen te maken
-  function makeSafeFileName(fileName) {
-    return fileName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // verwijder accenten
-      .replace(/\s+/g, '_') // vervang spaties
-      .replace(/[^a-zA-Z0-9._-]/g, ''); // verwijder vreemde tekens
-  }
-
   // =======================
-  // Workshop opslaan
+  // WORKSHOP OPSLAAN
   // =======================
+
+  /**
+   * Handelt het opslaan van een workshop (nieuw of bewerken)
+   * Voert validatie uit, toont laadscherm en verstuurt data naar API
+   */
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
       const name = document.getElementById('workshopName').value.trim();
@@ -414,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
           formData.append('image', safeFile);
         }
 
-        // 🔹 Voor al je bestanden in verschillende categorieën:
+        // 🔹 Helper functie om veilig bestanden toe te voegen aan FormData
         const appendFilesSafely = (files, key) => {
           files.forEach(f => {
             const safeName = makeSafeFileName(f.name);
@@ -423,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         };
 
+        // Voeg alle categorie bestanden toe
         appendFilesSafely(selectedMedia, 'media');
         appendFilesSafely(selectedInstructions, 'instructionsFiles');
         appendFilesSafely(selectedManuals, 'manualsFiles');
@@ -437,6 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ...selectedWorksheets.map(f => ({ name: makeSafeFileName(f.name), category: 'worksheets' })),
         ]));
 
+        // Voeg quiz toe als deze bestaat
         if (window.currentWorkshopData?.quiz) {
           formData.append('quiz', JSON.stringify(window.currentWorkshopData.quiz));
         }
@@ -470,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Stel de completion handler in
-        xhr.onload = function() {
+        xhr.onload = function () {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const responseData = JSON.parse(xhr.responseText);
@@ -525,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         };
 
-        xhr.onerror = function() {
+        xhr.onerror = function () {
           // Verberg laadpopup bij netwerkfout
           if (loadingPopup) {
             loadingPopup.style.display = 'none';
@@ -548,28 +698,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-// In workshop-management.js, na DOMContentLoaded:
+  // =======================
+  // EVENT LISTENERS
+  // =======================
+
+  /**
+   * Luistert naar het workshopsUpdated event om de viewer te vernieuwen
+   */
   window.addEventListener('workshopsUpdated', () => {
     // De viewer zal zichzelf vernieuwen
   });
 
   // =======================
-  // Clear functies
+  // CLEAR FUNCTIES
   // =======================
-  function clearPopup(){
-    currentWorkshopId=null;
-    mainImage=null;
-    selectedMedia=[];
-    selectedFiles=[];
-    labels=[];
-    document.getElementById('workshopName').value='';
-    document.getElementById('workshopDesc').value='';
-    document.getElementById('workshopDuration').value='';
-    labelPreview.innerHTML='';
-    if(workshopPreview) workshopPreview.innerHTML='';
-    if(workshopFilePreview) workshopFilePreview.innerHTML='';
-    if(mainImageInput) mainImageInput.value='';
-    if(workshopImagesInput) workshopImagesInput.value='';
+
+  /**
+   * Reset alle velden in de workshop popup naar hun initiële staat
+   */
+  function clearPopup() {
+    currentWorkshopId = null;
+    mainImage = null;
+    selectedMedia = [];
+    selectedFiles = [];
+    labels = [];
+    document.getElementById('workshopName').value = '';
+    document.getElementById('workshopDesc').value = '';
+    document.getElementById('workshopDuration').value = '';
+    labelPreview.innerHTML = '';
+    if (workshopPreview) workshopPreview.innerHTML = '';
+    if (workshopFilePreview) workshopFilePreview.innerHTML = '';
+    if (mainImageInput) mainImageInput.value = '';
+    if (workshopImagesInput) workshopImagesInput.value = '';
 
     // Reset category arrays
     selectedInstructions = [];
@@ -585,87 +745,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =======================
-  // Public functions voor andere scripts
+  // PUBLIC FUNCTIES VOOR ANDERE SCRIPTS
   // =======================
+
+  /**
+   * Globale namespace voor workshop management functies
+   */
   window.workshopManagement = {
+    /**
+     * Opent de workshop popup in bewerkmodus
+     * @param {string} id - ID van de workshop die bewerkt moet worden
+     */
     editWorkshop: (id) => {
       currentWorkshopId = id;
       // Hier zou je de popup vullen met bestaande data
       popup.style.display = 'flex';
     },
+    /**
+     * Reset de workshop popup
+     */
     clearPopup: clearPopup
   };
-
-
-  // workshop-management.js - Voeg deze functies toe bovenaan na DOMContentLoaded
-
-  function showAlert(message) {
-    return new Promise(resolve => {
-      const alertModal = document.getElementById('customAlert');
-      const alertMsg = document.getElementById('customAlertMessage');
-      const okBtn = document.getElementById('customAlertOk');
-
-      if (!alertModal || !alertMsg || !okBtn) {
-        console.error('Alert modal elementen niet gevonden');
-        resolve();
-        return;
-      }
-
-      // Forceer naar top
-      const root = document.getElementById('global-modal-root');
-      if (root && alertModal.parentNode !== root) {
-        root.appendChild(alertModal);
-      }
-
-      alertMsg.textContent = message;
-      alertModal.style.display = 'flex';
-
-      // Timer voor automatisch sluiten na 2 seconden
-      const timer = setTimeout(() => {
-        alertModal.style.display = 'none';
-        resolve();
-      }, 2000);
-
-      // Sluiten via knop annuleert timer
-      okBtn.onclick = () => {
-        clearTimeout(timer);
-        alertModal.style.display = 'none';
-        resolve();
-      };
-    });
-  }
-
-  function showConfirm(message) {
-    return new Promise(resolve => {
-      const confirmModal = document.getElementById('customConfirm');
-      const confirmMsg = document.getElementById('customConfirmMessage');
-      const yesBtn = document.getElementById('customConfirmYes');
-      const noBtn = document.getElementById('customConfirmNo');
-
-      if (!confirmModal || !confirmMsg || !yesBtn || !noBtn) {
-        console.error('Confirm modal elementen niet gevonden');
-        resolve(false);
-        return;
-      }
-
-      // Forceer naar top
-      const root = document.getElementById('global-modal-root');
-      if (root && confirmModal.parentNode !== root) {
-        root.appendChild(confirmModal);
-      }
-
-      confirmMsg.textContent = message;
-      confirmModal.style.display = 'flex';
-
-      yesBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        resolve(true);
-      };
-      noBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        resolve(false);
-      };
-    });
-  }
 });
-
