@@ -47,43 +47,47 @@ export class MailService {
    * --------------------------------------------------- */
   private baseTemplate(title: string, content: string): string {
     return `
+    <div style="
+      padding:32px 0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:#111827;
+    ">
       <div style="
-        background-color:#f3f4f6;
-        padding:40px 0;
-        font-family:Arial, Helvetica, sans-serif;
+        max-width:600px;
+        margin:0 auto;
+        padding:24px;
       ">
-        <div style="
-          max-width:600px;
-          margin:0 auto;
-          background-color:#1f2933;
-          color:#e5e7eb;
-          border-radius:8px;
-          padding:32px;
+        <h2 style="
+          margin-top:0;
+          font-size:22px;
+          color:#111827;
         ">
-          <h2 style="
-            margin-top:0;
-            color:#38bdf8;
-            font-size:22px;
-          ">
-            ${title}
-          </h2>
+          ${title}
+        </h2>
 
-          <div style="font-size:15px; line-height:1.6;">
-            ${content}
-          </div>
-
-          <hr style="
-            border:none;
-            border-top:1px solid #374151;
-            margin:32px 0;
-          " />
-
-          <p style="font-size:12px; color:#9ca3af;">
-            Dit is een automatisch bericht. Reageren is niet nodig.
-          </p>
+        <div style="
+          font-size:15px;
+          line-height:1.6;
+          color:#111827;
+        ">
+          ${content}
         </div>
+
+        <hr style="
+          border:none;
+          border-top:1px solid #d1d5db;
+          margin:32px 0;
+        " />
+
+        <p style="
+          font-size:12px;
+          color:#6b7280;
+        ">
+          Dit is een automatisch bericht. Reageren is niet nodig.
+        </p>
       </div>
-    `;
+    </div>
+  `;
   }
 
   /* ---------------------------------------------------
