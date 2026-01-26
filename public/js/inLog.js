@@ -72,8 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================== LOGIN ==================
+// ================== LOGIN ==================
   const loginBtn = document.querySelector(".login button");
+
   if (loginBtn) {
     loginBtn.addEventListener("click", async () => {
       const email = document.querySelector(".login input[type='email']").value.trim();
@@ -84,13 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const isAdminLogin = email.toLowerCase().includes("admin");
-      const endpoint = isAdminLogin
-        ? `${API_URL}/auth/login`
-        : `${API_URL}/register/login`;
-
       try {
-        const response = await fetch(endpoint, {
+        // Alleen deze fetch, backend bepaalt role
+        const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -99,10 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          const message =
-            data.message ||
-            data.error ||
-            "Er ging iets mis bij het inloggen.";
+          const message = data.message || data.error || "Er ging iets mis bij het inloggen.";
           showCustomPopup(message, 'error');
           return;
         }
@@ -116,12 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem("jwt", token);
 
+        // Role check
         const payload = JSON.parse(atob(token.split('.')[1]));
         const roles = payload.roles
           ? (Array.isArray(payload.roles) ? payload.roles : [payload.roles])
           : (payload.role ? [payload.role] : []);
         const rolesNormalized = roles.map(r => r.toUpperCase());
 
+        // Redirect op basis van role
         if (rolesNormalized.includes('ADMIN')) {
           showCustomPopup('Welkom admin!', 'success', 1000);
           setTimeout(() => {
@@ -142,10 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================== ENTER TO LOGIN ==================
-  const loginInputs = document.querySelectorAll(
-    ".login input[type='email'], .login input[type='password']"
-  );
+// ================== ENTER TO LOGIN ==================
+  const loginInputs = document.querySelectorAll(".login input[type='email'], .login input[type='password']");
 
   loginInputs.forEach(input => {
     input.addEventListener("keydown", (e) => {

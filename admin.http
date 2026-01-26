@@ -1,25 +1,25 @@
-### Create Admin User
+### Create Admin User webapp
 POST https://workshoptest.wailsalutem-foundation.com/register/admin
 Content-Type: application/json
 
 
 {
-  "email": "admin@workshop.com",
-  "password": "H3nf0#iHF@39",
-  "firstName": "Admin",
-  "lastName": "User"
+  "email": "wailkherrazi@gmail.com",
+  "password": "Ieurpq@829!dk",
+  "firstName": "Wail",
+  "lastName": "Kherrazi"
 }
 
-### Create Admin User
+### Create Admin User local
 POST http://localhost:3000/register/admin
 Content-Type: application/json
 
 
 {
-  "email": "admin@workshop.com",
-  "password": "H3nf0#iHF@39",
-  "firstName": "Admin",
-  "lastName": "User"
+  "email": "wailkherrazi@gmail.com",
+  "password": "Ieurpq@829!dk",
+  "firstName": "Wail",
+  "lastName": "Kherrazi"
 }
 ### 3. Login Admin Gebruiker (Token ophalen)
 # Dit endpoint authenticiseert de Admin gebruiker.
